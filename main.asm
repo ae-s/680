@@ -34,6 +34,8 @@
 	xdef	_nostub
 	include "../tios.h"
 
+	;; == Memory Macros ================================================
+
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
 FETCHB	MACRO			; 14 cycles, 4 bytes
@@ -59,6 +61,8 @@ PUTW	MACRO			; 14 cycles, 4 bytes
 	move.b	\1,(\2,a6)
 	ENDM
 
+	;; == Immediate Memory Macros ==
+
 	;; Macro to read an immediate byte into \2.
 FETCHBI	MACRO			; 18 cycles, 6 bytes
 	addq.w	#1,d2		;  4/2
@@ -73,6 +77,8 @@ FETCHWI	MACRO			; 36 cycles, 12 bytes
 	move.b	-2(d2.w,a6),\2	; 14/4
 	ENDM
 
+	;; == Common Opcode Macros =========================================
+
 	;; When you want to use the high reg of a pair, use this first
 LOHI	MACRO			; 6 cycles, 2 bytes
 	ror	#8,\1
@@ -85,9 +91,38 @@ HILO	MACRO			; 6 cycles, 2 bytes
 
 DONE	MACRO			; 8 cycles, 2 bytes
 	;; calc84maniac suggests putting emu_fetch into this in order
-	;; to save 8 cycles per instruction
+	;; to save 8 cycles per instruction, at the expense of code
+	;; size
 	jmp	(a2)
 	ENDM
+
+	;; == Special Opcode Macros ========================================
+
+	;; Set flags appropriately for an ADD \1,\2
+F_ADD_B	MACRO
+	;; preserve operands for flagging
+	move.b	\1,add_src
+	move.b	\2,add_dst
+	moveq	#0,flag_n
+	;; XXX do I have to use SR instead?
+	move	ccr,68k_ccr
+	ENDM
+
+	;; Set flags appropriately for a SUB \1,\2
+F_SUB_B	MACRO
+	ENDM
+
+
+;; =========================================================================
+;;
+;;      _ _                 _       _     
+;;   __| (_)___ _ __   __ _| |_ ___| |__  
+;;  / _` | / __| '_ \ / _` | __/ __| '_ \ 
+;; | (_| | \__ \ |_) | (_| | || (__| | | |
+;;  \__,_|_|___/ .__/ \__,_|\__\___|_| |_|
+;;             |_|                        
+;; 
+;; =========================================================================
 
 
 
@@ -124,6 +159,12 @@ emu_alt_fetch:
 	asl	#5,d0		; 6 cycles
 	jmp	(a3,d0)		;14 cycles
 	;; overhead:		 32 cycles
+
+storage:
+add_src:	dc.b	0
+add_dst:	dc.b	0
+flag_n:		dc.b	0
+68k_ccr:	dc.w	0
 
 ;;; ========================================================================
 ;;; ========================================================================
@@ -1287,16 +1328,48 @@ emu_op_7f:
 emu_op_80:
 	;; ADD	A,B
 	LOHI	d4
-	add.b	d3,d4
-	;; preserve operands for flagging
-	move.b	
+	F_ADD_B	d4,d3
+	add.b	d4,d3
+	HILO	d4
+	DONE
 
 emu_op_81:
+	;; ADD	A,C
+	F_ADD_B	d4,d3
+	add.b	d4,d3
+	DONE
+
 emu_op_82:
+	;; ADD	A,D
+	LOHI	d5
+	F_ADD_B	d5,d3
+	add.b	d5,d3
+	HILO	d5
+	DONE
+
 emu_op_83:
+	;; ADD	A,E
+	F_ADD_B	d5,d3
+	add.b	d5,d3
+	DONE
+
 emu_op_84:
+	;; ADD	A,H
+	LOHI	d6
+	F_ADD_B	d6,d3
+	add.b	d6,d3
+	HILO	d6
+	DONE
+
 emu_op_85:
+	;; ADD	A,L
+	F_ADD_B	d6,d3
+	add.b	d6,d3
+	DONE
+
 emu_op_86:
+	;; ADD	A,(HL)
+
 emu_op_87:
 emu_op_88:
 emu_op_89:
