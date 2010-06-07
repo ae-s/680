@@ -1,5 +1,5 @@
 ;;; z80 emulator for 68k calculators
-	
+
 ;;; Astrid Smith
 ;;; Project started: 2010-06-06
 ;;; GPL
@@ -56,10 +56,11 @@ FETCHW	MACRO
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
 PUTW	MACRO
 	move.b	\1,(\2,a6)
+	ENDM
 
 	;; Macro to read an immediate byte into \2.
 FETCHBI	MACRO
-	addq.w	1,d2
+	addq.w	#1,d2
 	move.b	-1(d2.w,a6),\2
 	ENDM
 
@@ -84,6 +85,8 @@ HILO	MACRO
 DONE	MACRO
 	jmp	(a2)
 	ENDM
+
+
 
 _main:
 	bsr	emu_setup
@@ -377,24 +380,22 @@ emu_op_01:
 	DONE
 
 emu_op_02:
-	;; LD	BC,A
+	;; LD	(BC),A
 	;; Move A to BC, zero top of BC (effectively A -> C?)
-	;; XXX Sign extend?
-	movei.w	$0,d3
-	move.b	d4,d3
+	;; XXX Do this
 	DONE
 
 emu_op_03:
 	;; INC	BC
 	;; BC <- BC+1
-	addq.w	1,d4
+	addq.w	#1,d4
 	DONE
 
 emu_op_04:
 	;; INC	B
 	;; B <- B+1
 	LOHI	d4
-	addq.b	1,d4
+	addq.b	#1,d4
 	HILO	d4
 	DONE
 
@@ -402,7 +403,7 @@ emu_op_05:
 	;; DEC	B
 	;; B <- B-1
 	LOHI	d4
-	subq.b	1,d4
+	subq.b	#1,d4
 	HILO	d4
 	DONE
 
@@ -442,19 +443,19 @@ emu_op_0a:
 emu_op_0b:
 	;; DEC	BC
 	;; BC <- BC-1
-	subq.w	1,d4
+	subq.w	#1,d4
 	DONE
 
 emu_op_0c:
 	;; INC	C
 	;; C <- C+1
-	addq.b	1,d4
+	addq.b	#1,d4
 	DONE
 
 emu_op_0d:
 	;; DEC	C
 	;; C <- C-1
-	subq.b	1,d4
+	subq.b	#1,d4
 	DONE
 
 emu_op_0e:
@@ -474,7 +475,7 @@ emu_op_10:
 	;;  and branch by immed.b
 	;;  if B not zero
 	LOHI	d4
-	subq.b	1,d4
+	subq.b	#1,d4
 	HILO	d4
 	beq	emu_op_10_end	; slooooow
 	FETCHBI	d0
@@ -495,20 +496,20 @@ emu_op_12:
 
 emu_op_13:
 	;; INC	DE
-	addq.w	1,d5
+	addq.w	#1,d5
 	DONE
 
 emu_op_14:
 	;; INC	D
 	LOHI	d5
-	addq.b	1,d5
+	addq.b	#1,d5
 	HILO	d5
 	DONE
 
 emu_op_15:
 	;; DEC	D
 	LOHI	d5
-	subq.b	1,d5
+	subq.b	#1,d5
 	HILO	d5
 	DONE
 
@@ -545,17 +546,17 @@ emu_op_1a:
 
 emu_op_1b:
 	;; DEC	DE
-	subq.w	1,d5
+	subq.w	#1,d5
 	DONE
 
 emu_op_1c:
 	;; INC	E
-	addq.b	1,d5
+	addq.b	#1,d5
 	DONE
 
 emu_op_1d:
 	;; DEC	E
-	subq.b	1,d5
+	subq.b	#1,d5
 	DONE
 
 emu_op_1e:
@@ -572,7 +573,8 @@ emu_op_20:
 	;; JR	NZ,immed.b
 	;; if ~Z,
 	;;  PC <- PC+immed.b
-	beq	emu_op_10_end	; slooooow
+	;; SPEED can be made faster
+	beq	emu_op_10_end
 	FETCHBI	d0
 	add.w	d0,d2
 emu_op_10_end:
@@ -591,20 +593,20 @@ emu_op_22:
 
 emu_op_23:
 	;; INC	HL
-	addq.w	1,d6
+	addq.w	#1,d6
 	DONE
 
 emu_op_24:
 	;; INC	H
 	LOHI	d6
-	addq.b	1,d6
+	addq.b	#1,d6
 	HILO	d6
 	DONE
 
 emu_op_25:
 	;; DEC	H
 	LOHI	d6
-	subq.b	1,d6
+	subq.b	#1,d6
 	HILO	d6
 	DONE
 
@@ -624,41 +626,250 @@ emu_op_27:
 	DONE
 
 emu_op_28:
-	
+	;; JR Z,immed.b
+	;; If zero
+	;;  PC <- PC+immed.b
+	;; SPEED can be made faster
+	beq	emu_op_28_end
+	FETCHBI	d0
+	add.w	d0,d2
+emu_op_28_end:
+	DONE
+
 emu_op_29:
+	;; ADD	HL,HL
+	add.w	d6,d6
+	DONE
+
 emu_op_2a:
+	;; LD	HL,(immed.w)
+	;; address is absolute
+	FETCHWI	d0
+	FETCHW	d0,d6
+	DONE
+
 emu_op_2b:
+	;; DEC	HL
+	subq.w	#1,d6
+	DONE
+
 emu_op_2c:
+	;; INC	L
+	addq.b	#1,d6
+	DONE
+
 emu_op_2d:
+	;; DEC	L
+	subq.b	#1,d6
+	DONE
+
 emu_op_2e:
+	;; LD	L,immed.b
+	FETCHBI	d6
+	DONE
+
 emu_op_2f:
+	;; CPL
+	;; A <- NOT A
+	not.b	d3
+	DONE
+
 emu_op_30:
+	;; JR	NC,immed.b
+	;; If carry clear
+	;;  PC <- PC+immed.b
+	bcs	emu_op_30_end
+	FETCHBI	d0
+	add.w	d0,d2
+emu_op_30_end:
+	DONE
+
 emu_op_31:
+	;; LD	SP,immed.w
+	swap	d2
+	FETCHWI	d2
+	swap	d2
+	DONE
+
 emu_op_32:
+	;; LD	(immed.w),A
+	;; store indirect
+	FETCHWI	d0
+	PUTB	d3,d0
+	DONE
+
 emu_op_33:
+	;; INC	SP
+	swap	d2
+	addq.w	#1,d2
+	swap	d2
+	DONE
+
 emu_op_34:
+	;; INC	(HL)
+	;; Increment byte
+	;; SPEED can be made faster
+	FETCHB	d6
+	addq.b	#1,d0
+	PUTB	d0,d6
+	DONE
+
 emu_op_35:
+	;; DEC	(HL)
+	;; Decrement byte
+	;; SPEED can be made faster
+	FETCHB	d6
+	subq.b	#1,d0
+	PUTB	d0,d6
+	DONE
+
 emu_op_36:
+	;; LD	(HL),immed.b
+	FETCHBI	d0
+	PUTB	d6,d0
+	DONE
+
 emu_op_37:
+	;; SCF
+	;; Set Carry Flag
+	;; XXX DO THIS
+	DONE
+
 emu_op_38:
+	;; JR	C,immed.b
+	;; If carry set
+	;;  PC <- PC+immed.b
+	bcc	emu_op_38_end
+	FETCHBI	d0
+	add.w	d0,d2
+emu_op_38_end:
+	DONE
+
 emu_op_39:
+	;; ADD	HL,SP
+	;; HL <- HL+SP
+	swap	d2
+	add.w	d6,d2
+	swap	d2
+	DONE
+
 emu_op_3a:
+	;; LD	A,(immed.w)
+	FETCHWI	d0
+	FETCHB	d0,d3
+	DONE
+
 emu_op_3b:
+	;; DEC	SP
+	swap	d2
+	subq.w	#1,d2
+	swap	d2
+	DONE
+
 emu_op_3c:
+	;; INC	A
+	addq.b	#1,d3
+	DONE
+
 emu_op_3d:
+	;; DEC	A
+	subq.b	#1,d3
+	DONE
+
 emu_op_3e:
+	;; LD	A,immed.b
+	FETCHBI	d3
+	DONE
+
 emu_op_3f:
+	;; CCF
+	;; Toggle carry flag
+	;; XXX DO THIS
+	DONE
+
 emu_op_40:
+	;; LD	B,B
+	;; SPEED
+	LOHI	d4
+	move.b	d4,d4
+	HILO	d4
+	DONE
+
 emu_op_41:
+	;; LD	B,C
+	;; SPEED
+	move.b	d4,d0
+	LOHI	d4
+	move.b	d0,d4
+	HILO	d4
+	DONE
+
 emu_op_42:
+	;; LD	B,D
+	;; B <- D
+	move.w	d5,d0
+	andi.w	#ff00,d0
+	andi.w	#00ff,d4
+	or.w	d0,d4
+	DONE
+
 emu_op_43:
+	;; LD	B,E
+	;; B <- E
+	move.b	d5,d0
+	asl.w	#8,d0
+	andi.w	#00ff,d4
+	or.w	d0,d4
+	DONE
+
 emu_op_44:
+	;; LD	B,H
+	;; B <- H
+	move.w	d6,d0
+	andi.w	#ff00,d0
+	andi.w	#00ff,d4
+	or.w	d0,d4
+	DONE
+
 emu_op_45:
+	;; LD	B,L
+	;; B <- L
+	move.b	d6,d0
+	lsl.w	#8,d0
+	or.w	d0,d4
+	DONE
+
 emu_op_46:
+	;; LD	B,(HL)
+	;; B <- (HL)
+	HILO	d4
+	FETCHB	d6,d4
+	LOHI	d4
+	DONE
+
 emu_op_47:
+	;; LD	B,A
+	;; B <- A
+	HILO	d4
+	move.b	d3,d4
+	LOHI	d4
+	DONE
+
 emu_op_48:
+	;; LD	C,B
+	;; C <- B
+	move.w	d4,d0
+	lsr.w	#8,d0
+	move.b	d0,d4
+	DONE
+
 emu_op_49:
+	;; LD	C,C
+	move.b	d4,d4
+	DONE
+
 emu_op_4a:
+	
 emu_op_4b:
 emu_op_4c:
 emu_op_4d:
@@ -859,4 +1070,4 @@ emu_op_undo_dd:
 emu_op_undo_ed:
 emu_op_undo_fd:
 
-	
+
