@@ -415,7 +415,6 @@ emu_op_06:
 	;; LD	B,immed.b
 	;; Read a byte and put it in B
 	;; No flags
-	;; XXX Check that this does not zero the top of the register
 	LOHI	d4
 	FETCHBI	d4
 	HILO	d4
@@ -491,16 +490,15 @@ emu_op_10:
 	;; No flags
 	LOHI	d4
 	subq.b	#1,d4
-	HILO	d4
 	beq	emu_op_10_end	; slooooow
 	FETCHBI	d0
 	add.w	d0,d2
 emu_op_10_end:
+	HILO	d4
 	DONE
 
 emu_op_11:
 	;; LD	DE,immed.w
-	;; XXX proof against alignment
 	;; No flags
 	FETCHWI	d5
 	DONE
@@ -740,6 +738,7 @@ emu_op_32:
 
 emu_op_33:
 	;; INC	SP
+	;; This might be done by adding $10000
 	swap	d2
 	addq.w	#1,d2
 	swap	d2
@@ -801,6 +800,7 @@ emu_op_3a:
 
 emu_op_3b:
 	;; DEC	SP
+	;; XXX this might be done by subtracting $10000
 	swap	d2
 	subq.w	#1,d2
 	swap	d2
@@ -847,62 +847,64 @@ emu_op_41:
 emu_op_42:
 	;; LD	B,D
 	;; B <- D
-	move.w	d5,d0
-	andi.w	#ff00,d0
-	andi.w	#00ff,d4
-	or.w	d0,d4
-	DONE
+	LOHI	d4		; 4
+	LOHI	d5		; 4
+	move.b	d5,d4		; 4
+	HILO	d4		; 4
+	HILO	d5		; 4
+	DONE			; 8
+				;28 cycles
 
 emu_op_43:
 	;; LD	B,E
 	;; B <- E
-	move.b	d5,d0
-	asl.w	#8,d0
-	andi.w	#00ff,d4
-	or.w	d0,d4
-	DONE
+	LOHI	d4		; 4
+	move.b	d4,d5		; 4
+	HILO	d4		; 4
+	DONE 			; 8
+				; 20 cycles
 
 emu_op_44:
 	;; LD	B,H
 	;; B <- H
-	move.w	d6,d0
-	andi.w	#ff00,d0
-	andi.w	#00ff,d4
-	or.w	d0,d4
-	DONE
+	LOHI	d4
+	LOHI	d6
+	move.b	d6,d4
+	HILO	d4
+	HILO	d6
 
 emu_op_45:
 	;; LD	B,L
 	;; B <- L
-	move.b	d6,d0
-	lsl.w	#8,d0
-	or.w	d0,d4
+	LOHI	d4
+	move.b	d6,d4
+	HILO	d4
 	DONE
 
 emu_op_46:
 	;; LD	B,(HL)
 	;; B <- (HL)
-	HILO	d4
-	FETCHB	d6,d4
 	LOHI	d4
+	FETCHB	d6,d4
+	HILO	d4
 	DONE
 
 emu_op_47:
 	;; LD	B,A
 	;; B <- A
-	HILO	d4
-	move.b	d3,d4
 	LOHI	d4
+	move.b	d3,d4
+	HILO	d4
 	DONE
 
 emu_op_48:
 	;; LD	C,B
 	;; C <- B
-	move.w	d4,d0
-	lsr.w	#8,d0
-	move.b	d0,d4
-	DONE
-
+	move.w	d4,d0		; 4
+	lsr.w	#8,d0		; 6
+	move.b	d0,d4		; 4
+	DONE			; 8
+				;22 cycles
 emu_op_49:
 	;; LD	C,C
 	move.b	d4,d4
@@ -922,10 +924,9 @@ emu_op_4b:
 
 emu_op_4c:
 	;; LD	C,H
-	move.b	d4,d0
-	asl	#8,d0
-	and.w	#$00ff,d6
-	or.w	d0,d6
+	LOHI	d6
+	move.b	d4,d6
+	HILO	d6
 	DONE
 
 emu_op_4d:
@@ -946,18 +947,18 @@ emu_op_4f:
 
 emu_op_50:
 	;; LD	D,B
-	andi.w	#$00ff,d5
-	move.w	d4,d0
-	andi.w	#$ff00,d0
-	or.w	d0,d5
+	LOHI	d4
+	LOHI	d5
+	move.b	d4,d5
+	HILO	d4
+	HILO	d5
 	DONE
 
 emu_op_51:
 	;; LD	D,C
-	andi.w	#$00ff,d5
-	move.b	d4,d0
-	lsl	#8,d0
-	or.w	d0,d5
+	LOHI	d5
+	move.b	d4,d5
+	HILO	d5
 	DONE
 
 emu_op_52:
@@ -974,27 +975,27 @@ emu_op_53:
 
 emu_op_54:
 	;; LD	D,H
-	andi.w	#$00ff,d5
-	move.w	d6,d0
-	andi.w	#$ff00,d0
-	or.w	d0,d5
-	DONE
+	LOHI	d5		; 4
+	LOHI	d6		; 4
+	move.b	d6,d5		; 4
+	HILO	d5		; 4
+	HILO	d6		; 4
+	DONE			; 8
+				;28 cycles
 
 emu_op_55:
 	;; LD	D,L
-	andi.w	#$00ff,d5
-	move.b	d6,d0
-	lsl	#8,d0
-	or.w	d0,d5
+	LOHI	d5
+	move.b	d6,d5
+	HILO	d5
 	DONE
 
 emu_op_56:
 	;; LD	D,(HL)
 	;; D <- (HL)
-	FETCHB	d6,d0
-	andi.w	#$00ff,d5
-	lsl	#8,d0
-	or.w	d0,d5
+	LOHI	d5
+	FETCHB	d6,d5
+	HILO	d5
 	DONE
 
 emu_op_57:
@@ -1022,6 +1023,14 @@ emu_op_5a:
 	move.b	d5,d0
 	HILO	d5
 	move.b	d0,d5
+	DONE
+
+	;; Is this faster or slower?
+
+	andi.w	#$ff00,d5
+	move.b	d5,d0
+	lsr	#8,d0
+	or.w	d0,d5
 	DONE
 
 emu_op_5b:
@@ -1052,10 +1061,11 @@ emu_op_5f:
 
 emu_op_60:
 	;; LD	H,B
-	move.w	d4,d0
-	and.w	#$ff00,d0
-	and.w	#$00ff,d3
-	or.w	d0,d3
+	LOHI	d4
+	LOHI	d6
+	move.b	d6,d4
+	HILO	d4
+	HILO	d6
 	DONE
 
 emu_op_61:
@@ -1067,10 +1077,11 @@ emu_op_61:
 
 emu_op_62:
 	;; LD	H,D
-	move.w	d5,d0
-	and.w	#$ff00,d0
-	and.w	#$00ff,d3
-	or.w	d0,d3
+	LOHI	d5
+	LOHI	d6
+	move.b	d5,d6
+	HILO	d5
+	HILO	d6
 	DONE
 
 emu_op_63:
