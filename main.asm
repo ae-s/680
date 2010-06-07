@@ -104,8 +104,10 @@ refresh:			; screen refresh routine
 	rts
 
 emu_fetch:
+	;; Will this even work?
 	move.b	(a4)+,d0
-	jsr	d0(A3)
+	movea	(a3,d0),a5
+	jmp	a5
 
 emu_instr_table:
 	dc.w	emu_op_00
@@ -368,32 +370,33 @@ emu_instr_table:
 
 ;;; http://z80.info/z80oplist.txt
 emu_op_00:
-	;; NOP
+	;; NOP = 4
 	DONE
 
 emu_op_01:
-	;; LD	BC,immed.w
+	;; LD	BC,immed.w = 10,14
 	;; Read a word and put it in BC
-	;; XXX Check that this does not zero the top of the register
-	;; XXX proof against alignment
+	;; No flags
 	FETCHWI	d4
 	DONE
 
 emu_op_02:
 	;; LD	(BC),A
-	;; Move A to BC, zero top of BC (effectively A -> C?)
 	;; XXX Do this
+	;; No flags
 	DONE
 
 emu_op_03:
 	;; INC	BC
 	;; BC <- BC+1
+	;; No flags
 	addq.w	#1,d4
 	DONE
 
 emu_op_04:
 	;; INC	B
 	;; B <- B+1
+	;; No flags
 	LOHI	d4
 	addq.b	#1,d4
 	HILO	d4
@@ -402,6 +405,7 @@ emu_op_04:
 emu_op_05:
 	;; DEC	B
 	;; B <- B-1
+	;; Flags: S,Z,H changed, P=oVerflow, N set, C left
 	LOHI	d4
 	subq.b	#1,d4
 	HILO	d4
@@ -410,6 +414,7 @@ emu_op_05:
 emu_op_06:
 	;; LD	B,immed.b
 	;; Read a byte and put it in B
+	;; No flags
 	;; XXX Check that this does not zero the top of the register
 	LOHI	d4
 	FETCHBI	d4
@@ -419,23 +424,27 @@ emu_op_06:
 emu_op_07:
 	;; RLCA
 	;; Rotate A left, carry bit gets top bit
+	;; Flags: H,N=0; C aff.
 	roxl.b	d3,1
 	DONE
 
 emu_op_08:
 	;; EX	AF,AF'
+	;; No flags
 	swap	d3
 	DONE
 
 emu_op_09:
 	;; ADD	HL,BC
 	;; HL <- HL+BC
+	;; Flags: H, C aff.; N=0
 	add.w	d4,d6
 	DONE
 
 emu_op_0a:
 	;; LD	A,(BC)
 	;; A <- (BC)
+	;; No flags
 	FETCHB	d4
 	move.b	d0,d3
 	DONE
@@ -443,29 +452,34 @@ emu_op_0a:
 emu_op_0b:
 	;; DEC	BC
 	;; BC <- BC-1
+	;; No flags
 	subq.w	#1,d4
 	DONE
 
 emu_op_0c:
 	;; INC	C
 	;; C <- C+1
+	;; Flags: S,Z,H aff.; P=overflow, N=0
 	addq.b	#1,d4
 	DONE
 
 emu_op_0d:
 	;; DEC	C
 	;; C <- C-1
+	;; Flags: S,Z,H aff., P=overflow, N=1
 	subq.b	#1,d4
 	DONE
 
 emu_op_0e:
 	;; LD	C,immed.b
+	;; No flags
 	FETCHBI	d4
 	DONE
 
 emu_op_0f:
 	;; RRCA
 	;; Rotate A right, carry bit gets top bit
+	;; Flags: H,N=0; C aff.
 	roxr.b	d3,1
 	DONE
 
@@ -474,6 +488,7 @@ emu_op_10:
 	;; Decrement B
 	;;  and branch by immed.b
 	;;  if B not zero
+	;; No flags
 	LOHI	d4
 	subq.b	#1,d4
 	HILO	d4
@@ -486,21 +501,25 @@ emu_op_10_end:
 emu_op_11:
 	;; LD	DE,immed.w
 	;; XXX proof against alignment
+	;; No flags
 	FETCHWI	d5
 	DONE
 
 emu_op_12:
 	;; LD	(DE),A
+	;; No flags
 	move.b	(a0,d5.w),d3
 	DONE
 
 emu_op_13:
 	;; INC	DE
+	;; No flags
 	addq.w	#1,d5
 	DONE
 
 emu_op_14:
 	;; INC	D
+	;; Flags: S,Z,H aff.; P=overflow, N=0
 	LOHI	d5
 	addq.b	#1,d5
 	HILO	d5
@@ -508,6 +527,7 @@ emu_op_14:
 
 emu_op_15:
 	;; DEC	D
+	;; Flags: S,Z,H aff.; P=overflow, N=1
 	LOHI	d5
 	subq.b	#1,d5
 	HILO	d5
@@ -515,6 +535,7 @@ emu_op_15:
 
 emu_op_16:
 	;; LD D,immed.b
+	;; No flags
 	LOHI	d5
 	FETCHBI	d5
 	HILO	d5
@@ -522,12 +543,14 @@ emu_op_16:
 
 emu_op_17:
 	;; RLA
+	;; Flags: P,N=0; C aff.
 	rol.b	1,d3
 	DONE
 
 emu_op_18:
 	;; JR
 	;; Branch relative by a signed immediate byte
+	;; No flags
 	FETCHBI	d0
 	add.w	d0,d2
 	DONE
@@ -535,37 +558,44 @@ emu_op_18:
 emu_op_19:
 	;; ADD	HL,DE
 	;; HL <- HL+DE
+	;; Flags: H,C aff,; N=0
 	add.w	d5,d6
 	DONE
 
 emu_op_1a:
-	;; LDAX	D
+	;; LD	A,(DE)
 	;; A <- (DE)
+	;; No flags
 	FETCHB	d5,d3
 	DONE
 
 emu_op_1b:
 	;; DEC	DE
+	;; No flags
 	subq.w	#1,d5
 	DONE
 
 emu_op_1c:
 	;; INC	E
+	;; Flags: S,Z,H aff.; P=overflow; N=0
 	addq.b	#1,d5
 	DONE
 
 emu_op_1d:
 	;; DEC	E
+	;; Flags: S,Z,H aff.; P=overflow, N=1
 	subq.b	#1,d5
 	DONE
 
 emu_op_1e:
 	;; LD	E,immed.b
+	;; No flags
 	FETCHBI	d5
 	DONE
 
 emu_op_1f:
 	;; RRA
+	;; Flags: H,N=0; C aff.
 	ror.b	d3
 	DONE
 
@@ -574,6 +604,7 @@ emu_op_20:
 	;; if ~Z,
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
+	;; No flags
 	beq	emu_op_10_end
 	FETCHBI	d0
 	add.w	d0,d2
@@ -582,22 +613,26 @@ emu_op_10_end:
 
 emu_op_21:
 	;; LD	HL,immed.w
+	;; No flags
 	FETCHWI	d6
 	DONE
 
 emu_op_22:
 	;; LD	immed.w,HL
 	;; (address) <- HL
+	;; No flags
 	FETCHWI	d0
 	PUTW	d6,d0
 
 emu_op_23:
 	;; INC	HL
+	;; No flags
 	addq.w	#1,d6
 	DONE
 
 emu_op_24:
 	;; INC	H
+	;; Flags: S,Z,H aff.; P=overflow, N=0
 	LOHI	d6
 	addq.b	#1,d6
 	HILO	d6
@@ -605,6 +640,7 @@ emu_op_24:
 
 emu_op_25:
 	;; DEC	H
+	;; Flags: S,Z,H aff.; P=overflow, N=1
 	LOHI	d6
 	subq.b	#1,d6
 	HILO	d6
@@ -612,6 +648,7 @@ emu_op_25:
 
 emu_op_26:
 	;; LD	H,immed.b
+	;; No flags
 	LOHI	d6
 	FETCHBI	d6
 	HILO	d6
@@ -621,6 +658,7 @@ emu_op_27:
 	;; DAA
 	;; Decrement, adjust accum
 	;; http://www.z80.info/z80syntx.htm#DAA
+	;; Flags: oh lord they're fucked up
 	;; XXX DO THIS
 
 	DONE
@@ -630,6 +668,7 @@ emu_op_28:
 	;; If zero
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
+	;; No flags
 	beq	emu_op_28_end
 	FETCHBI	d0
 	add.w	d0,d2
@@ -638,6 +677,7 @@ emu_op_28_end:
 
 emu_op_29:
 	;; ADD	HL,HL
+	;; Flags: 
 	add.w	d6,d6
 	DONE
 
@@ -869,7 +909,12 @@ emu_op_49:
 	DONE
 
 emu_op_4a:
-	
+	;; LD	C,D
+	move.w	d5,d0
+	lsr.w	#8,d0
+	move.b	d0,d4
+	DONE
+
 emu_op_4b:
 emu_op_4c:
 emu_op_4d:
