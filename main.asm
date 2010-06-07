@@ -36,53 +36,54 @@
 
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
-FETCHB	MACRO
+FETCHB	MACRO			; 14 cycles, 4 bytes
 	move.b	(\1.w,a6),\2
 	ENDM
 
 	;; Macro to write a byte in \1 to main memory at \2 (regs only)
-PUTB	MACRO
+PUTB	MACRO			; 14 cycles, 4 bytes
 	move.b	\1,(\2,a6)
 	ENDM
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
-FETCHW	MACRO
-	move.b	(\1.w,a6),\2
-	rol.w	8,\2
-	move.b	1(\1.w,a6),\2
+FETCHW	MACRO			; 32 cycles, 10 bytes
+	move.b	1(\1.w,a6),\2	; 14/4
+	ror.w	#8,\2		;  4/2
+	move.b	(\1.w,a6),\2	; 14/4
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
-PUTW	MACRO
+	;; XXX ALIGNMENT
+PUTW	MACRO			; 14 cycles, 4 bytes
 	move.b	\1,(\2,a6)
 	ENDM
 
 	;; Macro to read an immediate byte into \2.
-FETCHBI	MACRO
-	addq.w	#1,d2
-	move.b	-1(d2.w,a6),\2
+FETCHBI	MACRO			; 18 cycles, 6 bytes
+	addq.w	#1,d2		;  4/2
+	move.b	-1(d2.w,a6),\2	; 14/4
 	ENDM
 
 	;; Macro to read an immediate word (unaligned) into \2.
-FETCHWI	MACRO
-	addq.w	2,d2
-	move.b	-2(d2.w,a6),\2
-	rol.w	8,d2
-	move.b	-1(d2.w,a6),\2
+FETCHWI	MACRO			; 36 cycles, 12 bytes
+	addq.w	#2,d2		;  4/2
+	move.b	-1(d2.w,a6),\2	; 14/4
+	rol.w	#8,d2		;  4/2
+	move.b	-2(d2.w,a6),\2	; 14/4
 	ENDM
 
 	;; When you want to use the high reg of a pair, use this first
-LOHI	MACRO
-	ror	8,\1
+LOHI	MACRO			; 6 cycles, 2 bytes
+	ror	#8,\1
 	ENDM
 
 	;; Then do your shit and finish with this
-HILO	MACRO
-	rol	8,\1
+HILO	MACRO			; 6 cycles, 2 bytes
+	rol	#8,\1
 	ENDM
 
-DONE	MACRO
+DONE	MACRO			; 8 cycles, 2 bytes
 	jmp	(a2)
 	ENDM
 
@@ -396,19 +397,16 @@ emu_op_03:
 emu_op_04:
 	;; INC	B
 	;; B <- B+1
-	;; No flags
-	LOHI	d4
-	addq.b	#1,d4
-	HILO	d4
-	DONE
+	;; No flags ?
+	add.w	#$0100,d4	; 8
+	DONE			; 8
+				;16 cycles
 
 emu_op_05:
 	;; DEC	B
 	;; B <- B-1
 	;; Flags: S,Z,H changed, P=oVerflow, N set, C left
-	LOHI	d4
-	subq.b	#1,d4
-	HILO	d4
+	sub.w	#$0100,d4
 	DONE
 
 emu_op_06:
@@ -424,7 +422,7 @@ emu_op_07:
 	;; RLCA
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
-	roxl.b	d3,1
+	rol.b	d3,1
 	DONE
 
 emu_op_08:
@@ -479,7 +477,7 @@ emu_op_0f:
 	;; RRCA
 	;; Rotate A right, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
-	roxr.b	d3,1
+	ror.b	d3,1
 	DONE
 
 emu_op_10:
@@ -542,7 +540,7 @@ emu_op_16:
 emu_op_17:
 	;; RLA
 	;; Flags: P,N=0; C aff.
-	rol.b	1,d3
+	roxl.b	1,d3
 	DONE
 
 emu_op_18:
@@ -594,7 +592,7 @@ emu_op_1e:
 emu_op_1f:
 	;; RRA
 	;; Flags: H,N=0; C aff.
-	ror.b	d3
+	roxr.b	d3
 	DONE
 
 emu_op_20:
@@ -738,7 +736,7 @@ emu_op_32:
 
 emu_op_33:
 	;; INC	SP
-	;; This might be done by adding $10000
+	;; XXX This might be done by adding $100
 	swap	d2
 	addq.w	#1,d2
 	swap	d2
@@ -800,7 +798,7 @@ emu_op_3a:
 
 emu_op_3b:
 	;; DEC	SP
-	;; XXX this might be done by subtracting $10000
+	;; XXX this might be done by subtracting $100
 	swap	d2
 	subq.w	#1,d2
 	swap	d2
@@ -872,6 +870,7 @@ emu_op_44:
 	move.b	d6,d4
 	HILO	d4
 	HILO	d6
+	DONE
 
 emu_op_45:
 	;; LD	B,L
@@ -907,7 +906,6 @@ emu_op_48:
 				;22 cycles
 emu_op_49:
 	;; LD	C,C
-	move.b	d4,d4
 	DONE
 
 emu_op_4a:
@@ -1132,27 +1130,133 @@ emu_op_69:
 	DONE
 
 emu_op_6a:
+	;; LD	L,D
+	LOHI	d5
+	move.b	d5,d6
+	HILO	d5
+	DONE
+
 emu_op_6b:
+	;; LD	L,E
+	move.b	d5,d6
+	DONE
+
 emu_op_6c:
+	;; LD	L,H
+	LOHI	d6
+	move.b	d6,d0
+	HILO	d6
+	move.b	d0,d6
+	DONE
+
 emu_op_6d:
+	;; LD	L,L
+	DONE
+
 emu_op_6e:
+	;; LD	L,(HL)
+	;; L <- (HL)
+	FETCHB	d6,d6
+	DONE
+
 emu_op_6f:
+	;; LD	L,A
+	move.b	d3,d6
+	DONE
+
 emu_op_70:
+	;; LD	(HL),B
+	LOHI	d4
+	PUTB	d6,d4
+	HILO	d4
+	DONE
+
 emu_op_71:
+	;; LD	(HL),C
+	PUTB	d6,d4
+	DONE
+
 emu_op_72:
+	;; LD	(HL),D
+	LOHI	d5
+	PUTB	d6,d5
+	HILO	d5
+	DONE
+
 emu_op_73:
+	;; LD	(HL),E
+	PUTB	d6,d5
+	DONE
+
 emu_op_74:
+	;; LD	(HL),H
+	move.w	d6,d0
+	HILO	d0
+	PUTB	d0,d6
+	DONE
+
 emu_op_75:
+	;; LD	(HL),L
+	move.b	d6,d0
+	PUTB	d0,d6
+	DONE
+
 emu_op_76:
+	;; HALT
+	;; XXX do this
+	DONE
+
 emu_op_77:
+	;; LD	(HL),A
+	PUTB	d3,d6
+	DONE
+
 emu_op_78:
+	;; LD	A,B
+	move.w	d4,d0
+	LOHI	d0
+	move.b	d0,d3
+	DONE
+
 emu_op_79:
+	;; LD	A,C
+	move.b	d4,d3
+	DONE
+
 emu_op_7a:
+	;; LD	A,D
+	move.w	d5,d0
+	LOHI	d0
+	move.b	d0,d3
+	DONE
+
 emu_op_7b:
+	;; LD	A,E
+	move.b	d5,d3
+	DONE
+
 emu_op_7c:
+	;; LD	A,H
+	move.w	d6,d0
+	LOHI	d0
+	move.b	d0,d3
+	DONE
+
 emu_op_7d:
+	;; LD	A,L
+	move.b	d6,d3
+	DONE
+
 emu_op_7e:
+	;; LD	A,(HL)
+	;; A <- (HL)
+	FETCHB	d6,d3
+	DONE
+
 emu_op_7f:
+	;; LD	A,A
+	DONE
+
 emu_op_80:
 emu_op_81:
 emu_op_82:
