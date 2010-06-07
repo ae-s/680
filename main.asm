@@ -916,36 +916,210 @@ emu_op_4a:
 	DONE
 
 emu_op_4b:
+	;; LD	C,E
+	move.b	d4,d5
+	DONE
+
 emu_op_4c:
+	;; LD	C,H
+	move.b	d4,d0
+	asl	#8,d0
+	and.w	#$00ff,d6
+	or.w	d0,d6
+	DONE
+
 emu_op_4d:
+	;; LD	C,L
+	move.b	d4,d6
+	DONE
+
 emu_op_4e:
+	;; LD	C,(HL)
+	;; C <- (HL)
+	FETCHB	d6,d4
+	DONE
+
 emu_op_4f:
+	;; LD	C,A
+	move.b	d3,d4
+	DONE
+
 emu_op_50:
+	;; LD	D,B
+	andi.w	#$00ff,d5
+	move.w	d4,d0
+	andi.w	#$ff00,d0
+	or.w	d0,d5
+	DONE
+
 emu_op_51:
+	;; LD	D,C
+	andi.w	#$00ff,d5
+	move.b	d4,d0
+	lsl	#8,d0
+	or.w	d0,d5
+	DONE
+
 emu_op_52:
+	;; LD	D,D
+	DONE
+
 emu_op_53:
+	;; LD	D,E
+	andi.w	#$00ff,d5
+	move.b	d5,d0
+	lsl	#8,d0
+	or.w	d0,d5
+	DONE
+
 emu_op_54:
+	;; LD	D,H
+	andi.w	#$00ff,d5
+	move.w	d6,d0
+	andi.w	#$ff00,d0
+	or.w	d0,d5
+	DONE
+
 emu_op_55:
+	;; LD	D,L
+	andi.w	#$00ff,d5
+	move.b	d6,d0
+	lsl	#8,d0
+	or.w	d0,d5
+	DONE
+
 emu_op_56:
+	;; LD	D,(HL)
+	;; D <- (HL)
+	FETCHB	d6,d0
+	andi.w	#$00ff,d5
+	lsl	#8,d0
+	or.w	d0,d5
+	DONE
+
 emu_op_57:
+	;; LD	D,A
+	LOHI	d5
+	move.b	d3,d5
+	HILO	d5
+	DONE
+
 emu_op_58:
+	;; LD	E,B
+	LOHI	d4
+	move.b	d4,d5
+	HILO	d4
+	DONE
+
 emu_op_59:
+	;; LD	E,C
+	move.b	d4,d5
+	DONE
+
 emu_op_5a:
+	;; LD	E,D
+	LOHI	d5
+	move.b	d5,d0
+	HILO	d5
+	move.b	d0,d5
+	DONE
+
 emu_op_5b:
+	;; LD	E,E
+	DONE
+
 emu_op_5c:
+	;; LD	E,H
+	LOHI	d6
+	move.b	d5,d6
+	HILO	d6
+	DONE
+
 emu_op_5d:
+	;; LD	E,L
+	move.b	d5,d6
+	DONE
+
 emu_op_5e:
+	;; LD	E,(HL)
+	FETCHB	d6,d0
+	DONE
+
 emu_op_5f:
+	;; LD	E,A
+	move.b	d5,d3
+	DONE
+
 emu_op_60:
+	;; LD	H,B
+	move.w	d4,d0
+	and.w	#$ff00,d0
+	and.w	#$00ff,d3
+	or.w	d0,d3
+	DONE
+
 emu_op_61:
+	;; LD	H,C
+	LOHI	d6
+	move.b	d4,d6
+	HILO	d6
+	DONE
+
 emu_op_62:
+	;; LD	H,D
+	move.w	d5,d0
+	and.w	#$ff00,d0
+	and.w	#$00ff,d3
+	or.w	d0,d3
+	DONE
+
 emu_op_63:
+	;; LD	H,E
+	LOHI	d6
+	move.b	d5,d6
+	HILO	d6
+	DONE
+
 emu_op_64:
+	;; LD	H,H
+	DONE
+
 emu_op_65:
+	;; LD	H,L
+	;; H <- L
+	move.b	d6,d0
+	LOHI	d6
+	move.b	d0,d6
+	HILO	d6
+	DONE
+
 emu_op_66:
+	;; LD	H,(HL)
+	FETCHB	d6,d0
+	LOHI	d6
+	move.b	d0,d6
+	HILO	d6
+	DONE
+
 emu_op_67:
+	;; LD	H,A
+	LOHI	d6
+	move.b	d3,d6
+	HILO	d6
+	DONE
+
 emu_op_68:
+	;; LD	L,B
+	LOHI	d4
+	move.b	d4,d6
+	HILO	d4
+	DONE
+
 emu_op_69:
+	;; LD	L,C
+	move.b	d4,d6
+	DONE
+
 emu_op_6a:
 emu_op_6b:
 emu_op_6c:
