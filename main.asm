@@ -84,6 +84,8 @@ HILO	MACRO			; 6 cycles, 2 bytes
 	ENDM
 
 DONE	MACRO			; 8 cycles, 2 bytes
+	;; calc84maniac suggests putting emu_fetch into this in order
+	;; to save 8 cycles per instruction
 	jmp	(a2)
 	ENDM
 
@@ -98,276 +100,301 @@ emu_setup:
 	eor.l	a4,a4
 	movea	emu_instr_table,a3
 	movea	emu_fetch(pc),a2
-	;; FIXME
+	;; XXX finish
 
 refresh:			; screen refresh routine
-	;; FIXME
+	;; XXX Do this
 	rts
 
 emu_fetch:
 	;; Will this even work?
-	move.b	(a4)+,d0
-	movea	(a3,d0),a5
-	jmp	a5
+	eor.w	d0,d0		; 4 cycles
+	move.b	(a4)+,d0	; 8 cycles
+	asl	#1,d0		; 6 cycles
+	movea	(a3,d0.w),a5	;14 cycles
+	jmp	(a5)		; 8 cycles
+	; Total:  		 40 cycles
+
+emu_alt_fetch:
+	;; Allows me to get rid of the jump table and save cycles at
+	;; the same time, but requires spacing instruction routines
+	;; evenly
+	eor.w	d0,d0		; 4 cycles
+	move.b	(a4)+,d0	; 8 cycles
+	asl	#5,d0		; 6 cycles
+	jmp	(a3,d0)		;14 cycles
+	;; overhead:		 32 cycles
+
+;;; ========================================================================
+;;; ========================================================================
+;;;      ___   ___                    ======= ==============================
+;;;  ___( _ ) / _ \   emulation core    ====================================
+;;; |_  / _ \| | | |  emulation core     ===================================
+;;;  / / (_) | |_| |  emulation core      ==================================
+;;; /___\___/ \___/   emulation core       =================================
+;;;                                   ======= ==============================
+;;; ========================================================================
+;;; ========================================================================
+
 
 emu_instr_table:
-	dc.w	emu_op_00
-	dc.w	emu_op_01
-	dc.w	emu_op_02
-	dc.w	emu_op_03
-	dc.w	emu_op_04
-	dc.w	emu_op_05
-	dc.w	emu_op_06
-	dc.w	emu_op_07
-	dc.w	emu_op_08
-	dc.w	emu_op_09
-	dc.w	emu_op_0a
-	dc.w	emu_op_0b
-	dc.w	emu_op_0c
-	dc.w	emu_op_0d
-	dc.w	emu_op_0e
-	dc.w	emu_op_0f
-	dc.w	emu_op_10
-	dc.w	emu_op_11
-	dc.w	emu_op_12
-	dc.w	emu_op_13
-	dc.w	emu_op_14
-	dc.w	emu_op_15
-	dc.w	emu_op_16
-	dc.w	emu_op_17
-	dc.w	emu_op_18
-	dc.w	emu_op_19
-	dc.w	emu_op_1a
-	dc.w	emu_op_1b
-	dc.w	emu_op_1c
-	dc.w	emu_op_1d
-	dc.w	emu_op_1e
-	dc.w	emu_op_1f
-	dc.w	emu_op_20
-	dc.w	emu_op_21
-	dc.w	emu_op_22
-	dc.w	emu_op_23
-	dc.w	emu_op_24
-	dc.w	emu_op_25
-	dc.w	emu_op_26
-	dc.w	emu_op_27
-	dc.w	emu_op_28
-	dc.w	emu_op_29
-	dc.w	emu_op_2a
-	dc.w	emu_op_2b
-	dc.w	emu_op_2c
-	dc.w	emu_op_2d
-	dc.w	emu_op_2e
-	dc.w	emu_op_2f
-	dc.w	emu_op_30
-	dc.w	emu_op_31
-	dc.w	emu_op_32
-	dc.w	emu_op_33
-	dc.w	emu_op_34
-	dc.w	emu_op_35
-	dc.w	emu_op_36
-	dc.w	emu_op_37
-	dc.w	emu_op_38
-	dc.w	emu_op_39
-	dc.w	emu_op_3a
-	dc.w	emu_op_3b
-	dc.w	emu_op_3c
-	dc.w	emu_op_3d
-	dc.w	emu_op_3e
-	dc.w	emu_op_3f
-	dc.w	emu_op_40
-	dc.w	emu_op_41
-	dc.w	emu_op_42
-	dc.w	emu_op_43
-	dc.w	emu_op_44
-	dc.w	emu_op_45
-	dc.w	emu_op_46
-	dc.w	emu_op_47
-	dc.w	emu_op_48
-	dc.w	emu_op_49
-	dc.w	emu_op_4a
-	dc.w	emu_op_4b
-	dc.w	emu_op_4c
-	dc.w	emu_op_4d
-	dc.w	emu_op_4e
-	dc.w	emu_op_4f
-	dc.w	emu_op_50
-	dc.w	emu_op_51
-	dc.w	emu_op_52
-	dc.w	emu_op_53
-	dc.w	emu_op_54
-	dc.w	emu_op_55
-	dc.w	emu_op_56
-	dc.w	emu_op_57
-	dc.w	emu_op_58
-	dc.w	emu_op_59
-	dc.w	emu_op_5a
-	dc.w	emu_op_5b
-	dc.w	emu_op_5c
-	dc.w	emu_op_5d
-	dc.w	emu_op_5e
-	dc.w	emu_op_5f
-	dc.w	emu_op_60
-	dc.w	emu_op_61
-	dc.w	emu_op_62
-	dc.w	emu_op_63
-	dc.w	emu_op_64
-	dc.w	emu_op_65
-	dc.w	emu_op_66
-	dc.w	emu_op_67
-	dc.w	emu_op_68
-	dc.w	emu_op_69
-	dc.w	emu_op_6a
-	dc.w	emu_op_6b
-	dc.w	emu_op_6c
-	dc.w	emu_op_6d
-	dc.w	emu_op_6e
-	dc.w	emu_op_6f
-	dc.w	emu_op_70
-	dc.w	emu_op_71
-	dc.w	emu_op_72
-	dc.w	emu_op_73
-	dc.w	emu_op_74
-	dc.w	emu_op_75
-	dc.w	emu_op_76
-	dc.w	emu_op_77
-	dc.w	emu_op_78
-	dc.w	emu_op_79
-	dc.w	emu_op_7a
-	dc.w	emu_op_7b
-	dc.w	emu_op_7c
-	dc.w	emu_op_7d
-	dc.w	emu_op_7e
-	dc.w	emu_op_7f
-	dc.w	emu_op_80
-	dc.w	emu_op_81
-	dc.w	emu_op_82
-	dc.w	emu_op_83
-	dc.w	emu_op_84
-	dc.w	emu_op_85
-	dc.w	emu_op_86
-	dc.w	emu_op_87
-	dc.w	emu_op_88
-	dc.w	emu_op_89
-	dc.w	emu_op_8a
-	dc.w	emu_op_8b
-	dc.w	emu_op_8c
-	dc.w	emu_op_8d
-	dc.w	emu_op_8e
-	dc.w	emu_op_8f
-	dc.w	emu_op_90
-	dc.w	emu_op_91
-	dc.w	emu_op_92
-	dc.w	emu_op_93
-	dc.w	emu_op_94
-	dc.w	emu_op_95
-	dc.w	emu_op_96
-	dc.w	emu_op_97
-	dc.w	emu_op_98
-	dc.w	emu_op_99
-	dc.w	emu_op_9a
-	dc.w	emu_op_9b
-	dc.w	emu_op_9c
-	dc.w	emu_op_9d
-	dc.w	emu_op_9e
-	dc.w	emu_op_9f
-	dc.w	emu_op_a0
-	dc.w	emu_op_a1
-	dc.w	emu_op_a2
-	dc.w	emu_op_a3
-	dc.w	emu_op_a4
-	dc.w	emu_op_a5
-	dc.w	emu_op_a6
-	dc.w	emu_op_a7
-	dc.w	emu_op_a8
-	dc.w	emu_op_a9
-	dc.w	emu_op_aa
-	dc.w	emu_op_ab
-	dc.w	emu_op_ac
-	dc.w	emu_op_ad
-	dc.w	emu_op_ae
-	dc.w	emu_op_af
-	dc.w	emu_op_b0
-	dc.w	emu_op_b1
-	dc.w	emu_op_b2
-	dc.w	emu_op_b3
-	dc.w	emu_op_b4
-	dc.w	emu_op_b5
-	dc.w	emu_op_b6
-	dc.w	emu_op_b7
-	dc.w	emu_op_b8
-	dc.w	emu_op_b9
-	dc.w	emu_op_ba
-	dc.w	emu_op_bb
-	dc.w	emu_op_bc
-	dc.w	emu_op_bd
-	dc.w	emu_op_be
-	dc.w	emu_op_bf
-	dc.w	emu_op_c0
-	dc.w	emu_op_c1
-	dc.w	emu_op_c2
-	dc.w	emu_op_c3
-	dc.w	emu_op_c4
-	dc.w	emu_op_c5
-	dc.w	emu_op_c6
-	dc.w	emu_op_c7
-	dc.w	emu_op_c8
-	dc.w	emu_op_c9
-	dc.w	emu_op_ca
-	dc.w	emu_op_cb
-	dc.w	emu_op_cc
-	dc.w	emu_op_cd
-	dc.w	emu_op_ce
-	dc.w	emu_op_cf
-	dc.w	emu_op_d0
-	dc.w	emu_op_d1
-	dc.w	emu_op_d2
-	dc.w	emu_op_d3
-	dc.w	emu_op_d4
-	dc.w	emu_op_d5
-	dc.w	emu_op_d6
-	dc.w	emu_op_d7
-	dc.w	emu_op_d8
-	dc.w	emu_op_d9
-	dc.w	emu_op_da
-	dc.w	emu_op_db
-	dc.w	emu_op_dc
-	dc.w	emu_op_dd
-	dc.w	emu_op_de
-	dc.w	emu_op_df
-	dc.w	emu_op_e0
-	dc.w	emu_op_e1
-	dc.w	emu_op_e2
-	dc.w	emu_op_e3
-	dc.w	emu_op_e4
-	dc.w	emu_op_e5
-	dc.w	emu_op_e6
-	dc.w	emu_op_e7
-	dc.w	emu_op_e8
-	dc.w	emu_op_e9
-	dc.w	emu_op_ea
-	dc.w	emu_op_eb
-	dc.w	emu_op_ec
-	dc.w	emu_op_ed
-	dc.w	emu_op_ee
-	dc.w	emu_op_ef
-	dc.w	emu_op_f0
-	dc.w	emu_op_f1
-	dc.w	emu_op_f2
-	dc.w	emu_op_f3
-	dc.w	emu_op_f4
-	dc.w	emu_op_f5
-	dc.w	emu_op_f6
-	dc.w	emu_op_f7
-	dc.w	emu_op_f8
-	dc.w	emu_op_f9
-	dc.w	emu_op_fa
-	dc.w	emu_op_fb
-	dc.w	emu_op_fc
-	dc.w	emu_op_fd
-	dc.w	emu_op_fe
-	dc.w	emu_op_ff
-	
+	dc.w	emu_op_00-emu_instr_table
+	dc.w	emu_op_01-emu_instr_table
+	dc.w	emu_op_02-emu_instr_table
+	dc.w	emu_op_03-emu_instr_table
+	dc.w	emu_op_04-emu_instr_table
+	dc.w	emu_op_05-emu_instr_table
+	dc.w	emu_op_06-emu_instr_table
+	dc.w	emu_op_07-emu_instr_table
+	dc.w	emu_op_08-emu_instr_table
+	dc.w	emu_op_09-emu_instr_table
+	dc.w	emu_op_0a-emu_instr_table
+	dc.w	emu_op_0b-emu_instr_table
+	dc.w	emu_op_0c-emu_instr_table
+	dc.w	emu_op_0d-emu_instr_table
+	dc.w	emu_op_0e-emu_instr_table
+	dc.w	emu_op_0f-emu_instr_table
+	dc.w	emu_op_10-emu_instr_table
+	dc.w	emu_op_11-emu_instr_table
+	dc.w	emu_op_12-emu_instr_table
+	dc.w	emu_op_13-emu_instr_table
+	dc.w	emu_op_14-emu_instr_table
+	dc.w	emu_op_15-emu_instr_table
+	dc.w	emu_op_16-emu_instr_table
+	dc.w	emu_op_17-emu_instr_table
+	dc.w	emu_op_18-emu_instr_table
+	dc.w	emu_op_19-emu_instr_table
+	dc.w	emu_op_1a-emu_instr_table
+	dc.w	emu_op_1b-emu_instr_table
+	dc.w	emu_op_1c-emu_instr_table
+	dc.w	emu_op_1d-emu_instr_table
+	dc.w	emu_op_1e-emu_instr_table
+	dc.w	emu_op_1f-emu_instr_table
+	dc.w	emu_op_20-emu_instr_table
+	dc.w	emu_op_21-emu_instr_table
+	dc.w	emu_op_22-emu_instr_table
+	dc.w	emu_op_23-emu_instr_table
+	dc.w	emu_op_24-emu_instr_table
+	dc.w	emu_op_25-emu_instr_table
+	dc.w	emu_op_26-emu_instr_table
+	dc.w	emu_op_27-emu_instr_table
+	dc.w	emu_op_28-emu_instr_table
+	dc.w	emu_op_29-emu_instr_table
+	dc.w	emu_op_2a-emu_instr_table
+	dc.w	emu_op_2b-emu_instr_table
+	dc.w	emu_op_2c-emu_instr_table
+	dc.w	emu_op_2d-emu_instr_table
+	dc.w	emu_op_2e-emu_instr_table
+	dc.w	emu_op_2f-emu_instr_table
+	dc.w	emu_op_30-emu_instr_table
+	dc.w	emu_op_31-emu_instr_table
+	dc.w	emu_op_32-emu_instr_table
+	dc.w	emu_op_33-emu_instr_table
+	dc.w	emu_op_34-emu_instr_table
+	dc.w	emu_op_35-emu_instr_table
+	dc.w	emu_op_36-emu_instr_table
+	dc.w	emu_op_37-emu_instr_table
+	dc.w	emu_op_38-emu_instr_table
+	dc.w	emu_op_39-emu_instr_table
+	dc.w	emu_op_3a-emu_instr_table
+	dc.w	emu_op_3b-emu_instr_table
+	dc.w	emu_op_3c-emu_instr_table
+	dc.w	emu_op_3d-emu_instr_table
+	dc.w	emu_op_3e-emu_instr_table
+	dc.w	emu_op_3f-emu_instr_table
+	dc.w	emu_op_40-emu_instr_table
+	dc.w	emu_op_41-emu_instr_table
+	dc.w	emu_op_42-emu_instr_table
+	dc.w	emu_op_43-emu_instr_table
+	dc.w	emu_op_44-emu_instr_table
+	dc.w	emu_op_45-emu_instr_table
+	dc.w	emu_op_46-emu_instr_table
+	dc.w	emu_op_47-emu_instr_table
+	dc.w	emu_op_48-emu_instr_table
+	dc.w	emu_op_49-emu_instr_table
+	dc.w	emu_op_4a-emu_instr_table
+	dc.w	emu_op_4b-emu_instr_table
+	dc.w	emu_op_4c-emu_instr_table
+	dc.w	emu_op_4d-emu_instr_table
+	dc.w	emu_op_4e-emu_instr_table
+	dc.w	emu_op_4f-emu_instr_table
+	dc.w	emu_op_50-emu_instr_table
+	dc.w	emu_op_51-emu_instr_table
+	dc.w	emu_op_52-emu_instr_table
+	dc.w	emu_op_53-emu_instr_table
+	dc.w	emu_op_54-emu_instr_table
+	dc.w	emu_op_55-emu_instr_table
+	dc.w	emu_op_56-emu_instr_table
+	dc.w	emu_op_57-emu_instr_table
+	dc.w	emu_op_58-emu_instr_table
+	dc.w	emu_op_59-emu_instr_table
+	dc.w	emu_op_5a-emu_instr_table
+	dc.w	emu_op_5b-emu_instr_table
+	dc.w	emu_op_5c-emu_instr_table
+	dc.w	emu_op_5d-emu_instr_table
+	dc.w	emu_op_5e-emu_instr_table
+	dc.w	emu_op_5f-emu_instr_table
+	dc.w	emu_op_60-emu_instr_table
+	dc.w	emu_op_61-emu_instr_table
+	dc.w	emu_op_62-emu_instr_table
+	dc.w	emu_op_63-emu_instr_table
+	dc.w	emu_op_64-emu_instr_table
+	dc.w	emu_op_65-emu_instr_table
+	dc.w	emu_op_66-emu_instr_table
+	dc.w	emu_op_67-emu_instr_table
+	dc.w	emu_op_68-emu_instr_table
+	dc.w	emu_op_69-emu_instr_table
+	dc.w	emu_op_6a-emu_instr_table
+	dc.w	emu_op_6b-emu_instr_table
+	dc.w	emu_op_6c-emu_instr_table
+	dc.w	emu_op_6d-emu_instr_table
+	dc.w	emu_op_6e-emu_instr_table
+	dc.w	emu_op_6f-emu_instr_table
+	dc.w	emu_op_70-emu_instr_table
+	dc.w	emu_op_71-emu_instr_table
+	dc.w	emu_op_72-emu_instr_table
+	dc.w	emu_op_73-emu_instr_table
+	dc.w	emu_op_74-emu_instr_table
+	dc.w	emu_op_75-emu_instr_table
+	dc.w	emu_op_76-emu_instr_table
+	dc.w	emu_op_77-emu_instr_table
+	dc.w	emu_op_78-emu_instr_table
+	dc.w	emu_op_79-emu_instr_table
+	dc.w	emu_op_7a-emu_instr_table
+	dc.w	emu_op_7b-emu_instr_table
+	dc.w	emu_op_7c-emu_instr_table
+	dc.w	emu_op_7d-emu_instr_table
+	dc.w	emu_op_7e-emu_instr_table
+	dc.w	emu_op_7f-emu_instr_table
+	dc.w	emu_op_80-emu_instr_table
+	dc.w	emu_op_81-emu_instr_table
+	dc.w	emu_op_82-emu_instr_table
+	dc.w	emu_op_83-emu_instr_table
+	dc.w	emu_op_84-emu_instr_table
+	dc.w	emu_op_85-emu_instr_table
+	dc.w	emu_op_86-emu_instr_table
+	dc.w	emu_op_87-emu_instr_table
+	dc.w	emu_op_88-emu_instr_table
+	dc.w	emu_op_89-emu_instr_table
+	dc.w	emu_op_8a-emu_instr_table
+	dc.w	emu_op_8b-emu_instr_table
+	dc.w	emu_op_8c-emu_instr_table
+	dc.w	emu_op_8d-emu_instr_table
+	dc.w	emu_op_8e-emu_instr_table
+	dc.w	emu_op_8f-emu_instr_table
+	dc.w	emu_op_90-emu_instr_table
+	dc.w	emu_op_91-emu_instr_table
+	dc.w	emu_op_92-emu_instr_table
+	dc.w	emu_op_93-emu_instr_table
+	dc.w	emu_op_94-emu_instr_table
+	dc.w	emu_op_95-emu_instr_table
+	dc.w	emu_op_96-emu_instr_table
+	dc.w	emu_op_97-emu_instr_table
+	dc.w	emu_op_98-emu_instr_table
+	dc.w	emu_op_99-emu_instr_table
+	dc.w	emu_op_9a-emu_instr_table
+	dc.w	emu_op_9b-emu_instr_table
+	dc.w	emu_op_9c-emu_instr_table
+	dc.w	emu_op_9d-emu_instr_table
+	dc.w	emu_op_9e-emu_instr_table
+	dc.w	emu_op_9f-emu_instr_table
+	dc.w	emu_op_a0-emu_instr_table
+	dc.w	emu_op_a1-emu_instr_table
+	dc.w	emu_op_a2-emu_instr_table
+	dc.w	emu_op_a3-emu_instr_table
+	dc.w	emu_op_a4-emu_instr_table
+	dc.w	emu_op_a5-emu_instr_table
+	dc.w	emu_op_a6-emu_instr_table
+	dc.w	emu_op_a7-emu_instr_table
+	dc.w	emu_op_a8-emu_instr_table
+	dc.w	emu_op_a9-emu_instr_table
+	dc.w	emu_op_aa-emu_instr_table
+	dc.w	emu_op_ab-emu_instr_table
+	dc.w	emu_op_ac-emu_instr_table
+	dc.w	emu_op_ad-emu_instr_table
+	dc.w	emu_op_ae-emu_instr_table
+	dc.w	emu_op_af-emu_instr_table
+	dc.w	emu_op_b0-emu_instr_table
+	dc.w	emu_op_b1-emu_instr_table
+	dc.w	emu_op_b2-emu_instr_table
+	dc.w	emu_op_b3-emu_instr_table
+	dc.w	emu_op_b4-emu_instr_table
+	dc.w	emu_op_b5-emu_instr_table
+	dc.w	emu_op_b6-emu_instr_table
+	dc.w	emu_op_b7-emu_instr_table
+	dc.w	emu_op_b8-emu_instr_table
+	dc.w	emu_op_b9-emu_instr_table
+	dc.w	emu_op_ba-emu_instr_table
+	dc.w	emu_op_bb-emu_instr_table
+	dc.w	emu_op_bc-emu_instr_table
+	dc.w	emu_op_bd-emu_instr_table
+	dc.w	emu_op_be-emu_instr_table
+	dc.w	emu_op_bf-emu_instr_table
+	dc.w	emu_op_c0-emu_instr_table
+	dc.w	emu_op_c1-emu_instr_table
+	dc.w	emu_op_c2-emu_instr_table
+	dc.w	emu_op_c3-emu_instr_table
+	dc.w	emu_op_c4-emu_instr_table
+	dc.w	emu_op_c5-emu_instr_table
+	dc.w	emu_op_c6-emu_instr_table
+	dc.w	emu_op_c7-emu_instr_table
+	dc.w	emu_op_c8-emu_instr_table
+	dc.w	emu_op_c9-emu_instr_table
+	dc.w	emu_op_ca-emu_instr_table
+	dc.w	emu_op_cb-emu_instr_table
+	dc.w	emu_op_cc-emu_instr_table
+	dc.w	emu_op_cd-emu_instr_table
+	dc.w	emu_op_ce-emu_instr_table
+	dc.w	emu_op_cf-emu_instr_table
+	dc.w	emu_op_d0-emu_instr_table
+	dc.w	emu_op_d1-emu_instr_table
+	dc.w	emu_op_d2-emu_instr_table
+	dc.w	emu_op_d3-emu_instr_table
+	dc.w	emu_op_d4-emu_instr_table
+	dc.w	emu_op_d5-emu_instr_table
+	dc.w	emu_op_d6-emu_instr_table
+	dc.w	emu_op_d7-emu_instr_table
+	dc.w	emu_op_d8-emu_instr_table
+	dc.w	emu_op_d9-emu_instr_table
+	dc.w	emu_op_da-emu_instr_table
+	dc.w	emu_op_db-emu_instr_table
+	dc.w	emu_op_dc-emu_instr_table
+	dc.w	emu_op_dd-emu_instr_table
+	dc.w	emu_op_de-emu_instr_table
+	dc.w	emu_op_df-emu_instr_table
+	dc.w	emu_op_e0-emu_instr_table
+	dc.w	emu_op_e1-emu_instr_table
+	dc.w	emu_op_e2-emu_instr_table
+	dc.w	emu_op_e3-emu_instr_table
+	dc.w	emu_op_e4-emu_instr_table
+	dc.w	emu_op_e5-emu_instr_table
+	dc.w	emu_op_e6-emu_instr_table
+	dc.w	emu_op_e7-emu_instr_table
+	dc.w	emu_op_e8-emu_instr_table
+	dc.w	emu_op_e9-emu_instr_table
+	dc.w	emu_op_ea-emu_instr_table
+	dc.w	emu_op_eb-emu_instr_table
+	dc.w	emu_op_ec-emu_instr_table
+	dc.w	emu_op_ed-emu_instr_table
+	dc.w	emu_op_ee-emu_instr_table
+	dc.w	emu_op_ef-emu_instr_table
+	dc.w	emu_op_f0-emu_instr_table
+	dc.w	emu_op_f1-emu_instr_table
+	dc.w	emu_op_f2-emu_instr_table
+	dc.w	emu_op_f3-emu_instr_table
+	dc.w	emu_op_f4-emu_instr_table
+	dc.w	emu_op_f5-emu_instr_table
+	dc.w	emu_op_f6-emu_instr_table
+	dc.w	emu_op_f7-emu_instr_table
+	dc.w	emu_op_f8-emu_instr_table
+	dc.w	emu_op_f9-emu_instr_table
+	dc.w	emu_op_fa-emu_instr_table
+	dc.w	emu_op_fb-emu_instr_table
+	dc.w	emu_op_fc-emu_instr_table
+	dc.w	emu_op_fd-emu_instr_table
+	dc.w	emu_op_fe-emu_instr_table
+	dc.w	emu_op_ff-emu_instr_table
+
 
 ;;; http://z80.info/z80oplist.txt
 emu_op_00:
@@ -1258,6 +1285,12 @@ emu_op_7f:
 	DONE
 
 emu_op_80:
+	;; ADD	A,B
+	LOHI	d4
+	add.b	d3,d4
+	;; preserve operands for flagging
+	move.b	
+
 emu_op_81:
 emu_op_82:
 emu_op_83:
