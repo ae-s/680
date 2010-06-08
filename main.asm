@@ -12,7 +12,8 @@
 ;;; A2 = pseudo return address (for emulation core, to emulate prefix
 ;;;      instructions properly)
 ;;;
-;;; D0,D1 = scratch
+;;; D0 = current instruction
+;;; D1 = scratch
 ;;;
 ;;; D2 = emulated SP, PC	SP high, PC low - both virtual addresses
 ;;;
@@ -156,9 +157,9 @@ emu_alt_fetch:
 	;; evenly
 	eor.w	d0,d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
-	asl	#5,d0		; 6 cycles
+	rol.w	#5,d0		; 4 cycles
 	jmp	(a3,d0)		;14 cycles
-	;; overhead:		 32 cycles
+	;; overhead:		 30 cycles
 
 storage:
 add_src:	dc.b	0
@@ -171,7 +172,7 @@ flag_n:		dc.b	0
 ;;;      ___   ___                    ======= ==============================
 ;;;  ___( _ ) / _ \   emulation core    ====================================
 ;;; |_  / _ \| | | |  emulation core     ===================================
-;;;  / / (_) | |_| |  emulation core      ==================================
+;;;  / ( (_) | |_| |  emulation core      ==================================
 ;;; /___\___/ \___/   emulation core       =================================
 ;;;                                   ======= ==============================
 ;;; ========================================================================
@@ -439,11 +440,11 @@ emu_instr_table:
 
 ;;; http://z80.info/z80oplist.txt
 emu_op_00:
-	;; NOP = 4
+	;; NOP
 	DONE
 
 emu_op_01:
-	;; LD	BC,immed.w = 10,14
+	;; LD	BC,immed.w
 	;; Read a word and put it in BC
 	;; No flags
 	FETCHWI	d4
@@ -511,7 +512,7 @@ emu_op_0a:
 	;; A <- (BC)
 	;; No flags
 	FETCHB	d4
-	move.b	d0,d3
+	move.b	d1,d3
 	DONE
 
 emu_op_0b:
@@ -557,8 +558,8 @@ emu_op_10:
 	LOHI	d4
 	subq.b	#1,d4
 	beq	emu_op_10_end	; slooooow
-	FETCHBI	d0
-	add.w	d0,d2
+	FETCHBI	d1
+	add.w	d1,d2
 emu_op_10_end:
 	HILO	d4
 	DONE
@@ -615,8 +616,8 @@ emu_op_18:
 	;; JR
 	;; Branch relative by a signed immediate byte
 	;; No flags
-	FETCHBI	d0
-	add.w	d0,d2
+	FETCHBI	d1
+	add.w	d1,d2
 	DONE
 
 emu_op_19:
@@ -670,8 +671,8 @@ emu_op_20:
 	;; SPEED can be made faster
 	;; No flags
 	beq	emu_op_10_end
-	FETCHBI	d0
-	add.w	d0,d2
+	FETCHBI	d1
+	add.w	d1,d2
 emu_op_10_end:
 	DONE
 
@@ -685,8 +686,8 @@ emu_op_22:
 	;; LD	immed.w,HL
 	;; (address) <- HL
 	;; No flags
-	FETCHWI	d0
-	PUTW	d6,d0
+	FETCHWI	d1
+	PUTW	d6,d1
 
 emu_op_23:
 	;; INC	HL
@@ -734,8 +735,8 @@ emu_op_28:
 	;; SPEED can be made faster
 	;; No flags
 	beq	emu_op_28_end
-	FETCHBI	d0
-	add.w	d0,d2
+	FETCHBI	d1
+	add.w	d1,d2
 emu_op_28_end:
 	DONE
 
@@ -748,8 +749,8 @@ emu_op_29:
 emu_op_2a:
 	;; LD	HL,(immed.w)
 	;; address is absolute
-	FETCHWI	d0
-	FETCHW	d0,d6
+	FETCHWI	d1
+	FETCHW	d1,d6
 	DONE
 
 emu_op_2b:
@@ -783,8 +784,8 @@ emu_op_30:
 	;; If carry clear
 	;;  PC <- PC+immed.b
 	bcs	emu_op_30_end
-	FETCHBI	d0
-	add.w	d0,d2
+	FETCHBI	d1
+	add.w	d1,d2
 emu_op_30_end:
 	DONE
 
@@ -798,8 +799,8 @@ emu_op_31:
 emu_op_32:
 	;; LD	(immed.w),A
 	;; store indirect
-	FETCHWI	d0
-	PUTB	d3,d0
+	FETCHWI	d1
+	PUTB	d3,d1
 	DONE
 
 emu_op_33:
@@ -815,8 +816,8 @@ emu_op_34:
 	;; Increment byte
 	;; SPEED can be made faster
 	FETCHB	d6
-	addq.b	#1,d0
-	PUTB	d0,d6
+	addq.b	#1,d1
+	PUTB	d1,d6
 	DONE
 
 emu_op_35:
@@ -824,14 +825,14 @@ emu_op_35:
 	;; Decrement byte
 	;; SPEED can be made faster
 	FETCHB	d6
-	subq.b	#1,d0
-	PUTB	d0,d6
+	subq.b	#1,d1
+	PUTB	d1,d6
 	DONE
 
 emu_op_36:
 	;; LD	(HL),immed.b
-	FETCHBI	d0
-	PUTB	d6,d0
+	FETCHBI	d1
+	PUTB	d6,d1
 	DONE
 
 emu_op_37:
@@ -845,8 +846,8 @@ emu_op_38:
 	;; If carry set
 	;;  PC <- PC+immed.b
 	bcc	emu_op_38_end
-	FETCHBI	d0
-	add.w	d0,d2
+	FETCHBI	d1
+	add.w	d1,d2
 emu_op_38_end:
 	DONE
 
@@ -860,8 +861,8 @@ emu_op_39:
 
 emu_op_3a:
 	;; LD	A,(immed.w)
-	FETCHWI	d0
-	FETCHB	d0,d3
+	FETCHWI	d1
+	FETCHB	d1,d3
 	DONE
 
 emu_op_3b:
@@ -904,9 +905,9 @@ emu_op_40:
 emu_op_41:
 	;; LD	B,C
 	;; SPEED
-	move.b	d4,d0
+	move.b	d4,d1
 	LOHI	d4
-	move.b	d0,d4
+	move.b	d1,d4
 	HILO	d4
 	DONE
 
@@ -967,9 +968,9 @@ emu_op_47:
 emu_op_48:
 	;; LD	C,B
 	;; C <- B
-	move.w	d4,d0		; 4
-	lsr.w	#8,d0		; 6
-	move.b	d0,d4		; 4
+	move.w	d4,d1		; 4
+	lsr.w	#8,d1		; 6
+	move.b	d1,d4		; 4
 	DONE			; 8
 				;22 cycles
 emu_op_49:
@@ -978,9 +979,9 @@ emu_op_49:
 
 emu_op_4a:
 	;; LD	C,D
-	move.w	d5,d0
-	lsr.w	#8,d0
-	move.b	d0,d4
+	move.w	d5,d1
+	lsr.w	#8,d1
+	move.b	d1,d4
 	DONE
 
 emu_op_4b:
@@ -1034,9 +1035,9 @@ emu_op_52:
 emu_op_53:
 	;; LD	D,E
 	andi.w	#$00ff,d5
-	move.b	d5,d0
-	lsl	#8,d0
-	or.w	d0,d5
+	move.b	d5,d1
+	lsl	#8,d1
+	or.w	d1,d5
 	DONE
 
 emu_op_54:
@@ -1086,17 +1087,17 @@ emu_op_59:
 emu_op_5a:
 	;; LD	E,D
 	LOHI	d5
-	move.b	d5,d0
+	move.b	d5,d1
 	HILO	d5
-	move.b	d0,d5
+	move.b	d1,d5
 	DONE
 
 	;; Is this faster or slower?
 
 	andi.w	#$ff00,d5
-	move.b	d5,d0
-	lsr	#8,d0
-	or.w	d0,d5
+	move.b	d5,d1
+	lsr	#8,d1
+	or.w	d1,d5
 	DONE
 
 emu_op_5b:
@@ -1117,7 +1118,7 @@ emu_op_5d:
 
 emu_op_5e:
 	;; LD	E,(HL)
-	FETCHB	d6,d0
+	FETCHB	d6,d1
 	DONE
 
 emu_op_5f:
@@ -1164,17 +1165,17 @@ emu_op_64:
 emu_op_65:
 	;; LD	H,L
 	;; H <- L
-	move.b	d6,d0
+	move.b	d6,d1
 	LOHI	d6
-	move.b	d0,d6
+	move.b	d1,d6
 	HILO	d6
 	DONE
 
 emu_op_66:
 	;; LD	H,(HL)
-	FETCHB	d6,d0
+	FETCHB	d6,d1
 	LOHI	d6
-	move.b	d0,d6
+	move.b	d1,d6
 	HILO	d6
 	DONE
 
@@ -1212,9 +1213,9 @@ emu_op_6b:
 emu_op_6c:
 	;; LD	L,H
 	LOHI	d6
-	move.b	d6,d0
+	move.b	d6,d1
 	HILO	d6
-	move.b	d0,d6
+	move.b	d1,d6
 	DONE
 
 emu_op_6d:
@@ -1258,15 +1259,15 @@ emu_op_73:
 
 emu_op_74:
 	;; LD	(HL),H
-	move.w	d6,d0
-	HILO	d0
-	PUTB	d0,d6
+	move.w	d6,d1
+	HILO	d1
+	PUTB	d1,d6
 	DONE
 
 emu_op_75:
 	;; LD	(HL),L
-	move.b	d6,d0
-	PUTB	d0,d6
+	move.b	d6,d1
+	PUTB	d1,d6
 	DONE
 
 emu_op_76:
@@ -1281,9 +1282,9 @@ emu_op_77:
 
 emu_op_78:
 	;; LD	A,B
-	move.w	d4,d0
-	LOHI	d0
-	move.b	d0,d3
+	move.w	d4,d1
+	LOHI	d1
+	move.b	d1,d3
 	DONE
 
 emu_op_79:
@@ -1293,9 +1294,9 @@ emu_op_79:
 
 emu_op_7a:
 	;; LD	A,D
-	move.w	d5,d0
-	LOHI	d0
-	move.b	d0,d3
+	move.w	d5,d1
+	LOHI	d1
+	move.b	d1,d3
 	DONE
 
 emu_op_7b:
@@ -1305,9 +1306,9 @@ emu_op_7b:
 
 emu_op_7c:
 	;; LD	A,H
-	move.w	d6,d0
-	LOHI	d0
-	move.b	d0,d3
+	move.w	d6,d1
+	LOHI	d1
+	move.b	d1,d3
 	DONE
 
 emu_op_7d:
@@ -1369,17 +1370,54 @@ emu_op_85:
 
 emu_op_86:
 	;; ADD	A,(HL)
+	FETCHB	d6,d1
+	F_ADD_B	d1,d3
+	add.b	d1,d3
+	DONE
 
 emu_op_87:
+	;; ADD	A,A
+	F_ADD_B	d3,d3
+	add.b	d3,d3
+	DONE
+
 emu_op_88:
+	;; ADC	A,B
+	;; A <- A + B + (carry)
+	;; XXX fix this shit up
+	LOHI	d4
+	addx.b	d4,d3
+	HILO	d4
+	DONE
+
 emu_op_89:
+	;; ADC	A,C
+	;; A <- A + C + (carry)
+	;; XXX fix this shit up
+	addx.b	d4,d3
+	DONE
+
 emu_op_8a:
+	;; ADC	A,D
+	;; XXX fix this shit up
+	LOHI	d5
+	addx.b	d5,d3
+	HILO	d5
+	DONE
+
 emu_op_8b:
+	;; ADC	A,E
 emu_op_8c:
+	;; ADC	A,H
 emu_op_8d:
+	;; ADC	A,L
 emu_op_8e:
+	;; ADC	A,(HL)
 emu_op_8f:
+	;; ADC	A,A
 emu_op_90:
+	;; SUB	A,B
+	
 emu_op_91:
 emu_op_92:
 emu_op_93:
