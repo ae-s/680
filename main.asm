@@ -49,7 +49,7 @@ FETCHB	MACRO			; 14 cycles, 4 bytes
 
 	;; Macro to write a byte in \1 to main memory at \2 (regs only)
 PUTB	MACRO			; 14 cycles, 4 bytes
-	move.b	\1,(a6,\2)
+	move.b	\1,0(a6,\2)
 	ENDM
 
 	;; Macro to read a word from main memory at register \1
@@ -57,13 +57,13 @@ PUTB	MACRO			; 14 cycles, 4 bytes
 FETCHW	MACRO			; 32 cycles, 10 bytes
 	move.b	1(a6,\1.w),\2	; 14/4
 	ror.w	#8,\2		;  4/2
-	move.b	(a6,\1.w),\2	; 14/4
+	move.b	0(a6,\1.w),\2	; 14/4
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
 	;; XXX ALIGNMENT
 PUTW	MACRO			; 14 cycles, 4 bytes
-	move.b	\1,(a6,\2)
+	move.b	\1,0(a6,\2)
 	ENDM
 
 	;; == Immediate Memory Macros ==
@@ -361,7 +361,7 @@ emu_op_12:
 	;; LD	(DE),A
 	;; No flags
 	START
-	move.b	(a0,d5.w),d3
+	move.b	0(a0,d5.w),d3
 	DONE
 
 emu_op_13:
