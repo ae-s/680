@@ -44,52 +44,54 @@
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
 FETCHB	MACRO			; 14 cycles, 4 bytes
-	move.b	(\1.w,a6),\2
+	move.b	0(a6,\1.w),\2
 	ENDM
 
 	;; Macro to write a byte in \1 to main memory at \2 (regs only)
 PUTB	MACRO			; 14 cycles, 4 bytes
-	move.b	\1,(\2,a6)
+	move.b	\1,(a6,\2)
 	ENDM
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
 FETCHW	MACRO			; 32 cycles, 10 bytes
-	move.b	1(\1.w,a6),\2	; 14/4
+	move.b	1(a6,\1.w),\2	; 14/4
 	ror.w	#8,\2		;  4/2
-	move.b	(\1.w,a6),\2	; 14/4
+	move.b	(a6,\1.w),\2	; 14/4
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
 	;; XXX ALIGNMENT
 PUTW	MACRO			; 14 cycles, 4 bytes
-	move.b	\1,(\2,a6)
+	move.b	\1,(a6,\2)
 	ENDM
 
 	;; == Immediate Memory Macros ==
 
-	;; Macro to read an immediate byte into \2.
+	;; Macro to read an immediate byte into \1.
 FETCHBI	MACRO			; 18 cycles, 6 bytes
 	addq.w	#1,d2		;  4/2
-	move.b	-1(d2.w,a6),\2	; 14/4
+	move.b	-1(a6,d2.w),\1	; 14/4
 	ENDM
 
-	;; Macro to read an immediate word (unaligned) into \2.
+	;; Macro to read an immediate word (unaligned) into \1.
 FETCHWI	MACRO			; 36 cycles, 12 bytes
 	addq.w	#2,d2		;  4/2
-	move.b	-1(d2.w,a6),\2	; 14/4
+	move.b	-1(a6,d2.w),\1	; 14/4
 	rol.w	#8,d2		;  4/2
-	move.b	-2(d2.w,a6),\2	; 14/4
+	move.b	-2(a6,d2.w),\1	; 14/4
 	ENDM
 
 	;; == Common Opcode Macros =========================================
 
 	;; Forces alignment
 _align	SET	0
+
 START	MACRO
 	ORG	emu_plain_op+_align
 _align	SET	_align+32
 	ENDM
+
 	;; When you want to use the high reg of a pair, use this first
 LOHI	MACRO			; 6 cycles, 2 bytes
 	ror	#8,\1
@@ -100,10 +102,10 @@ HILO	MACRO			; 6 cycles, 2 bytes
 	rol	#8,\1
 	ENDM
 
-DONE	MACRO			; 8 cycles, 2 bytes
 	;; calc84maniac suggests putting emu_fetch into this in order
 	;; to save 8 cycles per instruction, at the expense of code
 	;; size
+DONE	MACRO			; 8 cycles, 2 bytes
 	jmp	(a2)
 	ENDM
 
@@ -148,9 +150,7 @@ _main:
 	rts
 
 emu_setup:
-	eor.l	a5,a5
-	eor.l	a4,a4
-	movea	emu_instr_table,a3
+	movea	emu_plain_op,a3
 	movea	emu_fetch(pc),a2
 	;; XXX finish
 
@@ -177,7 +177,7 @@ emu_fetch:
 	eor.w	d0,d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
 	rol.w	#5,d0		; 4 cycles   adjust to actual alignment
-	jmp	(a3,d0)		;14 cycles
+	jmp	0(a3,d0)	;14 cycles
 	;; overhead:		 30 cycles
 
 storage:
@@ -269,7 +269,7 @@ emu_op_07:
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
 	START
-	rol.b	d3,1
+	rol.b	#1,d3
 	DONE
 
 emu_op_08:
@@ -292,8 +292,7 @@ emu_op_0a:
 	;; A <- (BC)
 	;; No flags
 	START
-	FETCHB	d4
-	move.b	d1,d3
+	FETCHB	d4,d3
 	DONE
 
 emu_op_0b:
@@ -332,7 +331,7 @@ emu_op_0f:
 	;; Rotate A right, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
 	START
-	ror.b	d3,1
+	ror.b	#1,d3
 	DONE
 
 emu_op_10:
@@ -403,7 +402,7 @@ emu_op_17:
 	;; RLA
 	;; Flags: P,N=0; C aff.
 	START
-	roxl.b	1,d3
+	roxl.b	#1,d3
 	DONE
 
 emu_op_18:
@@ -463,7 +462,7 @@ emu_op_1f:
 	;; RRA
 	;; Flags: H,N=0; C aff.
 	START
-	roxr.b	d3
+	roxr.b	#1,d3
 	DONE
 
 emu_op_20:
@@ -639,7 +638,7 @@ emu_op_34:
 	;; Increment byte
 	;; SPEED can be made faster
 	START
-	FETCHB	d6
+	FETCHB	d6,d1
 	addq.b	#1,d1
 	PUTB	d1,d6
 	DONE
@@ -649,7 +648,7 @@ emu_op_35:
 	;; Decrement byte
 	;; SPEED can be made faster
 	START
-	FETCHB	d6
+	FETCHB	d6,d1
 	subq.b	#1,d1
 	PUTB	d1,d6
 	DONE
