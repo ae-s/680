@@ -12,9 +12,13 @@
 ;;;
 ;;; A7 = sp
 ;;; A6 = address space base pointer
+;;; A5 =
+;;; A4 =
 ;;; A3 = instruction table base pointer
 ;;; A2 = pseudo return address (for emulation core, to emulate prefix
 ;;;      instructions properly)
+;;; A1 = scratch
+;;; A0 = scratch
 ;;;
 ;;; D0 = current instruction
 ;;; D1 = scratch
@@ -119,7 +123,7 @@ F_ADD_B	MACRO			; 14 bytes?
 	moveq	#0,flag_n
 	moveq	#1,tmp_byte
 	;; XXX do I have to use SR instead?
-	move	ccr,68k_ccr
+	move	ccr,host_ccr
 	ENDM
 
 	;; Set flags appropriately for a SUB \1,\2
@@ -130,7 +134,7 @@ F_SUB_B	MACRO			;14 bytes?
 	moveq	#1,flag_n
 	moveq	#1,tmp_byte
 	;; XXX do I have to use SR instead?
-	move	ccr,68k_ccr
+	move	sr,host_ccr
 	ENDM
 
 	;; Set flags appropriately for a ADD \1,\2, both words
@@ -139,6 +143,32 @@ F_ADD_W	MACRO
 	;; Set flags appropriately for a SUB \1,\2, both words
 F_SUB_W	MACRO
 	ENDM
+
+	;; INC and DEC macros
+F_INC_B	MACRO
+	ENDM
+
+F_DEC_B	MACRO
+	ENDM
+
+F_INC_W	MACRO
+	ENDM
+
+F_DEC_W	MACRO
+	ENDM
+
+	;; COMPARE instruction
+F_CP_B	MACRO
+	ENDM
+
+	;; I might be able to unify rotation flags or maybe use a
+	;; lookup table
+
+;;; one-off flag operations:
+;;; CCF - invert CARRY
+;;; CPL - H,N=1
+;;; RLD
+;;; 
 
 
 
@@ -180,21 +210,6 @@ emu_fetch:
 	jmp	0(a3,d0)	;14 cycles
 	;; overhead:		 30 cycles
 
-storage:
-	;; 1 if tmp_???b is valid, 0 if tmp_???w is valid
-tmp_byte:	ds.b	0
-
-	;; byte operands
-tmp_srcb:	ds.b	0
-tmp_dstb:	ds.b	0
-
-	;; word operands
-tmp_srcw:	ds.w	0
-tmp_dstw:	ds.w	0
-
-flag_n:		ds.b	0
-68k_ccr:	ds.w	0
-
 ;;; ========================================================================
 ;;; ========================================================================
 ;;;      ___   ___                    ======= ==============================
@@ -208,139 +223,142 @@ flag_n:		ds.b	0
 
 ;;; http://z80.info/z80oplist.txt
 
+CNOP	0,32
+
 emu_plain_op:
+	START
 emu_op_00:
 	;; NOP
 	START
 	DONE
 
+	START
 emu_op_01:
 	;; LD	BC,immed.w
 	;; Read a word and put it in BC
 	;; No flags
-	START
 	FETCHWI	d4
 	DONE
 
+	START
 emu_op_02:
 	;; LD	(BC),A
 	;; XXX Do this
 	;; No flags
-	START
 	DONE
 
+	START
 emu_op_03:
 	;; INC	BC
 	;; BC <- BC+1
 	;; No flags
-	START
 	addq.w	#1,d4
 	DONE
 
+	START
 emu_op_04:
 	;; INC	B
 	;; B <- B+1
 	;; No flags ?
-	START
 	add.w	#$0100,d4	; 8
 	DONE			; 8
 				;16 cycles
 
+	START
 emu_op_05:
 	;; DEC	B
 	;; B <- B-1
 	;; Flags: S,Z,H changed, P=oVerflow, N set, C left
-	START
 	sub.w	#$0100,d4
 	DONE
 
+	START
 emu_op_06:
 	;; LD	B,immed.b
 	;; Read a byte and put it in B
 	;; No flags
-	START
 	LOHI	d4
 	FETCHBI	d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_07:
 	;; RLCA
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
-	START
 	rol.b	#1,d3
 	DONE
 
+	START
 emu_op_08:
 	;; EX	AF,AF'
 	;; No flags
-	START
 	swap	d3
 	DONE
 
+	START
 emu_op_09:
 	;; ADD	HL,BC
 	;; HL <- HL+BC
 	;; Flags: H, C aff.; N=0
-	START
 	add.w	d4,d6
 	DONE
 
+	START
 emu_op_0a:
 	;; LD	A,(BC)
 	;; A <- (BC)
 	;; No flags
-	START
 	FETCHB	d4,d3
 	DONE
 
+	START
 emu_op_0b:
 	;; DEC	BC
 	;; BC <- BC-1
 	;; No flags
-	START
 	subq.w	#1,d4
 	DONE
 
+	START
 emu_op_0c:
 	;; INC	C
 	;; C <- C+1
 	;; Flags: S,Z,H aff.; P=overflow, N=0
-	START
 	addq.b	#1,d4
 	DONE
 
+	START
 emu_op_0d:
 	;; DEC	C
 	;; C <- C-1
 	;; Flags: S,Z,H aff., P=overflow, N=1
-	START
 	subq.b	#1,d4
 	DONE
 
+	START
 emu_op_0e:
 	;; LD	C,immed.b
 	;; No flags
-	START
 	FETCHBI	d4
 	DONE
 
+	START
 emu_op_0f:
 	;; RRCA
 	;; Rotate A right, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
-	START
 	ror.b	#1,d3
 	DONE
 
+	START
 emu_op_10:
 	;; DJNZ	immed.w
 	;; Decrement B
 	;;  and branch by immed.b
 	;;  if B not zero
 	;; No flags
-	START
 	LOHI	d4
 	subq.b	#1,d4
 	beq	end	; slooooow
@@ -350,407 +368,407 @@ emu_op_10:
 	HILO	d4
 	DONE
 
+	START
 emu_op_11:
 	;; LD	DE,immed.w
 	;; No flags
-	START
 	FETCHWI	d5
 	DONE
 
+	START
 emu_op_12:
 	;; LD	(DE),A
 	;; No flags
-	START
 	move.b	(a0,d5.w),d3
 	DONE
 
+	START
 emu_op_13:
 	;; INC	DE
 	;; No flags
-	START
 	addq.w	#1,d5
 	DONE
 
+	START
 emu_op_14:
 	;; INC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=0
-	START
 	LOHI	d5
 	addq.b	#1,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_15:
 	;; DEC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=1
-	START
 	LOHI	d5
 	subq.b	#1,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_16:
 	;; LD D,immed.b
 	;; No flags
-	START
 	LOHI	d5
 	FETCHBI	d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_17:
 	;; RLA
 	;; Flags: P,N=0; C aff.
-	START
 	roxl.b	#1,d3
 	DONE
 
+	START
 emu_op_18:
 	;; JR
 	;; Branch relative by a signed immediate byte
 	;; No flags
-	START
 	FETCHBI	d1
 	add.w	d1,d2
 	DONE
 
+	START
 emu_op_19:
 	;; ADD	HL,DE
 	;; HL <- HL+DE
 	;; Flags: H,C aff,; N=0
-	START
 	add.w	d5,d6
 	DONE
 
+	START
 emu_op_1a:
 	;; LD	A,(DE)
 	;; A <- (DE)
 	;; No flags
-	START
 	FETCHB	d5,d3
 	DONE
 
+	START
 emu_op_1b:
 	;; DEC	DE
 	;; No flags
-	START
 	subq.w	#1,d5
 	DONE
 
+	START
 emu_op_1c:
 	;; INC	E
 	;; Flags: S,Z,H aff.; P=overflow; N=0
-	START
 	addq.b	#1,d5
 	DONE
 
+	START
 emu_op_1d:
 	;; DEC	E
 	;; Flags: S,Z,H aff.; P=overflow, N=1
-	START
 	subq.b	#1,d5
 	DONE
 
+	START
 emu_op_1e:
 	;; LD	E,immed.b
 	;; No flags
-	START
 	FETCHBI	d5
 	DONE
 
+	START
 emu_op_1f:
 	;; RRA
 	;; Flags: H,N=0; C aff.
-	START
 	roxr.b	#1,d3
 	DONE
 
+	START
 emu_op_20:
 	;; JR	NZ,immed.b
 	;; if ~Z,
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
-	START
 	beq	end
 	FETCHBI	d1
 	add.w	d1,d2
 \end:
 	DONE
 
+	START
 emu_op_21:
 	;; LD	HL,immed.w
 	;; No flags
-	START
 	FETCHWI	d6
 	DONE
 
+	START
 emu_op_22:
 	;; LD	immed.w,HL
 	;; (address) <- HL
 	;; No flags
-	START
 	FETCHWI	d1
 	PUTW	d6,d1
 
+	START
 emu_op_23:
 	;; INC	HL
 	;; No flags
-	START
 	addq.w	#1,d6
 	DONE
 
+	START
 emu_op_24:
 	;; INC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=0
-	START
 	LOHI	d6
 	addq.b	#1,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_25:
 	;; DEC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=1
-	START
 	LOHI	d6
 	subq.b	#1,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_26:
 	;; LD	H,immed.b
 	;; No flags
-	START
 	LOHI	d6
 	FETCHBI	d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_27:
 	;; DAA
 	;; Decrement, adjust accum
 	;; http://www.z80.info/z80syntx.htm#DAA
 	;; Flags: oh lord they're fucked up
 	;; XXX DO THIS
-	START
 
 	DONE
 
+	START
 emu_op_28:
 	;; JR Z,immed.b
 	;; If zero
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
-	START
 	beq	end
 	FETCHBI	d1
 	add.w	d1,d2
 \end:
 	DONE
 
+	START
 emu_op_29:
 	;; ADD	HL,HL
 	;; Flags: 
-	START
 	add.w	d6,d6
 	DONE
 
+	START
 emu_op_2a:
 	;; LD	HL,(immed.w)
 	;; address is absolute
-	START
 	FETCHWI	d1
 	FETCHW	d1,d6
 	DONE
 
+	START
 emu_op_2b:
 	;; DEC	HL
-	START
 	subq.w	#1,d6
 	DONE
 
+	START
 emu_op_2c:
 	;; INC	L
-	START
 	addq.b	#1,d6
 	DONE
 
+	START
 emu_op_2d:
 	;; DEC	L
-	START
 	subq.b	#1,d6
 	DONE
 
+	START
 emu_op_2e:
 	;; LD	L,immed.b
-	START
 	FETCHBI	d6
 	DONE
 
+	START
 emu_op_2f:
 	;; CPL
 	;; A <- NOT A
-	START
 	not.b	d3
 	DONE
 
+	START
 emu_op_30:
 	;; JR	NC,immed.b
 	;; If carry clear
 	;;  PC <- PC+immed.b
 	;; XXX finish
-	START
 	bcs	end
 	FETCHBI	d1
 	add.w	d1,d2
 \end:
 	DONE
 
+	START
 emu_op_31:
 	;; LD	SP,immed.w
-	START
 	swap	d2
 	FETCHWI	d2
 	swap	d2
 	DONE
 
+	START
 emu_op_32:
 	;; LD	(immed.w),A
 	;; store indirect
-	START
 	FETCHWI	d1
 	PUTB	d3,d1
 	DONE
 
+	START
 emu_op_33:
 	;; INC	SP
 	;; XXX This might be done by adding $100
-	START
 	swap	d2
 	addq.w	#1,d2
 	swap	d2
 	DONE
 
+	START
 emu_op_34:
 	;; INC	(HL)
 	;; Increment byte
 	;; SPEED can be made faster
-	START
 	FETCHB	d6,d1
 	addq.b	#1,d1
 	PUTB	d1,d6
 	DONE
 
+	START
 emu_op_35:
 	;; DEC	(HL)
 	;; Decrement byte
 	;; SPEED can be made faster
-	START
 	FETCHB	d6,d1
 	subq.b	#1,d1
 	PUTB	d1,d6
 	DONE
 
+	START
 emu_op_36:
 	;; LD	(HL),immed.b
-	START
 	FETCHBI	d1
 	PUTB	d6,d1
 	DONE
 
+	START
 emu_op_37:
 	;; SCF
 	;; Set Carry Flag
 	;; XXX DO THIS
-	START
 	DONE
 
+	START
 emu_op_38:
 	;; JR	C,immed.b
 	;; If carry set
 	;;  PC <- PC+immed.b
-	START
 	bcc	end
 	FETCHBI	d1
 	add.w	d1,d2
 \end:
 	DONE
 
+	START
 emu_op_39:
 	;; ADD	HL,SP
 	;; HL <- HL+SP
-	START
 	swap	d2
 	add.w	d6,d2
 	swap	d2
 	DONE
 
+	START
 emu_op_3a:
 	;; LD	A,(immed.w)
-	START
 	FETCHWI	d1
 	FETCHB	d1,d3
 	DONE
 
+	START
 emu_op_3b:
 	;; DEC	SP
 	;; XXX this might be done by subtracting $100
-	START
 	swap	d2
 	subq.w	#1,d2
 	swap	d2
 	DONE
 
+	START
 emu_op_3c:
 	;; INC	A
-	START
 	addq.b	#1,d3
 	DONE
 
+	START
 emu_op_3d:
 	;; DEC	A
-	START
 	subq.b	#1,d3
 	DONE
 
+	START
 emu_op_3e:
 	;; LD	A,immed.b
-	START
 	FETCHBI	d3
 	DONE
 
+	START
 emu_op_3f:
 	;; CCF
 	;; Toggle carry flag
 	;; XXX DO THIS
-	START
 	DONE
 
+	START
 emu_op_40:
 	;; LD	B,B
 	;; SPEED
-	START
 	LOHI	d4
 	move.b	d4,d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_41:
 	;; LD	B,C
 	;; SPEED
-	START
 	move.b	d4,d1
 	LOHI	d4
 	move.b	d1,d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_42:
 	;; LD	B,D
 	;; B <- D
-	START
 	LOHI	d4		; 4
 	LOHI	d5		; 4
 	move.b	d5,d4		; 4
@@ -759,20 +777,20 @@ emu_op_42:
 	DONE
 				;20 cycles
 
+	START
 emu_op_43:
 	;; LD	B,E
 	;; B <- E
-	START
 	LOHI	d4		; 4
 	move.b	d4,d5		; 4
 	HILO	d4		; 4
 	DONE
 				; 12 cycles
 
+	START
 emu_op_44:
 	;; LD	B,H
 	;; B <- H
-	START
 	LOHI	d4
 	LOHI	d6
 	move.b	d6,d4
@@ -780,91 +798,91 @@ emu_op_44:
 	HILO	d6
 	DONE
 
+	START
 emu_op_45:
 	;; LD	B,L
 	;; B <- L
-	START
 	LOHI	d4
 	move.b	d6,d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_46:
 	;; LD	B,(HL)
 	;; B <- (HL)
-	START
 	LOHI	d4
 	FETCHB	d6,d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_47:
 	;; LD	B,A
 	;; B <- A
-	START
 	LOHI	d4
 	move.b	d3,d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_48:
 	;; LD	C,B
 	;; C <- B
-	START
 	move.w	d4,d1		; 4
 	lsr.w	#8,d1		; 6
 	move.b	d1,d4		; 4
 	DONE
 				;14 cycles
+	START
 emu_op_49:
 	;; LD	C,C
-	START
 	DONE
 
+	START
 emu_op_4a:
 	;; LD	C,D
-	START
 	move.w	d5,d1
 	lsr.w	#8,d1
 	move.b	d1,d4
 	DONE
 
+	START
 emu_op_4b:
 	;; LD	C,E
-	START
 	move.b	d4,d5
 	DONE
 
+	START
 emu_op_4c:
 	;; LD	C,H
-	START
 	LOHI	d6
 	move.b	d4,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_4d:
 	;; LD	C,L
-	START
 	move.b	d4,d6
 	DONE
 
+	START
 emu_op_4e:
 	;; LD	C,(HL)
 	;; C <- (HL)
-	START
 	FETCHB	d6,d4
 	DONE
 
+	START
 emu_op_4f:
 	;; LD	C,A
-	START
 	move.b	d3,d4
 	DONE
 
+	START
 emu_op_50:
 	;; LD	D,B
-	START
 	LOHI	d4
 	LOHI	d5
 	move.b	d4,d5
@@ -872,31 +890,31 @@ emu_op_50:
 	HILO	d5
 	DONE
 
+	START
 emu_op_51:
 	;; LD	D,C
-	START
 	LOHI	d5
 	move.b	d4,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_52:
 	;; LD	D,D
-	START
 	DONE
 
+	START
 emu_op_53:
 	;; LD	D,E
-	START
 	andi.w	#$00ff,d5
 	move.b	d5,d1
 	lsl	#8,d1
 	or.w	d1,d5
 	DONE
 
+	START
 emu_op_54:
 	;; LD	D,H
-	START
 	LOHI	d5		; 4
 	LOHI	d6		; 4
 	move.b	d6,d5		; 4
@@ -905,48 +923,48 @@ emu_op_54:
 	DONE
 				;20 cycles
 
+	START
 emu_op_55:
 	;; LD	D,L
-	START
 	LOHI	d5
 	move.b	d6,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_56:
 	;; LD	D,(HL)
 	;; D <- (HL)
-	START
 	LOHI	d5
 	FETCHB	d6,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_57:
 	;; LD	D,A
-	START
 	LOHI	d5
 	move.b	d3,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_58:
 	;; LD	E,B
-	START
 	LOHI	d4
 	move.b	d4,d5
 	HILO	d4
 	DONE
 
+	START
 emu_op_59:
 	;; LD	E,C
-	START
 	move.b	d4,d5
 	DONE
 
+	START
 emu_op_5a:
 	;; LD	E,D
-	START
 	LOHI	d5
 	move.b	d5,d1
 	HILO	d5
@@ -961,40 +979,40 @@ emu_op_5a:
 	or.w	d1,d5
 	DONE
 
+	START
 emu_op_5b:
 	;; LD	E,E
-	START
 	DONE
 
+	START
 emu_op_5c:
 	;; LD	E,H
-	START
 	LOHI	d6
 	move.b	d5,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_5d:
 	;; LD	E,L
-	START
 	move.b	d5,d6
 	DONE
 
+	START
 emu_op_5e:
 	;; LD	E,(HL)
-	START
 	FETCHB	d6,d1
 	DONE
 
+	START
 emu_op_5f:
 	;; LD	E,A
-	START
 	move.b	d5,d3
 	DONE
 
+	START
 emu_op_60:
 	;; LD	H,B
-	START
 	LOHI	d4
 	LOHI	d6
 	move.b	d6,d4
@@ -1002,17 +1020,17 @@ emu_op_60:
 	HILO	d6
 	DONE
 
+	START
 emu_op_61:
 	;; LD	H,C
-	START
 	LOHI	d6
 	move.b	d4,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_62:
 	;; LD	H,D
-	START
 	LOHI	d5
 	LOHI	d6
 	move.b	d5,d6
@@ -1020,433 +1038,551 @@ emu_op_62:
 	HILO	d6
 	DONE
 
+	START
 emu_op_63:
 	;; LD	H,E
-	START
 	LOHI	d6
 	move.b	d5,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_64:
 	;; LD	H,H
-	START
 	DONE
 
+	START
 emu_op_65:
 	;; LD	H,L
 	;; H <- L
-	START
 	move.b	d6,d1
 	LOHI	d6
 	move.b	d1,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_66:
 	;; LD	H,(HL)
-	START
 	FETCHB	d6,d1
 	LOHI	d6
 	move.b	d1,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_67:
 	;; LD	H,A
-	START
 	LOHI	d6
 	move.b	d3,d6
 	HILO	d6
 	DONE
 
+	START
 emu_op_68:
 	;; LD	L,B
-	START
 	LOHI	d4
 	move.b	d4,d6
 	HILO	d4
 	DONE
 
+	START
 emu_op_69:
 	;; LD	L,C
-	START
 	move.b	d4,d6
 	DONE
 
+	START
 emu_op_6a:
 	;; LD	L,D
-	START
 	LOHI	d5
 	move.b	d5,d6
 	HILO	d5
 	DONE
 
+	START
 emu_op_6b:
 	;; LD	L,E
-	START
 	move.b	d5,d6
 	DONE
 
+	START
 emu_op_6c:
 	;; LD	L,H
-	START
 	LOHI	d6
 	move.b	d6,d1
 	HILO	d6
 	move.b	d1,d6
 	DONE
 
+	START
 emu_op_6d:
 	;; LD	L,L
-	START
 	DONE
 
+	START
 emu_op_6e:
 	;; LD	L,(HL)
 	;; L <- (HL)
-	START
 	FETCHB	d6,d6
 	DONE
 
+	START
 emu_op_6f:
 	;; LD	L,A
-	START
 	move.b	d3,d6
 	DONE
 
+	START
 emu_op_70:
 	;; LD	(HL),B
-	START
 	LOHI	d4
 	PUTB	d6,d4
 	HILO	d4
 	DONE
 
+	START
 emu_op_71:
 	;; LD	(HL),C
-	START
 	PUTB	d6,d4
 	DONE
 
+	START
 emu_op_72:
 	;; LD	(HL),D
-	START
 	LOHI	d5
 	PUTB	d6,d5
 	HILO	d5
 	DONE
 
+	START
 emu_op_73:
 	;; LD	(HL),E
-	START
 	PUTB	d6,d5
 	DONE
 
+	START
 emu_op_74:
 	;; LD	(HL),H
-	START
 	move.w	d6,d1
 	HILO	d1
 	PUTB	d1,d6
 	DONE
 
+	START
 emu_op_75:
 	;; LD	(HL),L
-	START
 	move.b	d6,d1
 	PUTB	d1,d6
 	DONE
 
+	START
 emu_op_76:
 	;; HALT
 	;; XXX do this
-	START
 	DONE
 
+	START
 emu_op_77:
 	;; LD	(HL),A
-	START
 	PUTB	d3,d6
 	DONE
 
+	START
 emu_op_78:
 	;; LD	A,B
-	START
 	move.w	d4,d1
 	LOHI	d1
 	move.b	d1,d3
 	DONE
 
+	START
 emu_op_79:
 	;; LD	A,C
-	START
 	move.b	d4,d3
 	DONE
 
+	START
 emu_op_7a:
 	;; LD	A,D
-	START
 	move.w	d5,d1
 	LOHI	d1
 	move.b	d1,d3
 	DONE
 
+	START
 emu_op_7b:
 	;; LD	A,E
-	START
 	move.b	d5,d3
 	DONE
 
+	START
 emu_op_7c:
 	;; LD	A,H
-	START
 	move.w	d6,d1
 	LOHI	d1
 	move.b	d1,d3
 	DONE
 
+	START
 emu_op_7d:
 	;; LD	A,L
-	START
 	move.b	d6,d3
 	DONE
 
+	START
 emu_op_7e:
 	;; LD	A,(HL)
 	;; A <- (HL)
-	START
 	FETCHB	d6,d3
 	DONE
 
+	START
 emu_op_7f:
 	;; LD	A,A
-	START
 	DONE
 
+	START
 emu_op_80:
 	;; ADD	A,B
-	START
 	LOHI	d4
 	F_ADD_B	d4,d3
 	add.b	d4,d3
 	HILO	d4
 	DONE
 
+	START
 emu_op_81:
 	;; ADD	A,C
-	START
 	F_ADD_B	d4,d3
 	add.b	d4,d3
 	DONE
 
+	START
 emu_op_82:
 	;; ADD	A,D
-	START
 	LOHI	d5
 	F_ADD_B	d5,d3
 	add.b	d5,d3
 	HILO	d5
 	DONE
 
+	START
 emu_op_83:
 	;; ADD	A,E
-	START
 	F_ADD_B	d5,d3
 	add.b	d5,d3
 	DONE
 
+	START
 emu_op_84:
 	;; ADD	A,H
-	START
 	LOHI	d6
 	F_ADD_B	d6,d3
 	add.b	d6,d3
 	HILO	d6
 	DONE
 
+	START
 emu_op_85:
 	;; ADD	A,L
-	START
 	F_ADD_B	d6,d3
 	add.b	d6,d3
 	DONE
 
+	START
 emu_op_86:
 	;; ADD	A,(HL)
-	START
 	FETCHB	d6,d1
 	F_ADD_B	d1,d3
 	add.b	d1,d3
 	DONE
 
+	START
 emu_op_87:
 	;; ADD	A,A
-	START
 	F_ADD_B	d3,d3
 	add.b	d3,d3
 	DONE
 
+	START
 emu_op_88:
 	;; ADC	A,B
 	;; A <- A + B + (carry)
 	;; XXX fix this shit up
-	START
 	LOHI	d4
 	addx.b	d4,d3
 	HILO	d4
 	DONE
 
+	START
 emu_op_89:
 	;; ADC	A,C
 	;; A <- A + C + (carry)
 	;; XXX fix this shit up
-	START
 	addx.b	d4,d3
 	DONE
 
+	START
 emu_op_8a:
 	;; ADC	A,D
 	;; XXX fix this shit up
-	START
 	LOHI	d5
 	addx.b	d5,d3
 	HILO	d5
 	DONE
 
+	START
 emu_op_8b:
 	;; ADC	A,E
+	START
 emu_op_8c:
 	;; ADC	A,H
+	START
 emu_op_8d:
 	;; ADC	A,L
+	START
 emu_op_8e:
 	;; ADC	A,(HL)
+	START
 emu_op_8f:
 	;; ADC	A,A
+	START
 emu_op_90:
 	;; SUB	A,B
 	
+	START
 emu_op_91:
+	START
 emu_op_92:
+	START
 emu_op_93:
+	START
 emu_op_94:
+	START
 emu_op_95:
+	START
 emu_op_96:
+	START
 emu_op_97:
+	START
 emu_op_98:
+	START
 emu_op_99:
+	START
 emu_op_9a:
+	START
 emu_op_9b:
+	START
 emu_op_9c:
+	START
 emu_op_9d:
+	START
 emu_op_9e:
+	START
 emu_op_9f:
+	START
 emu_op_a0:
+	START
 emu_op_a1:
+	START
 emu_op_a2:
+	START
 emu_op_a3:
+	START
 emu_op_a4:
+	START
 emu_op_a5:
+	START
 emu_op_a6:
+	START
 emu_op_a7:
+	START
 emu_op_a8:
+	START
 emu_op_a9:
+	START
 emu_op_aa:
+	START
 emu_op_ab:
+	START
 emu_op_ac:
+	START
 emu_op_ad:
+	START
 emu_op_ae:
+	START
 emu_op_af:
+	START
 emu_op_b0:
+	START
 emu_op_b1:
+	START
 emu_op_b2:
+	START
 emu_op_b3:
+	START
 emu_op_b4:
+	START
 emu_op_b5:
+	START
 emu_op_b6:
+	START
 emu_op_b7:
+	START
 emu_op_b8:
+	START
 emu_op_b9:
+	START
 emu_op_ba:
+	START
 emu_op_bb:
+	START
 emu_op_bc:
+	START
 emu_op_bd:
+	START
 emu_op_be:
+	START
 emu_op_bf:
+	START
 emu_op_c0:
+	START
 emu_op_c1:
+	START
 emu_op_c2:
+	START
 emu_op_c3:
+	START
 emu_op_c4:
+	START
 emu_op_c5:
+	START
 emu_op_c6:
+	START
 emu_op_c7:
+	START
 emu_op_c8:
+	START
 emu_op_c9:
+	START
 emu_op_ca:
+	START
 emu_op_cb:			; prefix
 
 	movea.w	emu_op_undo_cb(pc),a2
+	START
 emu_op_cc:
+	START
 emu_op_cd:
+	START
 emu_op_ce:
+	START
 emu_op_cf:
+	START
 emu_op_d0:
+	START
 emu_op_d1:
+	START
 emu_op_d2:
+	START
 emu_op_d3:
+	START
 emu_op_d4:
+	START
 emu_op_d5:
+	START
 emu_op_d6:
+	START
 emu_op_d7:
+	START
 emu_op_d8:
+	START
 emu_op_d9:
+	START
 emu_op_da:
+	START
 emu_op_db:
+	START
 emu_op_dc:
+	START
 emu_op_dd:			; prefix
 	;; swap IX, HL
 
-	movea.w	emu_op_undo_dd(pc),a2
+	movea.w		emu_op_undo_dd(pc),a2
+	
+	START
 emu_op_de:
+	START
 emu_op_df:
+	START
 emu_op_e0:
+	START
 emu_op_e1:
+	START
 emu_op_e2:
+	START
 emu_op_e3:
+	START
 emu_op_e4:
+	START
 emu_op_e5:
+	START
 emu_op_e6:
+	START
 emu_op_e7:
+	START
 emu_op_e8:
+	START
 emu_op_e9:
+	START
 emu_op_ea:
+	START
 emu_op_eb:
+	START
 emu_op_ec:
+	START
 emu_op_ed:			; prefix
 
 	movea.w	emu_op_undo_ed(pc),a2
+	START
 emu_op_ee:
+	START
 emu_op_ef:
+	START
 emu_op_f0:
+	START
 emu_op_f1:
+	START
 emu_op_f2:
+	START
 emu_op_f3:
+	START
 emu_op_f4:
+	START
 emu_op_f5:
+	START
 emu_op_f6:
+	START
 emu_op_f7:
+	START
 emu_op_f8:
+	START
 emu_op_f9:
+	START
 emu_op_fa:
+	START
 emu_op_fb:
+	START
 emu_op_fc:
+	START
 emu_op_fd:			; prefix
 	;; swap IY, HL
 
 	movea.w	emu_op_undo_fd(pc),a2
+	START
 emu_op_fe:
+	START
 emu_op_ff:
 
 emu_op_undo_cb:
