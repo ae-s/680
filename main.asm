@@ -1756,6 +1756,7 @@ emu_op_c0:
 	;;   PCh <- (SP+1)
 	;;   SP <- (SP+2)
 	bsr	f_norm_z
+	;; SPEED inline RET
 	beq	emu_op_c9	; RET
 	DONE
 
@@ -1803,6 +1804,17 @@ emu_op_c8:
 	START
 emu_op_c9:
 	;; RET
+	;; PCl <- (SP)
+	;; PCh <- (SP+1)
+	;; SP <- (SP+2)
+	swap	d2
+	FETCHB	d2,d1
+	addq.b	#1,emu_sp
+	FETCHB	d2,d1
+	addq.b	#1,emu_sp
+	swap	d2
+	move.w	d1,d2
+	DONE
 
 	START
 emu_op_ca:
