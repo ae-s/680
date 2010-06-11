@@ -141,7 +141,16 @@ F_SUB_B	MACRO			;14 bytes?
 	ENDM
 
 	;; Do a SBC \2,\1
-F_ADC_B	MACRO
+F_SBC_B	MACRO
+	ENDM
+
+F_AND_B	MACRO
+	ENDM
+
+F_XOR_B	MACRO
+	ENDM
+
+F_OR_B	MACRO
 	ENDM
 
 	;; Do an ADD \1,\2
@@ -1719,6 +1728,10 @@ emu_op_bf:
 	START
 emu_op_c0:
 	;; RET	NZ
+	;; if ~Z
+	;;   PCl <- (SP)
+	;;   PCh <- (SP+1)
+	;;   SP <- (SP+2)
 
 	START
 emu_op_c1:
