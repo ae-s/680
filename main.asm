@@ -115,21 +115,6 @@ DONE	MACRO			; 8 cycles, 2 bytes
 
 	;; == Special Opcode Macros ========================================
 
-	;; Do an ADD \2,\1
-	;; XXX check this
-F_ADD_B	MACRO			; 14 bytes?
-	move.b	\1,f_tmp_src_b	; preserve operands for flag work
-	move.b	\2,f_tmp_dst_b
-	move.b	#0,flag_n
-	move.b	#1,f_tmp_byte
-	add	\1,\2
-	move	sr,f_host_ccr
-	ENDM
-
-	;; Do an ADC \2,\1
-F_ADC_B	MACRO
-	ENDM
-
 	;; Do a SUB \2,\1
 F_SUB_B	MACRO			;14 bytes?
 	move.b	\1,f_tmp_src_b	; preserve operands for flagging
@@ -140,18 +125,6 @@ F_SUB_B	MACRO			;14 bytes?
 	move	sr,f_host_ccr
 	ENDM
 
-	;; Do a SBC \2,\1
-F_SBC_B	MACRO
-	ENDM
-
-F_AND_B	MACRO
-	ENDM
-
-F_XOR_B	MACRO
-	ENDM
-
-F_OR_B	MACRO
-	ENDM
 
 	;; Do an ADD \1,\2
 F_ADD_W	MACRO
@@ -171,10 +144,6 @@ F_INC_W	MACRO
 	ENDM
 
 F_DEC_W	MACRO
-	ENDM
-
-	;; COMPARE instruction
-F_CP_B	MACRO
 	ENDM
 
 	;; I might be able to unify rotation flags or maybe use a
@@ -1261,6 +1230,19 @@ emu_op_7f:
 	;; LD	A,A
 	DONE
 
+
+
+	;; Do an ADD \2,\1
+	;; XXX check this
+F_ADD_B	MACRO			; 14 bytes?
+	move.b	\1,f_tmp_src_b	; preserve operands for flag work
+	move.b	\2,f_tmp_dst_b
+	move.b	#0,flag_n
+	move.b	#1,f_tmp_byte
+	add	\1,\2
+	move	sr,f_host_ccr
+	ENDM
+
 	START
 emu_op_80:
 	;; ADD	A,B
@@ -1316,6 +1298,13 @@ emu_op_87:
 	;; ADD	A,A
 	F_ADD_B	d3,d3
 	DONE
+
+
+
+	;; Do an ADC \2,\1
+F_ADC_B	MACRO
+	;; XXX
+	ENDM
 
 	START
 emu_op_88:
@@ -1435,6 +1424,14 @@ emu_op_97:
 	F_SUB_B	d3,d3
 	DONE
 
+
+
+
+	;; Do a SBC \2,\1
+F_SBC_B	MACRO
+	;; XXX
+	ENDM
+
 	START
 emu_op_98:
 	;; SBC	A,B
@@ -1490,6 +1487,14 @@ emu_op_9f:
 	;; SBC	A,A
 	F_SBC_B	d3,d3
 	DONE
+
+
+
+
+
+F_AND_B	MACRO
+	;; XXX
+	ENDM
 
 	START
 emu_op_a0:
@@ -1547,6 +1552,14 @@ emu_op_a7:
 	F_AND_B	d3,d3
 	DONE
 
+
+
+
+
+F_XOR_B	MACRO
+	;; XXX
+	ENDM
+
 	START
 emu_op_a8:
 	;; XOR	B
@@ -1602,6 +1615,14 @@ emu_op_af:
 	;; XOR	A
 	F_XOR_B	d3,d3
 	DONE
+
+
+
+
+
+F_OR_B	MACRO
+	;; XXX
+	ENDM
 
 	START
 emu_op_b0:
