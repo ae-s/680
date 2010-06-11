@@ -1809,9 +1809,11 @@ emu_op_c9:
 	;; SP <- (SP+2)
 	swap	d2
 	FETCHB	d2,d1
-	addq.b	#1,emu_sp
+	addq.b	#1,d2
+	LOHI	d1
 	FETCHB	d2,d1
-	addq.b	#1,emu_sp
+	HILO	d1
+	addq.b	#1,d2
 	swap	d2
 	move.w	d1,d2
 	DONE
