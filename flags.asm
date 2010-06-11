@@ -92,7 +92,7 @@ F_ADD_SAVE	MACRO
 
 	;; Normalize and return carry bit (is loaded into Z bit)
 	;; Destroys d1
-F_NORM_C	MACRO
+f_norm_c:
 	move.b	flag_valid,d1
 	andi.b	#%00000001,d1
 	bne	FNC_ok		; Bit is valid
@@ -103,7 +103,22 @@ F_NORM_C	MACRO
 FNC_ok:
 	move.b	flag_byte,d1
 	andi.b	#%00000001,d1
-	ENDM
+	rts
+
+	;; Normalize and return zero bit (loaded into Z bit)
+	;; Destroys d1
+f_norm_z:
+	move.b	flag_valid,d1
+	andi.b	#%01000000,d1
+	bne	FNZ_ok		; Bit is valid
+	move.b	f_host_ccr,d1
+	andi.b	#%01000000,d1
+	or.b	d1,flag_byte
+	ori.b	#%01000000,flag_valid
+FNZ_ok:
+	move.b	flag_byte,d1
+	andi.b	#%01000000,d1
+	rts
 
 
 	;; Routine to turn 68k flags into z80 flags.
