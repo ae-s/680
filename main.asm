@@ -115,30 +115,39 @@ DONE	MACRO			; 8 cycles, 2 bytes
 
 	;; == Special Opcode Macros ========================================
 
-	;; Set flags appropriately for an ADD \1,\2
+	;; Do an ADD \2,\1
+	;; XXX check this
 F_ADD_B	MACRO			; 14 bytes?
-	;; preserve operands for flagging
-	move.b	\1,f_tmp_src_b
+	move.b	\1,f_tmp_src_b	; preserve operands for flag work
 	move.b	\2,f_tmp_dst_b
 	move.b	#0,flag_n
 	move.b	#1,f_tmp_byte
+	add	\1,\2
 	move	sr,f_host_ccr
 	ENDM
 
-	;; Set flags appropriately for a SUB \1,\2
+	;; Do an ADC \2,\1
+F_ADC_B	MACRO
+	ENDM
+
+	;; Do a SUB \2,\1
 F_SUB_B	MACRO			;14 bytes?
-	;; preserve operands for flagging
-	move.b	\1,f_tmp_src_b
+	move.b	\1,f_tmp_src_b	; preserve operands for flagging
 	move.b	\2,f_tmp_dst_b
 	move.b	#1,flag_n
 	move.b	#1,f_tmp_byte
+	sub	\1,\2
 	move	sr,f_host_ccr
 	ENDM
 
-	;; Set flags appropriately for a ADD \1,\2, both words
+	;; Do a SBC \2,\1
+F_ADC_B	MACRO
+	ENDM
+
+	;; Do an ADD \1,\2
 F_ADD_W	MACRO
 	ENDM
-	;; Set flags appropriately for a SUB \1,\2, both words
+	;; Do an SUB \1,\2
 F_SUB_W	MACRO
 	ENDM
 
@@ -1248,7 +1257,6 @@ emu_op_80:
 	;; ADD	A,B
 	LOHI	d4
 	F_ADD_B	d4,d3
-	add.b	d4,d3
 	HILO	d4
 	DONE
 
@@ -1256,7 +1264,6 @@ emu_op_80:
 emu_op_81:
 	;; ADD	A,C
 	F_ADD_B	d4,d3
-	add.b	d4,d3
 	DONE
 
 	START
@@ -1264,7 +1271,6 @@ emu_op_82:
 	;; ADD	A,D
 	LOHI	d5
 	F_ADD_B	d5,d3
-	add.b	d5,d3
 	HILO	d5
 	DONE
 
@@ -1272,7 +1278,6 @@ emu_op_82:
 emu_op_83:
 	;; ADD	A,E
 	F_ADD_B	d5,d3
-	add.b	d5,d3
 	DONE
 
 	START
@@ -1280,7 +1285,6 @@ emu_op_84:
 	;; ADD	A,H
 	LOHI	d6
 	F_ADD_B	d6,d3
-	add.b	d6,d3
 	HILO	d6
 	DONE
 
@@ -1288,7 +1292,6 @@ emu_op_84:
 emu_op_85:
 	;; ADD	A,L
 	F_ADD_B	d6,d3
-	add.b	d6,d3
 	DONE
 
 	START
@@ -1296,14 +1299,13 @@ emu_op_86:
 	;; ADD	A,(HL)
 	FETCHB	d6,d1
 	F_ADD_B	d1,d3
-	add.b	d1,d3
+	PUTB	d1,d6
 	DONE
 
 	START
 emu_op_87:
 	;; ADD	A,A
 	F_ADD_B	d3,d3
-	add.b	d3,d3
 	DONE
 
 	START
@@ -1312,7 +1314,7 @@ emu_op_88:
 	;; A <- A + B + (carry)
 	;; XXX fix this shit up
 	LOHI	d4
-	addx.b	d4,d3
+	F_ADC_B	d4,d3
 	HILO	d4
 	DONE
 
@@ -1321,7 +1323,7 @@ emu_op_89:
 	;; ADC	A,C
 	;; A <- A + C + (carry)
 	;; XXX fix this shit up
-	addx.b	d4,d3
+	F_ADC_B	d4,d3
 	DONE
 
 	START
@@ -1329,228 +1331,444 @@ emu_op_8a:
 	;; ADC	A,D
 	;; XXX fix this shit up
 	LOHI	d5
-	addx.b	d5,d3
+	F_ADC_B	d5,d3
 	HILO	d5
 	DONE
 
 	START
 emu_op_8b:
 	;; ADC	A,E
+	;; A <- A + E + carry
+	F_ADC_B	d5,d3
+	DONE
 
 	START
 emu_op_8c:
 	;; ADC	A,H
+	LOHI	d3
+	F_ADC_B	d6,d3
+	HILO	d3
+	DONE
 
 	START
 emu_op_8d:
 	;; ADC	A,L
+	F_ADC_B	d6,d3
+	DONE
 
 	START
 emu_op_8e:
 	;; ADC	A,(HL)
+	FETCHB	d6,d1
+	F_ADD_B	d1,d3
+	PUTB	d1,d6
+	DONE
 
 	START
 emu_op_8f:
 	;; ADC	A,A
+	F_ADD_B	d3,d3
+	DONE
 
 	START
 emu_op_90:
 	;; SUB	A,B
+	LOHI	d4
+	F_SUB_B	d4,d3
+	add.b	d4,d3
+	HILO	d4
+	DONE
 
 	START
 emu_op_91:
 	;; SUB	A,C
+	F_SUB_B	d4,d3
+	DONE
 
 	START
 emu_op_92:
 	;; SUB	A,D
+	LOHI	d5
+	F_SUB_B	d5,d3
+	HILO	d5
+	DONE
 
 	START
 emu_op_93:
 	;; SUB	A,E
+	F_SUB_B	d5,d3
+	DONE
 
 	START
 emu_op_94:
 	;; SUB	A,H
+	LOHI	d6
+	F_SUB_B	d6,d3
+	HILO	d6
+	DONE
 
 	START
 emu_op_95:
 	;; SUB	A,L
+	F_SUB_B	d6,d3
 
 	START
 emu_op_96:
 	;; SUB	A,(HL)
+	FETCHB	d6,d1
+	F_SUB_B	d1,d3
+	PUTB	d1,d6
+	DONE
 
 	START
 emu_op_97:
 	;; SUB	A,A
+	F_SUB_B	d3,d3
+	DONE
 
 	START
 emu_op_98:
 	;; SBC	A,B
+	LOHI	d4
+	F_SBC_B	d4,d3
+	HILO	d4
+	DONE
 
 	START
 emu_op_99:
 	;; SBC	A,C
+	F_SBC_B	d4,d3
+	DONE
 
 	START
 emu_op_9a:
 	;; SBC	A,D
+	LOHI	d5
+	F_SBC_B	d5,d3
+	HILO	d5
+	DONE
 
 	START
 emu_op_9b:
 	;; SBC	A,E
+	F_SBC_B	d5,d3
+	DONE
 
 	START
 emu_op_9c:
 	;; SBC	A,H
+	LOHI	d6
+	F_SBC_B	d6,d3
+	HILO	d6
+	DONE
 
 	START
 emu_op_9d:
 	;; SBC	A,L
+	F_SBC_B	d6,d3
+	DONE
 
 	START
 emu_op_9e:
 	;; SBC	A,(HL)
+	FETCHB	d6,d1
+	F_SBC_B	d1,d3
+	PUTB	d1,d6
+	DONE
 
 	START
 emu_op_9f:
 	;; SBC	A,A
+	F_SBC_B	d3,d3
+	DONE
 
 	START
 emu_op_a0:
 	;; AND	B
+	LOHI	d4
+	F_AND_B	d4,d3
+	HILO	d4
+	DONE
 
 	START
 emu_op_a1:
 	;; AND	C
+	F_AND_B	d4,d3
 
 	START
 emu_op_a2:
 	;; AND	D
+	LOHI	d5
+	F_AND_B	d5,d3
+	HILO	d5
+	DONE
 
 	START
 emu_op_a3:
 	;; AND	E
+	F_AND_B	d5,d3
+	DONE
 
 	START
 emu_op_a4:
 	;; AND	H
+	LOHI	d6
+	F_AND_B	d6,d3
+	HILO	d6
+	DONE
 
 	START
 emu_op_a5:
 	;; AND	L
+	F_AND_B	d6,d3
+	DONE
 
 	START
 emu_op_a6:
 	;; AND	(HL)
+	FETCHB	d6,d1
+	F_AND_B	d1,d3
+	PUTB	d1,d6
+	DONE
 
 	START
 emu_op_a7:
 	;; AND	A
+	;; SPEED ... It's probably not necessary to run this faster.
+	F_AND_B	d3,d3
+	DONE
 
 	START
 emu_op_a8:
 	;; XOR	B
+	LOHI	d4
+	F_XOR_B	d4,d3
+	HILO	d4
+	DONE
 
 	START
 emu_op_a9:
 	;; XOR	C
+	F_XOR_B	d4,d3
+	DONE
 
 	START
 emu_op_aa:
 	;; XOR	D
+	LOHI	d5
+	F_XOR_B	d5,d3
+	HILO	d5
+	DONE
 
 	START
 emu_op_ab:
 	;; XOR	E
+	F_XOR_B	d5,d3
+	DONE
 
 	START
 emu_op_ac:
 	;; XOR	H
+	LOHI	d6
+	F_XOR_B	d6,d3
+	HILO	d6
+	DONE
 
 	START
 emu_op_ad:
 	;; XOR	L
+	F_XOR_B	d6,d3
+	DONE
 
 	START
 emu_op_ae:
 	;; XOR	(HL)
+	FETCHB	d6,d1
+	F_XOR_B	d1,d3
+	PUTB	d1,d6
+	DONE
 
 	START
 emu_op_af:
 	;; XOR	A
+	F_XOR_B	d3,d3
+	DONE
 
 	START
 emu_op_b0:
 	;; OR	B
+	LOHI	d4
+	F_OR_B	d4,d3
+	HILO	d4
+	DONE
 
 	START
 emu_op_b1:
 	;; OR	C
+	F_OR_B	d4,d3
+	DONE
 
 	START
 emu_op_b2:
 	;; OR	D
+	LOHI	d5
+	F_OR_B	d5,d3
+	HILO	d5
+	DONE
 
 	START
 emu_op_b3:
 	;; OR	E
+	F_OR_B	d5,d3
+	DONE
 
 	START
 emu_op_b4:
 	;; OR	H
+	LOHI	d6
+	F_OR_B	d6,d3
+	HILO	d6
+	DONE
 
 	START
 emu_op_b5:
 	;; OR	L
+	F_OR_B	d6,d3
+	DONE
 
 	START
 emu_op_b6:
 	;; OR	(HL)
+	FETCHB	d6,d1
+	F_OR_B	d1,d3
+	PUTB	d1,d6
+	DONE
 
 	START
 emu_op_b7:
 	;; OR	A
+	F_OR_B	d3,d3
+	DONE
+
+
+	;; SPEED
+	;; These next eight instructionscan be rephrased to something
+	;; like
+	;;
+	;; 	move.b	\1,d1
+	;; 	LOHI	d1
+	;;
+	;; and save 2 cycles each.
 
 	START
 emu_op_b8:
+	;; CP	B
+	LOHI	d4
+	F_CP_B	d4,d3
+	HILO	d4
+	DONE
+
 	START
 emu_op_b9:
+	;; CP	C
+	F_CP_B	d4,d3
+	DONE
+
 	START
 emu_op_ba:
+	;; CP	D
+	LOHI	d5
+	F_CP_B	d5,d3
+	HILO	d5
+	DONE
+
 	START
 emu_op_bb:
+	;; CP	E
+	F_CP_B	d5,d3
+	DONE
+
 	START
 emu_op_bc:
+	;; CP	H
+	LOHI	d6
+	F_CP_B	d6,d3
+	HILO	d6
+	DONE
+
 	START
 emu_op_bd:
+	;; CP	L
+	F_CP_B	d6,d3
+	DONE
+
 	START
 emu_op_be:
+	;; CP	(HL)
+	FETCHB	d6,d1
+	F_CP_B	d1,d3		; if F_CP_B uses d1, watch out for this
+	;; no result to store
+	DONE
+
 	START
 emu_op_bf:
+	;; CP	A
+	F_CP_B	d3,d3
+	DONE
+
 	START
 emu_op_c0:
+	;; RET	NZ
+
 	START
 emu_op_c1:
+	;; POP	BC
+
 	START
 emu_op_c2:
+	;; JP	NZ,immed.w
+	;; if ~Z
+	;;   PC <- immed.w
+
 	START
 emu_op_c3:
+	;; JP	immed.w
+	;; PC <- immed.w
+
 	START
 emu_op_c4:
+	;; CALL	NZ,immed.w
+	;; If ~Z, CALL immed.w
+
 	START
 emu_op_c5:
+	;; PUSH	BC
+
 	START
 emu_op_c6:
+	;; ADD	A,immed.b
+
 	START
 emu_op_c7:
+	;; RST	immed.b
+	;;   CALL	0
+
 	START
 emu_op_c8:
+	;; CALL	immed.w
+	;;  (SP-1) <- PCh
+	;;  (SP-2) <- PCl
+	;;  SP <- SP - 2
+	;;  PC <- address
+
 	START
 emu_op_c9:
+	;; RET
+
 	START
 emu_op_ca:
+	;; JP	Z,immed.w
+
 	START
 emu_op_cb:			; prefix
 
