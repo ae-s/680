@@ -38,30 +38,112 @@
 ;; 11110 11000100
 ;; 11111 11000101
 
-flags_set:
 	;; Routine to set the given flags
-	;;   Noted in d0 by a 1 bit
-	or.b	d0,flag_byte
-	or.b	d0,flag_valid
-	rts
+	;;   Noted in \1 by a 1 bit
+F_SET	MACRO
+	or.b	\1,flag_byte
+	or.b	\1,flag_valid
+	ENDM
 
-flags_clear:
 	;; Clear the given flags
-	;;   Noted in d0 by a 1 bit
-	or.b	d0,flag_valid
-	not.b	d0
-	and.b	d0,flag_byte
-	rts
+	;;   Noted in \1 (must be a reg) by a 1 bit
+F_CLEAR	MACRO
+	or.b	\1,flag_valid
+	not.b	\1
+	and.b	\1,flag_byte
+	ENDM
+
+	;; Use this when an instruction uses the P/V bit as Parity.
+	;; Sets or clears the bit explicitly.
+	;;
+	;; Byte for which parity is calculated must be in \1. (d1
+	;; destroyed)
+F_PAR	MACRO
+	move.b	\1,d1			;  4  2
+	lsr	#4,d1			;  6  2
+	eor.b	\1,d1			;  4  2
+	lsr	#2,d1			;  6  2
+	eor.b	\1,d1			;  4  2
+	lsr	#1,d1			;  6  2
+	eor.b	\1,d1			;  4  2
+	andi.b	#$01,d1			;  8  4
+	;; odd parity is now in d1
+	ori.b	#%00000100,flag_valid	; 20  6
+	andi.b	#%11111011,flag_byte	; 20  6
+	rol.b	#2,d1			;  6  2
+	or.b	d1,flag_byte		;  8  4
+	ENDM				; 86 cycles (!)
+					;    36 bytes (make this a subroutine)
+
+
+	;; Use this when an instruction uses the P/V bit as Overflow.
+	;; Leaves the bit itself implicit; simply marks it dirty.
+F_OVFL	MACRO
+	andi.b	#%11111011
+	ENDM
+
+	;; Save the two operands from ADD \1,\2
+F_ADD_SAVE	MACRO
+	move.b	\1,f_tmp_src_b
+	move.b	\2,f_tmp_dst_b
+	movei.b	#$01,f_tmp_byte
+	F_SET	#%
+	ENDM
+
+	;; Normalize and return carry bit (is loaded into Z bit)
+	;; Destroys d1
+F_NORM_C	MACRO
+	move.b	flag_valid,d1
+	andi.b	#%00000001,d1
+	bne	FNC_ok		; Bit is valid
+	move.b	f_host_ccr,d1
+	andi.b	#%00000001,d1
+	or.b	d1,flag_byte
+	ori.b	#%00000001,flag_valid
+FNC_ok:
+	move.b	flag_byte,d1
+	andi.b	#%00000001,d1
+	ENDM
+
 
 	;; Routine to turn 68k flags into z80 flags.
 	;; Preconditions:
 	;;   Flags to change are noted in d0 by a 1 bit
 flags_normalize:
-	move.b	host_ccr,d1
+	move.b	f_host_ccr,d1
+	andi.b	#%00011111,d1	; Maybe TI uses the reserved bits for
+				; something ...
 	movea	lut_ccr(pc),a1
-	move.b	(lut_ccr,a1),d1
+	move.b	0(a1,d1),d1
 	;; XXX do this
 	rts
+
+storage:
+	;; 1 if tmp_???b is valid, 0 if tmp_???w is valid
+f_tmp_byte:	ds.b	0
+	;; 2 if P is 0, 3 if P is 1, 4 if P is Parity, 5 if P is oVerflow
+f_tmp_p_type:	ds.b	0
+
+	;; byte operands
+f_tmp_src_b:	ds.b	0
+f_tmp_dst_b:	ds.b	0
+f_tmp_result_b:	ds.b	0
+
+	EVEN
+f_tmp_src_w:	ds.w	0
+f_tmp_dst_w:	ds.w	0
+f_tmp_result_w:	ds.w	0
+
+flag_n:		ds.w	0
+
+	;; 000XNZVC
+	EVEN			; Compositing a word from two bytes ...
+f_host_sr:	ds.b	0
+f_host_ccr:	ds.b	0
+
+	EVEN
+flag_byte:	ds.b	0	; Byte of all flags
+flag_valid:	ds.b	0	; Validity mask -- 1 if valid.
 
 	;; LUT for the CCR -> F mapping
 lut_ccr:
@@ -97,30 +179,4 @@ lut_ccr:
 	dc.b	%11000001
 	dc.b	%11000100
 	dc.b	%11000101
-
-lut_valid:
-	dc.b	%11000101
-
-storage:
-	;; 1 if tmp_???b is valid, 0 if tmp_???w is valid
-f_tmp_byte:	ds.b	0
-	;; 2 if P is 0, 3 if P is 1, 4 if P is Parity, 5 if P is oVerflow
-f_tmp_p_type:	ds.b	0
-
-	;; byte operands
-f_tmp_src_b:	ds.b	0
-f_tmp_dst_b:	ds.b	0
-f_tmp_result_b:	ds.b	0
-
-EVEN	;; word operands
-f_tmp_src_w:	ds.w	0
-f_tmp_dst_w:	ds.w	0
-f_tmp_result_w:	ds.w	0
-
-	;; 000XNZVC
-f_host_ccr:	ds.b	0
-
-EVEN
-flag_byte:	ds.b	0	; Byte of all flags
-flag_valid:	ds.b	0	; Validity mask -- 1 if valid.
 

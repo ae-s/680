@@ -93,7 +93,7 @@ _align	SET	0
 
 START	MACRO
 	ORG	emu_plain_op+_align
-_align	SET	_align+32
+_align	SET	_align+$20
 	ENDM
 
 	;; When you want to use the high reg of a pair, use this first
@@ -118,23 +118,21 @@ DONE	MACRO			; 8 cycles, 2 bytes
 	;; Set flags appropriately for an ADD \1,\2
 F_ADD_B	MACRO			; 14 bytes?
 	;; preserve operands for flagging
-	move.b	\1,tmp_src
-	move.b	\2,tmp_dst
-	moveq	#0,flag_n
-	moveq	#1,tmp_byte
-	;; XXX do I have to use SR instead?
-	move	ccr,host_ccr
+	move.b	\1,f_tmp_src_b
+	move.b	\2,f_tmp_dst_b
+	move.b	#0,flag_n
+	move.b	#1,f_tmp_byte
+	move	sr,f_host_ccr
 	ENDM
 
 	;; Set flags appropriately for a SUB \1,\2
 F_SUB_B	MACRO			;14 bytes?
 	;; preserve operands for flagging
-	move.b	\1,tmp_src
-	move.b	\2,tmp_dst
-	moveq	#1,flag_n
-	moveq	#1,tmp_byte
-	;; XXX do I have to use SR instead?
-	move	sr,host_ccr
+	move.b	\1,f_tmp_src_b
+	move.b	\2,f_tmp_dst_b
+	move.b	#1,flag_n
+	move.b	#1,f_tmp_byte
+	move	sr,f_host_ccr
 	ENDM
 
 	;; Set flags appropriately for a ADD \1,\2, both words
@@ -178,6 +176,8 @@ F_CP_B	MACRO
 _main:
 	bsr	emu_setup
 	rts
+
+	include	"flags.asm"
 
 emu_setup:
 	movea	emu_plain_op,a3
@@ -223,7 +223,7 @@ emu_fetch:
 
 ;;; http://z80.info/z80oplist.txt
 
-CNOP	0,32
+	CNOP	0,32
 
 emu_plain_op:
 	START
@@ -243,8 +243,8 @@ emu_op_01:
 	START
 emu_op_02:
 	;; LD	(BC),A
-	;; XXX Do this
 	;; No flags
+	FETCHB	d4,d3
 	DONE
 
 	START
@@ -361,10 +361,10 @@ emu_op_10:
 	;; No flags
 	LOHI	d4
 	subq.b	#1,d4
-	beq	end	; slooooow
+	beq	end_10	; slooooow
 	FETCHBI	d1
 	add.w	d1,d2
-\end:
+end_10:
 	HILO	d4
 	DONE
 
@@ -490,10 +490,10 @@ emu_op_20:
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
-	beq	end
+	beq	end_20
 	FETCHBI	d1
 	add.w	d1,d2
-\end:
+end_20:
 	DONE
 
 	START
@@ -553,6 +553,7 @@ emu_op_27:
 	;; Flags: oh lord they're fucked up
 	;; XXX DO THIS
 
+	F_PAR	d3
 	DONE
 
 	START
@@ -562,10 +563,10 @@ emu_op_28:
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
-	beq	end
+	beq	end_28
 	FETCHBI	d1
 	add.w	d1,d2
-\end:
+end_28:
 	DONE
 
 	START
@@ -619,11 +620,11 @@ emu_op_30:
 	;; JR	NC,immed.b
 	;; If carry clear
 	;;  PC <- PC+immed.b
-	;; XXX finish
-	bcs	end
+	F_NORM_C
+	bne	end_30		; branch taken: carry set
 	FETCHBI	d1
 	add.w	d1,d2
-\end:
+end_30:
 	DONE
 
 	START
@@ -690,10 +691,10 @@ emu_op_38:
 	;; JR	C,immed.b
 	;; If carry set
 	;;  PC <- PC+immed.b
-	bcc	end
+	bcc	end_38
 	FETCHBI	d1
 	add.w	d1,d2
-\end:
+end_38:
 	DONE
 
 	START
@@ -1335,100 +1336,183 @@ emu_op_8a:
 	START
 emu_op_8b:
 	;; ADC	A,E
+
 	START
 emu_op_8c:
 	;; ADC	A,H
+
 	START
 emu_op_8d:
 	;; ADC	A,L
+
 	START
 emu_op_8e:
 	;; ADC	A,(HL)
+
 	START
 emu_op_8f:
 	;; ADC	A,A
+
 	START
 emu_op_90:
 	;; SUB	A,B
-	
+
 	START
 emu_op_91:
+	;; SUB	A,C
+
 	START
 emu_op_92:
+	;; SUB	A,D
+
 	START
 emu_op_93:
+	;; SUB	A,E
+
 	START
 emu_op_94:
+	;; SUB	A,H
+
 	START
 emu_op_95:
+	;; SUB	A,L
+
 	START
 emu_op_96:
+	;; SUB	A,(HL)
+
 	START
 emu_op_97:
+	;; SUB	A,A
+
 	START
 emu_op_98:
+	;; SBC	A,B
+
 	START
 emu_op_99:
+	;; SBC	A,C
+
 	START
 emu_op_9a:
+	;; SBC	A,D
+
 	START
 emu_op_9b:
+	;; SBC	A,E
+
 	START
 emu_op_9c:
+	;; SBC	A,H
+
 	START
 emu_op_9d:
+	;; SBC	A,L
+
 	START
 emu_op_9e:
+	;; SBC	A,(HL)
+
 	START
 emu_op_9f:
+	;; SBC	A,A
+
 	START
 emu_op_a0:
+	;; AND	B
+
 	START
 emu_op_a1:
+	;; AND	C
+
 	START
 emu_op_a2:
+	;; AND	D
+
 	START
 emu_op_a3:
+	;; AND	E
+
 	START
 emu_op_a4:
+	;; AND	H
+
 	START
 emu_op_a5:
+	;; AND	L
+
 	START
 emu_op_a6:
+	;; AND	(HL)
+
 	START
 emu_op_a7:
+	;; AND	A
+
 	START
 emu_op_a8:
+	;; XOR	B
+
 	START
 emu_op_a9:
+	;; XOR	C
+
 	START
 emu_op_aa:
+	;; XOR	D
+
 	START
 emu_op_ab:
+	;; XOR	E
+
 	START
 emu_op_ac:
+	;; XOR	H
+
 	START
 emu_op_ad:
+	;; XOR	L
+
 	START
 emu_op_ae:
+	;; XOR	(HL)
+
 	START
 emu_op_af:
+	;; XOR	A
+
 	START
 emu_op_b0:
+	;; OR	B
+
 	START
 emu_op_b1:
+	;; OR	C
+
 	START
 emu_op_b2:
+	;; OR	D
+
 	START
 emu_op_b3:
+	;; OR	E
+
 	START
 emu_op_b4:
+	;; OR	H
+
 	START
 emu_op_b5:
+	;; OR	L
+
 	START
 emu_op_b6:
+	;; OR	(HL)
+
 	START
 emu_op_b7:
+	;; OR	A
+
 	START
 emu_op_b8:
 	START
@@ -1539,6 +1623,10 @@ emu_op_e9:
 emu_op_ea:
 	START
 emu_op_eb:
+	;; EX	DE,HL
+	exg.w	d5,d6
+	DONE
+
 	START
 emu_op_ec:
 	START
@@ -1572,7 +1660,9 @@ emu_op_f9:
 	START
 emu_op_fa:
 	START
-emu_op_fb:
+emu_op_fb:p
+	;; EI
+
 	START
 emu_op_fc:
 	START
