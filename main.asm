@@ -1681,21 +1681,19 @@ emu_op_b7:
 	DONE
 
 
-	;; SPEED
-	;; These next eight instructionscan be rephrased to something
-	;; like
-	;;
-	;; 	move.b	\1,d1
-	;; 	LOHI	d1
-	;;
-	;; and save 2 cycles each.
+
+
+
+	;; COMPARE instruction
+F_CP_B	MACRO
+	ENDM
 
 	START
 emu_op_b8:
 	;; CP	B
-	LOHI	d4
-	F_CP_B	d4,d3
-	HILO	d4
+	move.b	d4,d1
+	LOHI	d1
+	F_CP_B	d1,d3
 	DONE
 
 	START
@@ -1707,9 +1705,9 @@ emu_op_b9:
 	START
 emu_op_ba:
 	;; CP	D
-	LOHI	d5
-	F_CP_B	d5,d3
-	HILO	d5
+	move.b	d5,d1
+	LOHI	d1
+	F_CP_B	d1,d3
 	DONE
 
 	START
@@ -1721,9 +1719,9 @@ emu_op_bb:
 	START
 emu_op_bc:
 	;; CP	H
-	LOHI	d6
-	F_CP_B	d6,d3
-	HILO	d6
+	move.b	d6,d1
+	LOHI	d1
+	F_CP_B	d1,d3
 	DONE
 
 	START
