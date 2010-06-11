@@ -212,15 +212,14 @@ emu_fetch:
 
 	CNOP	0,32
 
-emu_plain_op:
+emu_plain_op:			; Size(bytes) Time(cycles)
 	START
-emu_op_00:
+emu_op_00:			; S0 T0
 	;; NOP
-	START
 	DONE
 
 	START
-emu_op_01:
+emu_op_01:			; S12 T36
 	;; LD	BC,immed.w
 	;; Read a word and put it in BC
 	;; No flags
@@ -228,14 +227,14 @@ emu_op_01:
 	DONE
 
 	START
-emu_op_02:
+emu_op_02:			; S4 T14
 	;; LD	(BC),A
 	;; No flags
 	FETCHB	d4,d3
 	DONE
 
 	START
-emu_op_03:
+emu_op_03:			; S2 T4
 	;; INC	BC
 	;; BC <- BC+1
 	;; No flags
@@ -246,7 +245,7 @@ emu_op_03:
 emu_op_04:
 	;; INC	B
 	;; B <- B+1
-	;; No flags ?
+	;; XXX FLAGS
 	add.w	#$0100,d4	; 8
 	DONE			; 8
 				;16 cycles
@@ -256,11 +255,12 @@ emu_op_05:
 	;; DEC	B
 	;; B <- B-1
 	;; Flags: S,Z,H changed, P=oVerflow, N set, C left
+	;; XXX FLAGS
 	sub.w	#$0100,d4
 	DONE
 
 	START
-emu_op_06:
+emu_op_06:			; S10 T26
 	;; LD	B,immed.b
 	;; Read a byte and put it in B
 	;; No flags
@@ -270,7 +270,7 @@ emu_op_06:
 	DONE
 
 	START
-emu_op_07:
+emu_op_07:			; S2 T4
 	;; RLCA
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
@@ -278,7 +278,7 @@ emu_op_07:
 	DONE
 
 	START
-emu_op_08:
+emu_op_08:			; S2 T4
 	;; EX	AF,AF'
 	;; No flags
 	swap	d3
@@ -289,11 +289,12 @@ emu_op_09:
 	;; ADD	HL,BC
 	;; HL <- HL+BC
 	;; Flags: H, C aff.; N=0
+	;; XXX FLAGS
 	add.w	d4,d6
 	DONE
 
 	START
-emu_op_0a:
+emu_op_0a:			; S4 T14
 	;; LD	A,(BC)
 	;; A <- (BC)
 	;; No flags
@@ -301,7 +302,7 @@ emu_op_0a:
 	DONE
 
 	START
-emu_op_0b:
+emu_op_0b:			; S2 T4
 	;; DEC	BC
 	;; BC <- BC-1
 	;; No flags
@@ -313,6 +314,7 @@ emu_op_0c:
 	;; INC	C
 	;; C <- C+1
 	;; Flags: S,Z,H aff.; P=overflow, N=0
+	;; XXX FLAGS
 	addq.b	#1,d4
 	DONE
 
@@ -321,11 +323,12 @@ emu_op_0d:
 	;; DEC	C
 	;; C <- C-1
 	;; Flags: S,Z,H aff., P=overflow, N=1
+	;; XXX FLAGS
 	subq.b	#1,d4
 	DONE
 
 	START
-emu_op_0e:
+emu_op_0e:			; S6 T18
 	;; LD	C,immed.b
 	;; No flags
 	FETCHBI	d4
@@ -336,11 +339,12 @@ emu_op_0f:
 	;; RRCA
 	;; Rotate A right, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
+	;; XXX FLAGS
 	ror.b	#1,d3
 	DONE
 
 	START
-emu_op_10:
+emu_op_10:			; S14 T??
 	;; DJNZ	immed.w
 	;; Decrement B
 	;;  and branch by immed.b
@@ -356,7 +360,7 @@ end_10:
 	DONE
 
 	START
-emu_op_11:
+emu_op_11:			; S
 	;; LD	DE,immed.w
 	;; No flags
 	FETCHWI	d5
