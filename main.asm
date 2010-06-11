@@ -638,7 +638,7 @@ emu_op_30:
 	;; JR	NC,immed.b
 	;; If carry clear
 	;;  PC <- PC+immed.b
-	F_NORM_C
+	bsr	f_norm_c
 	bne	end_30		; branch taken: carry set
 	FETCHBI	d1
 	add.w	d1,d2
@@ -1732,6 +1732,9 @@ emu_op_c0:
 	;;   PCl <- (SP)
 	;;   PCh <- (SP+1)
 	;;   SP <- (SP+2)
+	bsr	f_norm_z
+	beq	emu_op_c9	; RET
+	DONE
 
 	START
 emu_op_c1:
