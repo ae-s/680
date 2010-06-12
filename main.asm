@@ -568,6 +568,7 @@ emu_op_22:
 	;; No flags
 	FETCHWI	d1
 	PUTW	d6,d1
+	DONE
 
 	START
 emu_op_23:
@@ -1305,6 +1306,7 @@ emu_op_7f:
 
 	;; Do an ADD \2,\1
 	;; XXX check this
+	;; XXX make it shorter ... D:
 F_ADD_B	MACRO			; 14 bytes?
 	move.b	\1,f_tmp_src_b	; preserve operands for flag work
 	move.b	\2,f_tmp_dst_b
