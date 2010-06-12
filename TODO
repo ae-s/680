@@ -1,0 +1,3 @@
+## TODO list:
+
+* Work a [testbench](http://math.tkk.fi/~mnummeli/tite/spectrum/z80util/#testbench) into the emulator.  This would involve writing a Java harness to talk to the calculator.
