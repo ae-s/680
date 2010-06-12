@@ -84,15 +84,22 @@ PUSHW	MACRO
 	subq.w	#1,d1
 	move.w	d2,d1
 	bsr	deref
-	move.b	\1,(a0)		; \1_l
+	LOHI	\1
+	move.b	\1,(a0)		; high byte
+	HILO	\1
+
 	subq.w	#1,d1
+	move.b	\1,(a0)		; low byte
 	bsr	deref
-	move.b	\1,(a0)		; \1_h
 	subq.w	#2,d2
 	ENDM
 
 	;; Pop the word at the top of stack d2 (pre-swapped) into \1.
 	;; Destroys d0, a0.
+
+	;;   \1_h <- (SP+1)
+	;;   \1_l <- (SP)
+	;;   SP <- SP + 2
 POPW	MACRO
 	move.b	d2,d1
 	bsr	deref		; low byte
