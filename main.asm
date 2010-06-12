@@ -11,12 +11,12 @@
 ;;; Registers used:
 ;;;
 ;;; A7 = sp
-;;; A6 = emulated PC
+;;; A6 = emulated PC XXX
 ;;; A5 = instruction table base pointer
-;;; A4 = bank 3 base
-;;; A3 = bank 2 base
-;;; A2 = bank 1 base
-;;; A1 = bank 0 base
+;;; A4 = emulated SP XXX
+;;; A3 = constants address (see flags.asm)
+;;; A2 =
+;;; A1 =
 ;;; A0 =
 ;;;
 ;;; D0 = current instruction, scratch for macros
@@ -213,7 +213,6 @@ F_DEC_W	MACRO
 
 
 _main:
-;; XXX in the current state of the code, you could just make _main and emu_setup point to the same address.
 	bsr	emu_setup
 	rts
 
@@ -222,6 +221,7 @@ _main:
 emu_setup:
 	movea	emu_plain_op,a5
 	lea	emu_fetch(pc),a2
+	lea	flag_storage(pc),a3	; Thanks to Lionel
 	;; XXX finish
 	rts
 
@@ -231,6 +231,9 @@ emu_setup:
 	;; host address in a0.  Destroys a0, d0.
 ;; XXX I added a masking of the upper bits of the Z80 address (d1) before translating them to host address.
 ;; Please double-check, but AFAICT, it's the right thing to do.
+
+	;; XXX these use the old setup, replace this with a writable
+	;; LUT.
 deref:
 	move.w	d1,d0
 	andi.w	#$3FFF,d0
