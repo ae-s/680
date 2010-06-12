@@ -11,12 +11,12 @@
 ;;; Registers used:
 ;;;
 ;;; A7 = sp
-;;; A6 =
+;;; A6 = emulated PC XXX
 ;;; A5 = instruction table base pointer
-;;; A4 = bank 3 base
-;;; A3 = bank 2 base
-;;; A2 = bank 1 base
-;;; A1 = bank 0 base
+;;; A4 = emulated SP XXX
+;;; A3 = constants address (see flags.asm)
+;;; A2 =
+;;; A1 =
 ;;; A0 =
 ;;;
 ;;; D0 = current instruction, scratch for macros
@@ -59,11 +59,16 @@ PUTB	MACRO			; 14 cycles, 4 bytes
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
+	;;
+	;; XXX deref
+	;;
+	;; <debrouxl> It decrements sp by 2, but stores the result at
+	;; sp, not at 1(sp). So you essentially get a "free" shift
+	;; left by 8 bits. Much faster than lsl.w / rol.w #8, at
+	;; least.
 FETCHW	MACRO
-	;; XXX call deref
-	
-	move.b	1(a6,\1.w),\2	; 14/4
-	ror.w	#8,\2		;  4/2
+	move.b	1(a6,\1.w),-(sp); 18/4
+	move.w	(sp)+,\2	;  8/2
 	move.b	0(a6,\1.w),\2	; 14/4
 	ENDM
 
@@ -125,11 +130,11 @@ FETCHBI	MACRO			; 40 cycles, 14 bytes
 
 	;; Macro to read an immediate word (unaligned) into \1.
 FETCHWI	MACRO			; 36 cycles, 12 bytes
-	;; XXX use deref
 	addq.w	#2,d2		;  4/2
-	move.b	-1(a6,d2.w),\1	; 14/4
-	rol.w	#8,d2		;  4/2
-	move.b	-2(a6,d2.w),\1	; 14/4
+	;; See FETCHW for an explanation of this trick.
+	move.b	1(a6,d2.w),-(sp); 18/4
+	move.w	(sp)+,\1	;  8/2
+	move.b	0(a6,d2.w),\1	; 14/4
 	ENDM
 
 	;; == Common Opcode Macros =========================================
@@ -143,13 +148,13 @@ _align	SET	_align+$20
 	ENDM
 
 	;; When you want to use the high reg of a pair, use this first
-LOHI	MACRO			; 6 cycles, 2 bytes
-	ror	#8,\1
+LOHI	MACRO			; 22 cycles, 2 bytes
+	ror.w	#8,\1
 	ENDM
 
 	;; Then do your shit and finish with this
-HILO	MACRO			; 6 cycles, 2 bytes
-	rol	#8,\1
+HILO	MACRO			; 22 cycles, 2 bytes
+	rol.w	#8,\1
 	ENDM
 
 	;; calc84maniac suggests putting emu_fetch into this in order
@@ -163,6 +168,7 @@ DONE	MACRO			; 8 cycles, 2 bytes
 
 	;; Do a SUB \2,\1
 F_SUB_B	MACRO			;14 bytes?
+;; XXX use lea and then d(an) if you have a spare register.
 	move.b	\1,f_tmp_src_b	; preserve operands for flagging
 	move.b	\2,f_tmp_dst_b
 	move.b	#1,flag_n
@@ -214,7 +220,8 @@ _main:
 
 emu_setup:
 	movea	emu_plain_op,a5
-	movea	emu_fetch(pc),a2
+	lea	emu_fetch(pc),a2
+	lea	flag_storage(pc),a3	; Thanks to Lionel
 	;; XXX finish
 	rts
 
@@ -222,25 +229,32 @@ emu_setup:
 
 	;; Take a virtual address in d1 and dereference it.  Returns the
 	;; host address in a0.  Destroys a0, d0.
+;; XXX I added a masking of the upper bits of the Z80 address (d1) before translating them to host address.
+;; Please double-check, but AFAICT, it's the right thing to do.
+
+	;; XXX these use the old setup, replace this with a writable
+	;; LUT.
 deref:
+	move.w	d1,d0
+	andi.w	#$3FFF,d0
+	movea.w	d0,a0
 	move.w	d1,d0
 	andi.w	#$C000,d0
 	rol.w	#5,d0
-	jmp	0(pc,d0)
+	jmp	0(pc,d0.w)
 	;; 00
-	movea	a1,a0
-	bra	deref_go
-	;; 01
-	movea	a2,a0
-	bra	deref_go
-	;; 02
-	movea	a3,a0
-	bra	deref_go
-	;; 03
-	movea	a4,a0
-deref_go:
-	adda	d1,a0
+	adda.l	a1,a0
 	rts
+	;; 01
+	adda.l	a2,a0
+	rts
+	;; 02
+	adda.l	a3,a0
+	rts
+	;; 03
+	adda.l	a4,a0
+	rts
+
 
 ;; =========================================================================
 ;; instruction   instruction   instruction  ================================
@@ -257,12 +271,12 @@ emu_fetch:
 	;; Move this into DONE, saving 8 more cycles but using extra
 	;; space.
 	;;
-	;; See if I can get rid of the eor
-	eor.w	d0,d0		; 4 cycles
-	move.b	(a4)+,d0	; 8 cycles
-	rol.w	#5,d0		; 4 cycles   adjust to actual alignment
-	jmp	0(a5,d0)	;14 cycles
-	;; overhead:		 30 cycles
+	;; Likely impossible to get rid of the clr
+	clr.w	d0		;  4 cycles
+	move.b	(a4)+,d0	;  8 cycles
+	rol.w	#5,d0		; 16 cycles   adjust to actual alignment
+	jmp	0(a5,d0.w)	; 14 cycles
+	;; overhead:		  42 cycles
 
 ;;; ========================================================================
 ;;; ========================================================================
@@ -1025,19 +1039,12 @@ emu_op_59:
 	START
 emu_op_5a:
 	;; LD	E,D
-	LOHI	d5
-	move.b	d5,d1
-	HILO	d5
-	move.b	d1,d5
+	andi.w	#$ff00,d5	; 8/4
+	move.b	d5,d1		; 4/2
+	lsr	#8,d1		;22/2
+	or.w	d1,d5		; 4/2
 	DONE
-
-	;; Is this faster or slower?
-
-	andi.w	#$ff00,d5
-	move.b	d5,d1
-	lsr	#8,d1
-	or.w	d1,d5
-	DONE
+				;38/2
 
 	START
 emu_op_5b:

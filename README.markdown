@@ -19,20 +19,20 @@ The most difficult challenge in writing a 68k-hosted emulator
 targetting the z80 is making it _fast_.  TI-83+ calculators have a
 clock rate in the neighborhood of 12MHz, as do TI-89s.  z80
 instructions take from 4 to 17 cycles to execute.  I can dispatch an
-instruction with a fixed 30 cycle overhead:
+instruction with a fixed 42 cycle overhead:
 
 	emu_fetch:
 	  eor.w    d0,d0     ; 4 cycles
 	  move.b   (a4)+,d0  ; 8 cycles
-	  rol.w    #5,d0     ; 4 cycles   adjust to actual alignment
+	  rol.w    #5,d0     ;16 cycles   adjust to actual alignment
 	  jmp      0(a3,d0)  ;14 cycles
-	  ;; overhead:        30 cycles
+	  ;; overhead:        42 cycles
 
 From there, an instruction will take anywhere from 0 to, well, lots of
-additional cycles.  Generally, however, it will take under 50, for 80
+additional cycles.  Generally, however, it will take under 50, for 92
 total.  In the worst reasonable case, a 4 cycle instruction emlulated
-in 80 cycles, that's a 20:1 ratio.  In the best possible case, a
-17-cycle instruction emulated in 30 cycles, is more nearly a 1:2
+in 92 cycles, that's a 23:1 ratio.  In the best possible case, a
+17-cycle instruction emulated in 42 cycles, is more nearly a 1:2
 ratio.
 
 I am not aiming for exactly correct relative timing of instructions,
