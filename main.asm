@@ -157,25 +157,21 @@ HILO	MACRO			; 22 cycles, 2 bytes
 	rol.w	#8,\1
 	ENDM
 
+
 	;; calc84maniac suggests putting emu_fetch into this in order
 	;; to save 8 cycles per instruction, at the expense of code
 	;; size
-DONE	MACRO			; 8 cycles, 2 bytes
-	jmp	(a2)
+	;;
+	;; See if I can get rid of the eor
+DONE	MACRO
+	eor.w	d0,d0		; 4 cycles
+	move.b	(a4)+,d0	; 8 cycles
+	rol.w	#5,d0		; 4 cycles   adjust to actual alignment
+	jmp	0(a3,d0)	;14 cycles
+	;; overhead:		 30 cycles
 	ENDM
 
 	;; == Special Opcode Macros ========================================
-
-	;; Do a SUB \2,\1
-F_SUB_B	MACRO			;14 bytes?
-;; XXX use lea and then d(an) if you have a spare register.
-	move.b	\1,f_tmp_src_b	; preserve operands for flagging
-	move.b	\2,f_tmp_dst_b
-	move.b	#1,flag_n
-	move.b	#1,f_tmp_byte
-	sub	\1,\2
-	move	sr,f_host_ccr
-	ENDM
 
 
 	;; Do an ADD \1,\2
@@ -1447,6 +1443,22 @@ emu_op_8f:
 	;; ADC	A,A
 	F_ADD_B	d3,d3
 	DONE
+
+
+
+
+
+	;; Do a SUB \2,\1
+	;; XXX CHECK
+F_SUB_B	MACRO			;14 bytes?
+	;; XXX use lea and then d(an) if you have a spare register.
+	move.b	\1,f_tmp_src_b	; preserve operands for flagging
+	move.b	\2,f_tmp_dst_b
+	move.b	#1,flag_n
+	move.b	#1,f_tmp_byte
+	sub	\1,\2
+	move	sr,f_host_ccr
+	ENDM
 
 	START
 emu_op_90:
