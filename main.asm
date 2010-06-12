@@ -11,7 +11,7 @@
 ;;; Registers used:
 ;;;
 ;;; A7 = sp
-;;; A6 =
+;;; A6 = emulated PC
 ;;; A5 = instruction table base pointer
 ;;; A4 = bank 3 base
 ;;; A3 = bank 2 base
@@ -59,9 +59,14 @@ PUTB	MACRO			; 14 cycles, 4 bytes
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
+	;;
+	;; XXX deref
+	;;
+	;; <debrouxl> It decrements sp by 2, but stores the result at
+	;; sp, not at 1(sp). So you essentially get a "free" shift
+	;; left by 8 bits. Much faster than lsl.w / rol.w #8, at
+	;; least.
 FETCHW	MACRO
-	;; XXX call deref
-	
 	move.b	1(a6,\1.w),-(sp); 18/4
 	move.w	(sp)+,\2	;  8/2
 	move.b	0(a6,\1.w),\2	; 14/4
@@ -125,12 +130,11 @@ FETCHBI	MACRO			; 40 cycles, 14 bytes
 
 	;; Macro to read an immediate word (unaligned) into \1.
 FETCHWI	MACRO			; 36 cycles, 12 bytes
-	;; XXX use deref
 	addq.w	#2,d2		;  4/2
-	move.b	-1(a6,d2.w),\1	; 14/4
-;; XXX why not rol #8,\1 ?? (and then you would be able to use the same trick as in FETCHW).
-	rol.w	#8,d2		;  4/2
-	move.b	-2(a6,d2.w),\1	; 14/4
+	;; See FETCHW for an explanation of this trick.
+	move.b	1(a6,d2.w),-(sp); 18/4
+	move.w	(sp)+,\1	;  8/2
+	move.b	0(a6,d2.w),\1	; 14/4
 	ENDM
 
 	;; == Common Opcode Macros =========================================
@@ -265,7 +269,7 @@ emu_fetch:
 	;; space.
 	;;
 	;; Likely impossible to get rid of the clr
-	clr.w	d0,d0		;  4 cycles
+	clr.w	d0		;  4 cycles
 	move.b	(a4)+,d0	;  8 cycles
 	rol.w	#5,d0		; 16 cycles   adjust to actual alignment
 	jmp	0(a5,d0.w)	; 14 cycles
@@ -1031,19 +1035,12 @@ emu_op_59:
 	START
 emu_op_5a:
 	;; LD	E,D
-	LOHI	d5
-	move.b	d5,d1
-	HILO	d5
-	move.b	d1,d5
+	andi.w	#$ff00,d5	; 8/4
+	move.b	d5,d1		; 4/2
+	lsr	#8,d1		;22/2
+	or.w	d1,d5		; 4/2
 	DONE
-
-	;; Is this faster or slower?
-
-	andi.w	#$ff00,d5
-	move.b	d5,d1
-	lsr	#8,d1
-	or.w	d1,d5
-	DONE
+				;38/2
 
 	START
 emu_op_5b:
