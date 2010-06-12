@@ -11,17 +11,16 @@
 ;;; Registers used:
 ;;;
 ;;; A7 = sp
-;;; A6 = address space base pointer
-;;; A5 =
-;;; A4 =
-;;; A3 = instruction table base pointer
-;;; A2 = pseudo return address (for emulation core, to emulate prefix
-;;;      instructions properly)
-;;; A1 = scratch
-;;; A0 = scratch
+;;; A6 =
+;;; A5 = instruction table base pointer
+;;; A4 = bank 3 base
+;;; A3 = bank 2 base
+;;; A2 = bank 1 base
+;;; A1 = bank 0 base
+;;; A0 =
 ;;;
-;;; D0 = current instruction
-;;; D1 = scratch
+;;; D0 = current instruction, scratch for macros
+;;; D1 = scratch for instructions
 ;;;
 ;;; D2 = emulated SP, PC	SP high, PC low - both virtual addresses
 ;;;
@@ -48,38 +47,78 @@
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
 FETCHB	MACRO			; 14 cycles, 4 bytes
+	;; XXX deref
 	move.b	0(a6,\1.w),\2
 	ENDM
 
 	;; Macro to write a byte in \1 to main memory at \2 (regs only)
 PUTB	MACRO			; 14 cycles, 4 bytes
+	;; XXX deref
 	move.b	\1,0(a6,\2)
 	ENDM
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
-FETCHW	MACRO			; 32 cycles, 10 bytes
+FETCHW	MACRO
+	;; XXX call deref
+	
 	move.b	1(a6,\1.w),\2	; 14/4
 	ror.w	#8,\2		;  4/2
 	move.b	0(a6,\1.w),\2	; 14/4
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
-	;; XXX ALIGNMENT
 PUTW	MACRO			; 14 cycles, 4 bytes
+	;; XXX ALIGNMENT
 	move.b	\1,0(a6,\2)
+	ENDM
+
+	;; Push the word in \1 (register) using stack word register d2
+	;; (must be pre-swapped).
+	;; Destroys d0, d1, a0.
+
+	;;   (SP-2) <- \1_l
+	;;   (SP-1) <- \1_h
+	;;   SP <- SP - 2
+PUSHW	MACRO
+	subq.w	#1,d1
+	move.w	d2,d1
+	bsr	deref
+	move.b	\1,(a0)		; \1_l
+	subq.w	#1,d1
+	bsr	deref
+	move.b	\1,(a0)		; \1_h
+	subq.w	#2,d2
+	ENDM
+
+	;; Pop the word at the top of stack d2 (pre-swapped) into \1.
+	;; Destroys d0, a0.
+POPW	MACRO
+	move.b	d2,d1
+	bsr	deref		; low byte
+	move.b	(a0),\1
+
+	LOHI	\1
+	addq.w	#1,d1
+	bsr	deref		; high byte
+	move.b	(a0),\1
+	HILO	\1
+	addq.w	#2,d2
 	ENDM
 
 	;; == Immediate Memory Macros ==
 
 	;; Macro to read an immediate byte into \1.
-FETCHBI	MACRO			; 18 cycles, 6 bytes
+FETCHBI	MACRO			; 40 cycles, 14 bytes
 	addq.w	#1,d2		;  4/2
-	move.b	-1(a6,d2.w),\1	; 14/4
+	move.w	d2,d1		;  4/2
+	bsr	deref		; 18/6
+	move.b	(a0),\1		; 14/4
 	ENDM
 
 	;; Macro to read an immediate word (unaligned) into \1.
 FETCHWI	MACRO			; 36 cycles, 12 bytes
+	;; XXX use deref
 	addq.w	#2,d2		;  4/2
 	move.b	-1(a6,d2.w),\1	; 14/4
 	rol.w	#8,d2		;  4/2
@@ -167,12 +206,33 @@ _main:
 	include	"flags.asm"
 
 emu_setup:
-	movea	emu_plain_op,a3
+	movea	emu_plain_op,a5
 	movea	emu_fetch(pc),a2
 	;; XXX finish
+	rts
 
-refresh:			; screen refresh routine
-	;; XXX Do this
+
+
+	;; Take a virtual address in d1 and dereference it.  Returns the
+	;; host address in a0.  Destroys a0, d0.
+deref:
+	move.w	d1,d0
+	andi.w	#$C000,d0
+	rol.w	#5,d0
+	jmp	0(pc,d0)
+	;; 00
+	movea	a1,a0
+	bra	deref_go
+	;; 01
+	movea	a2,a0
+	bra	deref_go
+	;; 02
+	movea	a3,a0
+	bra	deref_go
+	;; 03
+	movea	a4,a0
+deref_go:
+	adda	d1,a0
 	rts
 
 ;; =========================================================================
@@ -194,7 +254,7 @@ emu_fetch:
 	eor.w	d0,d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
 	rol.w	#5,d0		; 4 cycles   adjust to actual alignment
-	jmp	0(a3,d0)	;14 cycles
+	jmp	0(a5,d0)	;14 cycles
 	;; overhead:		 30 cycles
 
 ;;; ========================================================================
@@ -370,7 +430,7 @@ emu_op_11:			; S
 emu_op_12:
 	;; LD	(DE),A
 	;; No flags
-	move.b	0(a0,d5.w),d3
+	FETCHB	d5,d3
 	DONE
 
 	START
@@ -1618,6 +1678,7 @@ emu_op_ae:
 emu_op_af:
 	;; XOR	A
 	F_XOR_B	d3,d3
+	;; XXX
 	DONE
 
 
@@ -1690,6 +1751,7 @@ emu_op_b7:
 
 	;; COMPARE instruction
 F_CP_B	MACRO
+	;; XXX
 	ENDM
 
 	START
@@ -1761,19 +1823,28 @@ emu_op_c0:
 	DONE
 
 	START
-emu_op_c1:
+emu_op_c1:			; S16 T44
 	;; POP	BC
+	swap	d2
+	FETCHWI	d4
+	swap	d2
+	DONE
 
 	START
 emu_op_c2:
 	;; JP	NZ,immed.w
 	;; if ~Z
 	;;   PC <- immed.w
+	bsr	f_norm_z
+	bne	emu_op_c3
+	DONE
 
 	START
-emu_op_c3:
+emu_op_c3:			; S12 T36
 	;; JP	immed.w
 	;; PC <- immed.w
+	FETCHWI	d2
+	DONE
 
 	START
 emu_op_c4:
@@ -1783,37 +1854,53 @@ emu_op_c4:
 	START
 emu_op_c5:
 	;; PUSH	BC
+	swap	d2
+	PUSHW	d4,d2
+	swap	d2
+	DONE
 
 	START
 emu_op_c6:
 	;; ADD	A,immed.b
+	FETCHBI	d1
+	F_ADD_B	d1,d3
+	DONE
 
 	START
 emu_op_c7:
 	;; RST	immed.b
 	;;   CALL	0
+	;; XXX check
+	move.l	d2,d1
+	swap	d1		; d1 has SP
+	PUSHW	d2		; d1=SP implicit
+	clr.w	d1
+	FETCHW	d1,d2		; ($0000)
+	DONE
 
 	START
 emu_op_c8:
 	;; CALL	immed.w
+	;; (Like JSR on 68k)
 	;;  (SP-1) <- PCh
 	;;  (SP-2) <- PCl
 	;;  SP <- SP - 2
 	;;  PC <- address
+	move.l	d2,d1		; d1 has PC
+	swap	d2		; d2 has SP
+	PUSHW	d1		; slow ... but CALL is slow.
+	swap	d2
+	FETCHWI	d2
+	DONE
 
 	START
 emu_op_c9:
 	;; RET
 	;; PCl <- (SP)
-	;; PCh <- (SP+1)
+	;; PCh <- (SP+1)	POPW
 	;; SP <- (SP+2)
 	swap	d2
-	FETCHB	d2,d1
-	addq.b	#1,d2
-	LOHI	d1
-	FETCHB	d2,d1
-	HILO	d1
-	addq.b	#1,d2
+	POPW	d1
 	swap	d2
 	move.w	d1,d2
 	DONE
