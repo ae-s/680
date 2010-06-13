@@ -13,7 +13,21 @@ This project has a long and barren history, beginning with my first
 contemplation of an emulator similar in interface to Macsbug -- in
 September 2002.  That foray fizzled after a long email thread with
 Michael Vincent.  The current iteration was sparked by a comment on
-IRC by Brandon Wilson, on June 6 2010.
+IRC by Brandon Wilson, on June 6 2010:
+
+    <BrandonW> chronomex, you should create a z80 emulator for the 68k calculators.
+    <chronomex> that sounds like a capital idea
+    <chronomex> I started and abandoned such a project in *2002*
+    <chronomex> http://students.washington.edu/f/projects/ti/ti83pemu.shtml
+    <BrandonW> I think we desperately need it.
+    <chronomex> yeah?
+    <chronomex> why is MulTI inadequate?
+    <BrandonW> My understanding is that it just runs select programs.
+    <BrandonW> Right?
+    <chronomex> I have not looked into it at all
+    <chronomex> well other than finding the webpage
+    <BrandonW> We need to be able to run the TI-OS.
+
 
 The most difficult challenge in writing a 68k-hosted emulator
 targetting the z80 is making it _fast_.  TI-83+ calculators have a
