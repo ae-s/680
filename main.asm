@@ -164,11 +164,11 @@ HILO	MACRO			; 22 cycles, 2 bytes
 	;;
 	;; See if I can get rid of the eor
 DONE	MACRO
-	eor.w	d0,d0		; 4 cycles
+	clr.w	d0,d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
-	rol.w	#5,d0		; 4 cycles   adjust to actual alignment
+	rol.w	#5,d0		;16 cycles
 	jmp	0(a3,d0)	;14 cycles
-	;; overhead:		 30 cycles
+	;; overhead:		 42 cycles
 	ENDM
 
 	;; == Special Opcode Macros ========================================
