@@ -78,68 +78,52 @@ PUTW	MACRO			; 14 cycles, 4 bytes
 	move.b	\1,0(a6,\2)
 	ENDM
 
-	;; Push the word in \1 (register) using stack word register d2
-	;; (must be pre-swapped).
-	;; Destroys d0, d1, a0.
+	;; Push the word in \1 (register) using stack register a4.
+	;; Destroys d0.
 
 	;;   (SP-2) <- \1_l
 	;;   (SP-1) <- \1_h
 	;;   SP <- SP - 2
 PUSHW	MACRO
-	subq.w	#1,d1
-	move.w	d2,d1
-	bsr	deref
-	LOHI	\1
-	move.b	\1,(a0)		; high byte
-	HILO	\1
-
-	subq.w	#1,d1
-	move.b	\1,(a0)		; low byte
-	bsr	deref
-	subq.w	#2,d2
+	move.w	\1,d0
+	LOHI	d0		;slow
+	move.b	d0,-1(a4)	; high byte
+	move.b	\1,-2(a4)	; low byte
+	subq	#2,a4
 	ENDM
 
-	;; Pop the word at the top of stack d2 (pre-swapped) into \1.
-	;; Destroys d0, a0.
+	;; Pop the word at the top of stack a4 into \1.
+	;; Destroys d0.
 
 	;;   \1_h <- (SP+1)
 	;;   \1_l <- (SP)
 	;;   SP <- SP + 2
 POPW	MACRO
-	move.b	d2,d1
-	bsr	deref		; low byte
-	move.b	(a0),\1
-
-	LOHI	\1
-	addq.w	#1,d1
-	bsr	deref		; high byte
-	move.b	(a0),\1
-	HILO	\1
-	addq.w	#2,d2
+	move.b	(a4),\1
+	LOHI	\1		;slow
+	move.b	(a4),\1		; high byte
+	HILO	\1		;slow
+	addq.w	#2,a4
 	ENDM
 
 	;; == Immediate Memory Macros ==
 
 	;; Macro to read an immediate byte into \1.
-FETCHBI	MACRO			; 40 cycles, 14 bytes
-	addq.w	#1,d2		;  4/2
-	move.w	d2,d1		;  4/2
-	bsr	deref		; 18/6
-	move.b	(a0),\1		; 14/4
+FETCHBI	MACRO			; 8 cycles, 2 bytes
+	move.b	(a6)+,\1	; 8/2
 	ENDM
 
 	;; Macro to read an immediate word (unaligned) into \1.
-FETCHWI	MACRO			; 36 cycles, 12 bytes
-	addq.w	#2,d2		;  4/2
+FETCHWI	MACRO			; 28 cycles, 6 bytes
 	;; See FETCHW for an explanation of this trick.
-	move.b	1(a6,d2.w),-(sp); 18/4
+	move.b	(a6)+,-(sp)	; 12/2
 	move.w	(sp)+,\1	;  8/2
-	move.b	0(a6,d2.w),\1	; 14/4
-	ENDM
+	move.b	(a6)+,\1	;  8/2
+	ENDM			; 28/6
 
 	;; == Common Opcode Macros =========================================
 
-	;; Forces alignment
+	;; To align subroutines.
 _align	SET	0
 
 START	MACRO
@@ -147,9 +131,17 @@ START	MACRO
 _align	SET	_align+$20
 	ENDM
 
+	;; LOHI/HILO are hideously slow for instructions used often.
+	;; Interleave registers instead:
+	;;
+	;; d4 = [B' B  C' C]
+	;;
+	;; Thus access to B is fast (swap d4) while access to BC is
+	;; slow.
+
 	;; When you want to use the high reg of a pair, use this first
 LOHI	MACRO			; 22 cycles, 2 bytes
-	ror.w	#8,\1
+	ror.w	#8,\1		; 22/2
 	ENDM
 
 	;; Then do your shit and finish with this
@@ -164,7 +156,7 @@ HILO	MACRO			; 22 cycles, 2 bytes
 	;;
 	;; See if I can get rid of the eor
 DONE	MACRO
-	clr.w	d0,d0		; 4 cycles
+	clr.w	d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
 	rol.w	#5,d0		;16 cycles
 	jmp	0(a3,d0)	;14 cycles
@@ -213,6 +205,7 @@ _main:
 	rts
 
 	include	"flags.asm"
+	include	"ports.asm"
 
 emu_setup:
 	movea	emu_plain_op,a5
@@ -431,7 +424,7 @@ emu_op_10:			; S14 T??
 	subq.b	#1,d4
 	beq	end_10	; slooooow
 	FETCHBI	d1
-	add.w	d1,d2
+	add.w	d1,a6		; XXX deref?
 end_10:
 	HILO	d4
 	DONE
@@ -497,7 +490,7 @@ emu_op_18:
 	;; Branch relative by a signed immediate byte
 	;; No flags
 	FETCHBI	d1
-	add.w	d1,d2
+	add.w	d1,a6		; XXX deref?
 	DONE
 
 	START
@@ -560,7 +553,7 @@ emu_op_20:
 	;; No flags
 	beq	end_20
 	FETCHBI	d1
-	add.w	d1,d2
+	add.w	d1,a6		; XXX deref?
 end_20:
 	DONE
 
@@ -634,7 +627,7 @@ emu_op_28:
 	;; No flags
 	beq	end_28
 	FETCHBI	d1
-	add.w	d1,d2
+	add.w	d1,a6		; XXX deref?
 end_28:
 	DONE
 
@@ -692,16 +685,16 @@ emu_op_30:
 	bsr	f_norm_c
 	bne	end_30		; branch taken: carry set
 	FETCHBI	d1
-	add.w	d1,d2
+	add.w	d1,a6		; XXX deref?
 end_30:
 	DONE
 
 	START
 emu_op_31:
 	;; LD	SP,immed.w
-	swap	d2
-	FETCHWI	d2
-	swap	d2
+	FETCHWI	d1
+	bsr	deref
+	movea	a0,a4
 	DONE
 
 	START
@@ -715,10 +708,9 @@ emu_op_32:
 	START
 emu_op_33:
 	;; INC	SP
-	;; XXX This might be done by adding $100
-	swap	d2
-	addq.w	#1,d2
-	swap	d2
+	;; FYI:  Do not have to deref because this will never cross a
+	;; page boundary.
+	addq.w	#1,a4
 	DONE
 
 	START
@@ -762,7 +754,7 @@ emu_op_38:
 	;;  PC <- PC+immed.b
 	bcc	end_38
 	FETCHBI	d1
-	add.w	d1,d2
+	add.w	d1,a6		; XXX deref?
 end_38:
 	DONE
 
@@ -771,7 +763,7 @@ emu_op_39:
 	;; ADD	HL,SP
 	;; HL <- HL+SP
 	swap	d2
-	add.w	d6,d2
+	add.w	d6,d2		; XXX fix this shit up
 	swap	d2
 	DONE
 
@@ -785,10 +777,7 @@ emu_op_3a:
 	START
 emu_op_3b:
 	;; DEC	SP
-	;; XXX this might be done by subtracting $100
-	swap	d2
-	subq.w	#1,d2
-	swap	d2
+	subq.w	#1,a4
 	DONE
 
 	START
@@ -1434,14 +1423,14 @@ emu_op_8d:
 emu_op_8e:
 	;; ADC	A,(HL)
 	FETCHB	d6,d1
-	F_ADD_B	d1,d3
+	F_ADC_B	d1,d3
 	PUTB	d1,d6
 	DONE
 
 	START
 emu_op_8f:
 	;; ADC	A,A
-	F_ADD_B	d3,d3
+	F_ADC_B	d3,d3
 	DONE
 
 
@@ -1851,11 +1840,10 @@ emu_op_c0:
 	DONE
 
 	START
-emu_op_c1:			; S16 T44
+emu_op_c1:			; S10 T
 	;; POP	BC
-	swap	d2
-	FETCHWI	d4
-	swap	d2
+	;; Pops a word into BC
+	POPW	d4
 	DONE
 
 	START
@@ -1871,20 +1859,22 @@ emu_op_c2:
 emu_op_c3:			; S12 T36
 	;; JP	immed.w
 	;; PC <- immed.w
-	FETCHWI	d2
+	FETCHWI	d1
+	bsr	deref
+	movea	a0,a6
 	DONE
 
 	START
 emu_op_c4:
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
+	;; XXX do this
+	DONE
 
 	START
 emu_op_c5:
 	;; PUSH	BC
-	swap	d2
-	PUSHW	d4,d2
-	swap	d2
+	PUSHW	d4
 	DONE
 
 	START
@@ -1899,6 +1889,7 @@ emu_op_c7:
 	;; RST	immed.b
 	;;   CALL	0
 	;; XXX check
+	;; XXX FIX D2
 	move.l	d2,d1
 	swap	d1		; d1 has SP
 	PUSHW	d2		; d1=SP implicit
@@ -1908,17 +1899,9 @@ emu_op_c7:
 
 	START
 emu_op_c8:
-	;; CALL	immed.w
-	;; (Like JSR on 68k)
-	;;  (SP-1) <- PCh
-	;;  (SP-2) <- PCl
-	;;  SP <- SP - 2
-	;;  PC <- address
-	move.l	d2,d1		; d1 has PC
-	swap	d2		; d2 has SP
-	PUSHW	d1		; slow ... but CALL is slow.
-	swap	d2
-	FETCHWI	d2
+	;; RET	Z
+	bsr	f_norm_z
+	beq	emu_op_c9
 	DONE
 
 	START
@@ -1927,70 +1910,184 @@ emu_op_c9:
 	;; PCl <- (SP)
 	;; PCh <- (SP+1)	POPW
 	;; SP <- (SP+2)
-	swap	d2
 	POPW	d1
-	swap	d2
-	move.w	d1,d2
+	bsr	deref
+	movea	a0,a6
 	DONE
 
 	START
 emu_op_ca:
 	;; JP	Z,immed.w
+	;; If Z, jump
+	bsr	f_norm_z
+	beq	emu_op_c3
+	DONE
 
 	START
 emu_op_cb:			; prefix
-
 	movea.w	emu_op_undo_cb(pc),a2
+
 	START
 emu_op_cc:
+	;; CALL	Z,immed.w
+	;; XXX do this
+	DONE
+
 	START
 emu_op_cd:
+	;; CALL	immed.w
+	;; (Like JSR on 68k)
+	;;  (SP-1) <- PCh
+	;;  (SP-2) <- PCl
+	;;  SP <- SP - 2
+	;;  PC <- address
+	;; XXX FIX D2
+	move.l	d2,d1		; d1 has PC
+	swap	d2		; d2 has SP
+	PUSHW	d1		; slow ... but CALL is slow.
+	swap	d2
+	FETCHWI	d2
+
 	START
 emu_op_ce:
+	;; ADC	A,immed.b
+	FETCHWI	d1
+	F_ADC_B	d1,d3
+	DONE
+
 	START
 emu_op_cf:
+	;; RST	&08
+	;;  == CALL 8
+	;; XXX do this
+	DONE
+
 	START
 emu_op_d0:
+	;; RET	NC
+	bsr	f_norm_c
+	beq	emu_op_c9
+	DONE
+
 	START
 emu_op_d1:
+	;; POP	DE
+	POPW	d5
+	DONE
+
 	START
 emu_op_d2:
+	;; JP	NC,immed.w
+	bsr	f_norm_c
+	beq	emu_op_c3
+	DONE
+
 	START
 emu_op_d3:
+	;; OUT	immed.b,A
+	move.b	d3,d1
+	FETCHBI	d0
+	bsr	port_out
+	DONE
+
 	START
 emu_op_d4:
+	;; CALL	NC,immed.w
+	;; XXX do this
+	DONE
+
 	START
 emu_op_d5:
+	;; PUSH	DE
+	PUSHW	d5
+	DONE
+
 	START
 emu_op_d6:
+	;; SUB	A,immed.b
+	FETCHBI	d1
+	F_SUB_B	d3,d1
+	DONE
+
 	START
 emu_op_d7:
+	;; RST	&10
+	;;  == CALL 10
+	;; XXX do this
+	DONE
+
 	START
 emu_op_d8:
+	;; RET	C
+	bsr	f_norm_c
+	bne	emu_op_c9
+	DONE
+
 	START
 emu_op_d9:
+	;; EXX
+	swap	d4
+	swap	d5
+	swap	d6
+	DONE
+
 	START
 emu_op_da:
+	;; JP	C,immed.w
+	bsr	f_norm_c
+	bne	emu_op_c3
+	DONE
+
 	START
 emu_op_db:
+	;; IN	A,immed.b
+	move.b	d3,d1
+	FETCHBI	d0
+	bsr	port_in
+	DONE
+
 	START
 emu_op_dc:
+	;; CALL	C,immed.w
+	;; XXX do this
+	DONE
+
 	START
 emu_op_dd:			; prefix
-	;; swap IX, HL
-
 	movea.w		emu_op_undo_dd(pc),a2
-	
+
 	START
 emu_op_de:
+	;; SBC	A,immed.b
+	FETCHWI	d1
+	F_SBC_B	d1,d3
+	DONE
+
 	START
 emu_op_df:
+	;; RST	&18
+	;;  == CALL 18
+	;; XXX do this
+	DONE
+
 	START
 emu_op_e0:
+	;; RET	PO
+	;; If parity odd (P zero), return
+	bsr	f_norm_pv
+	beq	emu_op_c9
+	DONE
+
 	START
 emu_op_e1:
+	;; POP	HL
+	POPW	d6
+	DONE
+
 	START
 emu_op_e2:
+	;; EX	(SP),HL
+	;; Exchange
 	START
 emu_op_e3:
 	START
