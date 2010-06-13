@@ -65,16 +65,24 @@ f_norm_z:
 	move.b	flag_valid-flag_storage(a3),d1
 	andi.b	#%01000000,d1
 	bne.s	FNZ_ok		; Bit is valid
-	move.b	f_host_ccr-flag_storage(a3),d1
-	andi.b	#%01000000,d1
-;; XXX see above comment for using lea and then d(an) if you have a spare register.
-	or.b	d1,flag_byte-flag_storage(a3)
-	ori.b	#%01000000,flag_valid-flag_storage(a3)
+	bsr	flags_normalize
 FNZ_ok:
 	move.b	flag_byte-flag_storage(a3),d1
 	andi.b	#%01000000,d1
 	rts
 
+	;; Normalize and return Parity/oVerflow bit (loaded into Z
+	;; bit)
+	;; Destroys d1
+f_norm_pv:
+	move.b	flag_valid-flag_storage(a3),d1
+	andi.b	#%00000100,d1
+	bne.s	FNPV_ok		; Bit is already valid
+	bsr	flags_normalize
+FNPV_ok:
+	move.b	flag_byte-flag_storage(a3),d1
+	andi.b	#%00000100,d1
+	rts
 
 	;; Routine to turn 68k flags into z80 flags.
 	;; Preconditions:
