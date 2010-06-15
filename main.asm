@@ -46,15 +46,17 @@
 
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
-FETCHB	MACRO			; 14 cycles, 4 bytes
-	;; XXX deref
-	move.b	0(a6,\1.w),\2
+FETCHB	MACRO
+	move.w	\1,d1
+	bsr	deref
+	move.b	(a0),\2
 	ENDM
 
 	;; Macro to write a byte in \1 to main memory at \2 (regs only)
-PUTB	MACRO			; 14 cycles, 4 bytes
-	;; XXX deref
-	move.b	\1,0(a6,\2)
+PUTB	MACRO
+	move.w	\2,d1
+	bsr	deref
+	move.b	\1,(a0)
 	ENDM
 
 	;; Macro to read a word from main memory at register \1
@@ -79,6 +81,7 @@ PUTW	MACRO			; 14 cycles, 4 bytes
 	ENDM
 
 	;; Push the word in \1 (register) using stack register a4.
+	;; Sadly, I can't trust the stack register to be aligned.
 	;; Destroys d0.
 
 	;;   (SP-2) <- \1_l
@@ -166,13 +169,6 @@ DONE	MACRO
 	;; == Special Opcode Macros ========================================
 
 
-	;; Do an ADD \1,\2
-F_ADD_W	MACRO
-	ENDM
-	;; Do an SUB \1,\2
-F_SUB_W	MACRO
-	ENDM
-
 	;; INC and DEC macros
 F_INC_B	MACRO
 	ENDM
@@ -206,6 +202,7 @@ _main:
 
 	include	"flags.asm"
 	include	"ports.asm"
+	include "interrupts.asm"
 
 emu_setup:
 	movea	emu_plain_op,a5
@@ -1868,7 +1865,8 @@ emu_op_c3:			; S12 T36
 emu_op_c4:
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
-	;; XXX do this
+	bsr	f_norm_z
+	bne	emu_op_cd
 	DONE
 
 	START
@@ -1886,8 +1884,8 @@ emu_op_c6:
 
 	START
 emu_op_c7:
-	;; RST	immed.b
-	;;   CALL	0
+	;; RST	&0
+	;;  == CALL 0
 	;; XXX check
 	;; XXX FIX D2
 	move.l	d2,d1
@@ -1930,7 +1928,8 @@ emu_op_cb:			; prefix
 	START
 emu_op_cc:
 	;; CALL	Z,immed.w
-	;; XXX do this
+	bsr	f_norm_z
+	beq	emu_op_cd
 	DONE
 
 	START
@@ -1993,7 +1992,8 @@ emu_op_d3:
 	START
 emu_op_d4:
 	;; CALL	NC,immed.w
-	;; XXX do this
+	bsr	f_norm_c
+	beq	emu_op_cd
 	DONE
 
 	START
@@ -2049,7 +2049,8 @@ emu_op_db:
 	START
 emu_op_dc:
 	;; CALL	C,immed.w
-	;; XXX do this
+	bsr	f_norm_c
+	bne	emu_op_cd
 	DONE
 
 	START
@@ -2086,24 +2087,71 @@ emu_op_e1:
 
 	START
 emu_op_e2:
-	;; EX	(SP),HL
-	;; Exchange
+	;; JP	PO,immed.w
+	bsr	f_norm_pv
+	beq	emu_op_c3
+	DONE
+
 	START
 emu_op_e3:
+	;; EX	(SP),HL
+	;; Exchange
+	POPW	d1
+	PUSHW	d6
+	move.w	d1,d6
+	DONE
+
 	START
 emu_op_e4:
+	;; CALL	PO,immed.w
+	;; if parity odd (P=0), call
+	bsr	f_norm_pv
+	beq	emu_op_cd
+	DONE
+
 	START
 emu_op_e5:
+	;; PUSH	HL
+	PUSHW	d6
+	DONE
+
 	START
 emu_op_e6:
+	;; AND	immed.b
+	FETCHBI	d1
+	F_AND_B	d1,d3
+	DONE
+
 	START
 emu_op_e7:
+	;; RST	&20
+	;;  == CALL 20
+	;; XXX do this
+	DONE
+
 	START
 emu_op_e8:
+	;; RET	PE
+	;; If parity odd (P zero), return
+	bsr	f_norm_pv
+	bne	emu_op_c9
+	DONE
+
 	START
 emu_op_e9:
+	;; JP	(HL)
+	FETCHB	d6,d1
+	bsr	deref
+	movea	a0,a6
+	DONE
+
 	START
 emu_op_ea:
+	;; JP	PE,immed.w
+	bsr	f_norm_pv
+	bne	emu_op_c3
+	DONE
+
 	START
 emu_op_eb:
 	;; EX	DE,HL
@@ -2112,51 +2160,148 @@ emu_op_eb:
 
 	START
 emu_op_ec:
+	;; CALL	PE,immed.w
+	;; If parity even (P=1), call
+	bsr	f_norm_c
+	bne	emu_op_cd
+	DONE
+
 	START
 emu_op_ed:			; prefix
-
 	movea.w	emu_op_undo_ed(pc),a2
+	DONE
+
 	START
 emu_op_ee:
+	;; XOR	immed.b
+	FETCHBI	d1
+	F_XOR_B	d1,d3
+	DONE
+
 	START
 emu_op_ef:
+	;; RST	&28
+	;;  == CALL 28
+	;; XXX DO THIS
+	DONE
+
 	START
 emu_op_f0:
+	;; RET	P
+	;; Return if Positive
+	bsr	f_norm_sign
+	beq	emu_op_c9	; RET
+	DONE
+
 	START
 emu_op_f1:
+	;; POP	AF
+	;; SPEED this can be made faster ...
+	POPW	d3
+	move.w	d3,flag_byte-flag_storage(a3)
+	move.b	#$ff,flag_valid-flag_storage(a3)
+	DONE
+
 	START
 emu_op_f2:
+	;; JP	P,immed.w
+	bsr	f_norm_sign
+	beq	emu_op_c3	; JP
+	DONE
+
 	START
 emu_op_f3:
+	;; DI
+	bsr	ints_stop
+
 	START
 emu_op_f4:
+	;; CALL	P,&0000
+	;; Call if positive (S=0)
+	bsr	f_norm_sign
+	beq	emu_op_cd
+	DONE
+
 	START
 emu_op_f5:
+	;; PUSH	AF
+	bsr	flags_normalize
+	LOHI	d3
+	move.b	flag_byte-flag_storage(a3),d3
+	HILO	d3
+	PUSHW	d3
+	DONE
+
 	START
 emu_op_f6:
+	;; OR	immed.b
+	FETCHBI	d1
+	F_OR_B	d1,d3
+	DONE
+
 	START
 emu_op_f7:
+	;; RST	&30
+	;;  == CALL 30
+	;; XXX do this
+	DONE
+
 	START
 emu_op_f8:
+	;; RET	M
+	;; Return if Sign == 1, minus
+	bsr	f_norm_sign
+	bne	emu_op_c9	; RET
+	DONE
+
 	START
 emu_op_f9:
+	;; LD	SP,HL
+	;; SP <- HL
+	move.w	d6,d1
+	bsr	deref
+	movea	a0,a4
+	DONE
+
 	START
 emu_op_fa:
+	;; JP	M,immed.w
+	bsr	f_norm_sign
+	bne	emu_op_c3	; JP
+	DONE
+
 	START
-emu_op_fb:p
+emu_op_fb:
 	;; EI
+	bsr	ints_start
+	DONE
 
 	START
 emu_op_fc:
+	;; CALL	M,immed.w
+	;; Call if minus (S=1)
+	bsr	f_norm_sign
+	bne	emu_op_cd
+	DONE
+
 	START
 emu_op_fd:			; prefix
 	;; swap IY, HL
-
 	movea.w	emu_op_undo_fd(pc),a2
+
 	START
 emu_op_fe:
+	;; CP	immed.b
+	FETCHBI	d1
+	F_CP_B	d1,d3
+	DONE
+
 	START
 emu_op_ff:
+	;; RST	&38
+	;;  == CALL 38
+	;; XXX do this
+	DONE
 
 emu_op_undo_cb:
 
