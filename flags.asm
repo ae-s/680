@@ -84,6 +84,18 @@ FNPV_ok:
 	andi.b	#%00000100,d1
 	rts
 
+	;; Normalize and return Sign bit (loaded into Z bit).
+	;; Destroys d1
+f_norm_sign:
+	move.b	flag_valid-flag_storage(a3),d1
+	andi.b	#%01000000,d1
+	bne.s	FNsign_ok	; Bit is already valid
+	bsr	flags_normalize
+FNsign_ok:
+	move.b	flag_byte-flag_storage(a3),d1
+	andi.b	#%01000000,d1
+	rts
+
 	;; Routine to turn 68k flags into z80 flags.
 	;; Preconditions:
 	;;   Flags to change are noted in d0 by a 1 bit
