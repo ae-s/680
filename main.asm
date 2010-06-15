@@ -219,6 +219,13 @@ emu_setup:
 	rts
 
 
+;; ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+;;  _ __ ___   ___ _ __ ___   ___  _ __ _   _   |||||||||||||||||||||||||||
+;; | '_ ` _ \ / _ \ '_ ` _ \ / _ \| '__| | | |  \\\\\\\\\\\\\\\\\\\\\\\\\\\
+;; | | | | | |  __/ | | | | | (_) | |  | |_| |  |||||||||||||||||||||||||||
+;; |_| |_| |_|\___|_| |_| |_|\___/|_|   \__, |  ///////////////////////////
+;; of the virtual type                  |___/   |||||||||||||||||||||||||||
+;; =============================================JJJJJJJJJJJJJJJJJJJJJJJJJJJ
 
 	;; Take a virtual address in d1 and dereference it.  Returns the
 	;; host address in a0.  Destroys a0, d0.
@@ -240,24 +247,24 @@ ref_3:	dc.l	0		; bank 3
 
 	;; Take a physical address in a0 and turn it into a virtual
 	;; address in d0
-	;; Destroys 
+	;; Destroys d0
 underef:
 	move.l	a0,d0
 	sub.l	ref_0(pc,d0),d0
 	bmi	underef_not0
-	cmpi.l	#$10000,d0
+	cmpi.l	#$4000,d0
 	bmi	underef_thatsit
 underef_not0:
 	move.l	a0,d0
 	sub.l	ref_1(pc,d0),d0
 	bmi	underef_not1
-	cmpi.l	#$10000,d0
+	cmpi.l	#$4000,d0
 	bmi	underef_thatsit
 underef_not1:
 	move.l	a0,d0
 	sub.l	ref_2(pc,d0),d0
 	bmi	underef_not2
-	cmpi.l	#$10000,d0
+	cmpi.l	#$4000,d0
 	bmi	underef_thatsit
 underef_not2:
 	move.l	a0,d0
