@@ -14,7 +14,7 @@
 ;;; A6 = emulated PC XXX
 ;;; A5 = instruction table base pointer
 ;;; A4 = emulated SP XXX
-;;; A3 = constants address (see flags.asm)
+;;; A3 =
 ;;; A2 =
 ;;; A1 =
 ;;; A0 =
@@ -168,6 +168,12 @@ DONE	MACRO
 
 	;; == Special Opcode Macros ========================================
 
+	;; Do an ADD \1,\2
+F_ADD_W	MACRO
+	ENDM
+	;; Do an SUB \1,\2
+F_SUB_W	MACRO
+	ENDM
 
 	;; INC and DEC macros
 F_INC_B	MACRO
@@ -177,9 +183,11 @@ F_DEC_B	MACRO
 	ENDM
 
 F_INC_W	MACRO
+	addq.w	#1,\1
 	ENDM
 
 F_DEC_W	MACRO
+	subq.w	#1,\1
 	ENDM
 
 	;; I might be able to unify rotation flags or maybe use a
@@ -207,7 +215,6 @@ _main:
 emu_setup:
 	movea	emu_plain_op,a5
 	lea	emu_fetch(pc),a2
-	lea	flag_storage(pc),a3	; Thanks to Lionel
 	;; XXX finish
 	rts
 
@@ -215,30 +222,48 @@ emu_setup:
 
 	;; Take a virtual address in d1 and dereference it.  Returns the
 	;; host address in a0.  Destroys a0, d0.
-;; XXX I added a masking of the upper bits of the Z80 address (d1) before translating them to host address.
-;; Please double-check, but AFAICT, it's the right thing to do.
-
-	;; XXX these use the old setup, replace this with a writable
-	;; LUT.
 deref:
 	move.w	d1,d0
 	andi.w	#$3FFF,d0
 	movea.w	d0,a0
 	move.w	d1,d0
-	andi.w	#$C000,d0
-	rol.w	#5,d0
-	jmp	0(pc,d0.w)
-	;; 00
-	adda.l	a1,a0
+	andi.w	#$C000,d0	; Can cut this out by pre-masking the table.
+	rol.w	#2,d0
+	adda.l	deref_table(pc,d0),a0
 	rts
-	;; 01
-	adda.l	a2,a0
-	rts
-	;; 02
-	adda.l	a3,a0
-	rts
-	;; 03
-	adda.l	a4,a0
+
+deref_table:
+ref_0:	dc.l	0		; bank 0
+ref_1:	dc.l	0		; bank 1
+ref_2:	dc.l	0		; bank 2
+ref_3:	dc.l	0		; bank 3
+
+	;; Take a physical address in a0 and turn it into a virtual
+	;; address in d0
+	;; Destroys 
+underef:
+	move.l	a0,d0
+	sub.l	ref_0(pc,d0),d0
+	bmi	underef_not0
+	cmpi.l	#$10000,d0
+	bmi	underef_thatsit
+underef_not0:
+	move.l	a0,d0
+	sub.l	ref_1(pc,d0),d0
+	bmi	underef_not1
+	cmpi.l	#$10000,d0
+	bmi	underef_thatsit
+underef_not1:
+	move.l	a0,d0
+	sub.l	ref_2(pc,d0),d0
+	bmi	underef_not2
+	cmpi.l	#$10000,d0
+	bmi	underef_thatsit
+underef_not2:
+	move.l	a0,d0
+	sub.l	ref_3(pc,d0),d0
+	;; if that fails too, well shit man!
+underef_thatsit:
 	rts
 
 
@@ -305,25 +330,25 @@ emu_op_03:			; S2 T4
 	;; INC	BC
 	;; BC <- BC+1
 	;; No flags
-	addq.w	#1,d4
+	F_INC_W	d4
 	DONE
 
 	START
 emu_op_04:
 	;; INC	B
 	;; B <- B+1
-	;; XXX FLAGS
-	add.w	#$0100,d4	; 8
-	DONE			; 8
-				;16 cycles
+	LOHI	d4
+	F_INC_B	d4
+	HILO	d4
+	DONE
 
 	START
 emu_op_05:
 	;; DEC	B
 	;; B <- B-1
-	;; Flags: S,Z,H changed, P=oVerflow, N set, C left
-	;; XXX FLAGS
-	sub.w	#$0100,d4
+	LOHI	d4
+	F_DEC_B	d4
+	HILO	d4
 	DONE
 
 	START
@@ -341,6 +366,7 @@ emu_op_07:			; S2 T4
 	;; RLCA
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
+	;; XXX flags
 	rol.b	#1,d3
 	DONE
 
@@ -356,8 +382,7 @@ emu_op_09:
 	;; ADD	HL,BC
 	;; HL <- HL+BC
 	;; Flags: H, C aff.; N=0
-	;; XXX FLAGS
-	add.w	d4,d6
+	F_ADD_W	d4,d6
 	DONE
 
 	START
@@ -373,7 +398,7 @@ emu_op_0b:			; S2 T4
 	;; DEC	BC
 	;; BC <- BC-1
 	;; No flags
-	subq.w	#1,d4
+	F_DEC_W	d4
 	DONE
 
 	START
@@ -381,8 +406,7 @@ emu_op_0c:
 	;; INC	C
 	;; C <- C+1
 	;; Flags: S,Z,H aff.; P=overflow, N=0
-	;; XXX FLAGS
-	addq.b	#1,d4
+	F_INC_B	d4
 	DONE
 
 	START
@@ -390,8 +414,7 @@ emu_op_0d:
 	;; DEC	C
 	;; C <- C-1
 	;; Flags: S,Z,H aff., P=overflow, N=1
-	;; XXX FLAGS
-	subq.b	#1,d4
+	F_DEC_B	d4
 	DONE
 
 	START
@@ -411,7 +434,7 @@ emu_op_0f:
 	DONE
 
 	START
-emu_op_10:			; S14 T??
+emu_op_10:			; S32
 	;; DJNZ	immed.w
 	;; Decrement B
 	;;  and branch by immed.b
@@ -421,7 +444,11 @@ emu_op_10:			; S14 T??
 	subq.b	#1,d4
 	beq	end_10	; slooooow
 	FETCHBI	d1
-	add.w	d1,a6		; XXX deref?
+	move	a6,a0
+	bsr	underef
+	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
+	bsr	deref
+	move	a0,a6
 end_10:
 	HILO	d4
 	DONE
@@ -444,7 +471,7 @@ emu_op_12:
 emu_op_13:
 	;; INC	DE
 	;; No flags
-	addq.w	#1,d5
+	F_INC_W	d5
 	DONE
 
 	START
@@ -452,7 +479,7 @@ emu_op_14:
 	;; INC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=0
 	LOHI	d5
-	addq.b	#1,d5
+	F_INC_B	d5
 	HILO	d5
 	DONE
 
@@ -461,7 +488,7 @@ emu_op_15:
 	;; DEC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=1
 	LOHI	d5
-	subq.b	#1,d5
+	F_DEC_B	d5
 	HILO	d5
 	DONE
 
@@ -478,6 +505,7 @@ emu_op_16:
 emu_op_17:
 	;; RLA
 	;; Flags: P,N=0; C aff.
+	;; XXX flags
 	roxl.b	#1,d3
 	DONE
 
@@ -487,7 +515,11 @@ emu_op_18:
 	;; Branch relative by a signed immediate byte
 	;; No flags
 	FETCHBI	d1
-	add.w	d1,a6		; XXX deref?
+	move	a6,a0
+	bsr	underef
+	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -495,7 +527,7 @@ emu_op_19:
 	;; ADD	HL,DE
 	;; HL <- HL+DE
 	;; Flags: H,C aff,; N=0
-	add.w	d5,d6
+	F_ADD_W	d5,d6
 	DONE
 
 	START
@@ -517,14 +549,14 @@ emu_op_1b:
 emu_op_1c:
 	;; INC	E
 	;; Flags: S,Z,H aff.; P=overflow; N=0
-	addq.b	#1,d5
+	F_INC_B	d5
 	DONE
 
 	START
 emu_op_1d:
 	;; DEC	E
 	;; Flags: S,Z,H aff.; P=overflow, N=1
-	subq.b	#1,d5
+	F_DEC_B	d5
 	DONE
 
 	START
@@ -538,6 +570,7 @@ emu_op_1e:
 emu_op_1f:
 	;; RRA
 	;; Flags: H,N=0; C aff.
+	;; XXX FLAGS
 	roxr.b	#1,d3
 	DONE
 
@@ -582,7 +615,7 @@ emu_op_24:
 	;; INC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=0
 	LOHI	d6
-	addq.b	#1,d6
+	F_INC_B	d6
 	HILO	d6
 	DONE
 
@@ -591,7 +624,7 @@ emu_op_25:
 	;; DEC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=1
 	LOHI	d6
-	subq.b	#1,d6
+	F_DEC_B	d6
 	HILO	d6
 	DONE
 
@@ -622,6 +655,7 @@ emu_op_28:
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
+	bsr	f_norm_z
 	beq	end_28
 	FETCHBI	d1
 	add.w	d1,a6		; XXX deref?
@@ -632,7 +666,7 @@ end_28:
 emu_op_29:
 	;; ADD	HL,HL
 	;; Flags: 
-	add.w	d6,d6
+	F_ADD_W	d6,d6
 	DONE
 
 	START
@@ -646,19 +680,19 @@ emu_op_2a:
 	START
 emu_op_2b:
 	;; DEC	HL
-	subq.w	#1,d6
+	F_DEC_W	d6
 	DONE
 
 	START
 emu_op_2c:
 	;; INC	L
-	addq.b	#1,d6
+	F_INC_B	d6
 	DONE
 
 	START
 emu_op_2d:
 	;; DEC	L
-	subq.b	#1,d6
+	F_DEC_B	d6
 	DONE
 
 	START
@@ -671,6 +705,7 @@ emu_op_2e:
 emu_op_2f:
 	;; CPL
 	;; A <- NOT A
+	;; XXX flags
 	not.b	d3
 	DONE
 
@@ -682,7 +717,11 @@ emu_op_30:
 	bsr	f_norm_c
 	bne	end_30		; branch taken: carry set
 	FETCHBI	d1
-	add.w	d1,a6		; XXX deref?
+	move	a6,a0
+	bsr	underef
+	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
+	bsr	deref
+	move	a0,a6
 end_30:
 	DONE
 
@@ -705,6 +744,7 @@ emu_op_32:
 	START
 emu_op_33:
 	;; INC	SP
+	;; No flags
 	;; FYI:  Do not have to deref because this will never cross a
 	;; page boundary.
 	addq.w	#1,a4
@@ -716,7 +756,7 @@ emu_op_34:
 	;; Increment byte
 	;; SPEED can be made faster
 	FETCHB	d6,d1
-	addq.b	#1,d1
+	F_INC_B	d1
 	PUTB	d1,d6
 	DONE
 
@@ -726,7 +766,7 @@ emu_op_35:
 	;; Decrement byte
 	;; SPEED can be made faster
 	FETCHB	d6,d1
-	subq.b	#1,d1
+	F_DEC_B	d1
 	PUTB	d1,d6
 	DONE
 
@@ -741,7 +781,11 @@ emu_op_36:
 emu_op_37:
 	;; SCF
 	;; Set Carry Flag
-	;; XXX DO THIS
+	move.b	#%00111011,(flag_valid).w
+	move.b	d3,d1
+	ori.b	#%00000001,d1
+	andi.b	#%00101001,d1
+	or.b	d1,(flag_byte).w
 	DONE
 
 	START
@@ -749,7 +793,8 @@ emu_op_38:
 	;; JR	C,immed.b
 	;; If carry set
 	;;  PC <- PC+immed.b
-	bcc	end_38
+	bsr	f_norm_c
+	beq	end_38
 	FETCHBI	d1
 	add.w	d1,a6		; XXX deref?
 end_38:
@@ -759,9 +804,11 @@ end_38:
 emu_op_39:
 	;; ADD	HL,SP
 	;; HL <- HL+SP
-	swap	d2
-	add.w	d6,d2		; XXX fix this shit up
-	swap	d2
+	move	a4,a0
+	bsr	underef
+	F_ADD_W	d6,d0		; ??? Can I avoid underef/deref cycle?
+	bsr	deref
+	move	a0,a4
 	DONE
 
 	START
@@ -774,19 +821,20 @@ emu_op_3a:
 	START
 emu_op_3b:
 	;; DEC	SP
-	subq.w	#1,a4
+	;; No flags
+	subq.l	#1,a4
 	DONE
 
 	START
 emu_op_3c:
 	;; INC	A
-	addq.b	#1,d3
+	F_INC_B	d3
 	DONE
 
 	START
 emu_op_3d:
 	;; DEC	A
-	subq.b	#1,d3
+	F_DEC_B	d3
 	DONE
 
 	START
@@ -799,7 +847,9 @@ emu_op_3e:
 emu_op_3f:
 	;; CCF
 	;; Toggle carry flag
-	;; XXX DO THIS
+	bsr	flags_normalize
+	;; 	  SZ5H3PNC
+	eor.b	#%00010001,(flag_byte).w
 	DONE
 
 	START
@@ -825,23 +875,22 @@ emu_op_41:
 emu_op_42:
 	;; LD	B,D
 	;; B <- D
-	LOHI	d4		; 4
-	LOHI	d5		; 4
-	move.b	d5,d4		; 4
-	HILO	d4		; 4
-	HILO	d5		; 4
+	;; SPEED
+	LOHI	d4
+	LOHI	d5
+	move.b	d5,d4
+	HILO	d4
+	HILO	d5
 	DONE
-				;20 cycles
 
 	START
 emu_op_43:
 	;; LD	B,E
 	;; B <- E
-	LOHI	d4		; 4
+	LOHI	d4
 	move.b	d4,d5		; 4
-	HILO	d4		; 4
+	HILO	d4
 	DONE
-				; 12 cycles
 
 	START
 emu_op_44:
@@ -1299,10 +1348,10 @@ emu_op_7f:
 F_ADD_B	MACRO			; 14 bytes?
 	move.b	\1,f_tmp_src_b	; preserve operands for flag work
 	move.b	\2,f_tmp_dst_b
-	move.b	#0,flag_n
-	move.b	#1,f_tmp_byte
+	move.b	#1,(f_tmp_byte).w
 	add	\1,\2
-	move	sr,f_host_ccr
+	move	sr,(f_host_ccr).w
+	move.w	#0202,(flag_byte).w
 	ENDM
 
 	START
@@ -1364,8 +1413,17 @@ emu_op_87:
 
 
 	;; Do an ADC \2,\1
-F_ADC_B	MACRO
-	;; XXX
+F_ADC_B	MACRO			; S34
+	;; XXX TOO BIG
+	bsr	flags_normalize
+	move.b	(flag_byte).w,d0
+	andi.b	#1,d0
+	add.b	\1,d0
+	move.b	d0,(f_tmp_src_b).w
+	move.b	\2,(f_tmp_dst_b).w
+	add.b	d0,\2
+	move	sr,(f_host_ccr).w
+	move.w	#$0202,(flag_byte).w
 	ENDM
 
 	START
@@ -1436,14 +1494,15 @@ emu_op_8f:
 
 	;; Do a SUB \2,\1
 	;; XXX CHECK
-F_SUB_B	MACRO			;14 bytes?
+F_SUB_B	MACRO			;22 bytes?
 	;; XXX use lea and then d(an) if you have a spare register.
-	move.b	\1,f_tmp_src_b	; preserve operands for flagging
-	move.b	\2,f_tmp_dst_b
-	move.b	#1,flag_n
-	move.b	#1,f_tmp_byte
+	move.b	\1,(f_tmp_src_b).w	; preserve operands for flagging
+	move.b	\2,(f_tmp_dst_b).w
+	move.b	#1,(f_tmp_byte).w
+	andi.b	#%00000010,(flag_valid).w
+	move.b	#%00000010,(flag_byte).w
 	sub	\1,\2
-	move	sr,f_host_ccr
+	move	sr,(f_host_ccr).w
 	ENDM
 
 	START
@@ -1451,7 +1510,6 @@ emu_op_90:
 	;; SUB	A,B
 	LOHI	d4
 	F_SUB_B	d4,d3
-	add.b	d4,d3
 	HILO	d4
 	DONE
 
@@ -1507,7 +1565,17 @@ emu_op_97:
 
 	;; Do a SBC \2,\1
 F_SBC_B	MACRO
-	;; XXX
+	;; XXX TOO BIG
+	bsr	flags_normalize
+	move.b	(flag_byte).w,d0
+	andi.b	#1,d0
+	add.b	\1,d0
+	move.b	d0,(f_tmp_src_b).w
+	move.b	\2,(f_tmp_dst_b).w
+	sub.b	d0,\2
+	move	sr,(f_host_ccr).w
+	move.w	#$0202,(flag_byte).w
+
 	ENDM
 
 	START
@@ -2198,8 +2266,8 @@ emu_op_f1:
 	;; POP	AF
 	;; SPEED this can be made faster ...
 	POPW	d3
-	move.w	d3,flag_byte-flag_storage(a3)
-	move.b	#$ff,flag_valid-flag_storage(a3)
+	move.w	d3,(flag_byte).w
+	move.b	#$ff,(flag_valid).w
 	DONE
 
 	START
@@ -2227,7 +2295,7 @@ emu_op_f5:
 	;; PUSH	AF
 	bsr	flags_normalize
 	LOHI	d3
-	move.b	flag_byte-flag_storage(a3),d3
+	move.b	(flag_byte).w,d3
 	HILO	d3
 	PUSHW	d3
 	DONE
