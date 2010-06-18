@@ -1355,13 +1355,10 @@ emu_op_7f:
 F_ADD_B	MACRO			; 14 bytes?
 	move.b	\1,f_tmp_src_b	; preserve operands for flag work
 	move.b	\2,f_tmp_dst_b
-;	move.b	#1,(f_tmp_byte-flag_storage)(a3)
-	move.b	#1,0(a3)
+	move.b	#1,(f_tmp_byte-flag_storage)(a3)
 	add	\1,\2
-;	move	sr,(f_host_sr-flag_storage)(a3)
-	move	sr,14(a3)
-;	move.w	#0202,(flag_byte-flag_storage)(a3)
-	move.w	#0202,16(a3)
+	move	sr,(f_host_sr-flag_storage)(a3)
+	move.w	#0202,(flag_byte-flag_storage)(a3)
 	ENDM
 
 	START
@@ -1429,15 +1426,11 @@ F_ADC_B	MACRO			; S34
 	move.b	flag_byte(pc),d0
 	andi.b	#1,d0
 	add.b	\1,d0
-;	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
-	move.b	d0,2(a3)
-;	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
-	move.b	\2,3(a3)
+	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
+	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
 	add.b	d0,\2
-;	move	sr,(f_host_ccr-flag_storage)(a3)
-	move	sr,15(a3)
-;	move.w	#$0202,(flag_byte-flag_storage)(a3)
-	move.w	#$0202,16(a3)
+	move	sr,(f_host_ccr-flag_storage)(a3)
+	move.w	#$0202,(flag_byte-flag_storage)(a3)
 	ENDM
 
 	START
@@ -1508,19 +1501,13 @@ emu_op_8f:
 F_SUB_B	MACRO			; 22 bytes?
 	;; XXX use lea and then d(an) if you have a spare register.
 	;; preserve operands for flagging
-;	move.b	\1,(f_tmp_src_b-flag_storage)(a3)
-	move.b	\1,2(a3)
-;	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
-	move.b	\2,3(a3)
-;	move.b	#1,(f_tmp_byte-flag_storage)(a3)
-	move.b	#1,0(a3)
-;	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
-	andi.b	#%00000010,17(a3)
-;	move.b	#%00000010,(flag_byte-flag_storage)(a3)
-	move.b	#%00000010,16(a3)
+	move.b	\1,(f_tmp_src_b-flag_storage)(a3)
+	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	#1,(f_tmp_byte-flag_storage)(a3)
+	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
+	move.b	#%00000010,(flag_byte-flag_storage)(a3)
 	sub	\1,\2
-;	move	sr,(f_host_sr-flag_storage)(a3)
-	move	sr,14(a0)
+	move	sr,(f_host_sr-flag_storage)(a3)
 	ENDM
 
 	START
@@ -1588,15 +1575,11 @@ F_SBC_B	MACRO
 	move.b	flag_byte(pc),d0
 	andi.b	#1,d0
 	add.b	\1,d0
-;	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
-	move.b	d0,2(a3)
-;	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
-	move.b	\2,3(a3)
+	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
+	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
 	sub.b	d0,\2
-;	move	sr,(f_host_sr-flag_storage)(a3)
-	move	sr,14(a3)
-;	move.w	#$0202,(flag_byte-flag_storage)(a3)
-	move.w	#$0202,16(a3)
+	move	sr,(f_host_sr-flag_storage)(a3)
+	move.w	#$0202,(flag_byte-flag_storage)(a3)
 
 	ENDM
 
@@ -2313,10 +2296,8 @@ emu_op_f1:
 	;; POP	AF
 	;; SPEED this can be made faster ...
 	POPW	d3
-;	move.w	d3,(flag_byte-flag_storage)(a3)
-	move.w	d3,16(a3)
-;	move.b	#$ff,(flag_valid-flag_storage)(a3)
-	move.b	#$ff,17(a3)
+	move.w	d3,(flag_byte-flag_storage)(a3)
+	move.b	#$ff,(flag_valid-flag_storage)(a3)
 	DONE
 
 	START
