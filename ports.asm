@@ -563,9 +563,30 @@ port_out_0e:
 port_in_0f:
 port_out_0f:
 port_in_10:
+	;; LCD status
+	clr.b	d1
+	or.b	p10_increment(pc),d1
+	or.b	p10_row(pc),d1
+	or.b	p10_enabled(pc),d1
+	or.b	p10_6bit(pc),d1
+	or.b	p10_busy(pc),d1
+	rts
+
+p10_increment:	ds.b	0	; $01 if in row mode
+				; $00 if in column mode
+p10_row:	ds.b	0	; $02 if in increment mode
+				; $00 if in decrement mode
+p10_enabled:	ds.b	0	; $20 if screen is blanked
+p10_6bit:	ds.b	0	; $40 if in 8 bit mode, $00 if in 6
+				; bit mode
+p10_busy:	ds.b	0	; always 0
+
 port_out_10:
+	;; LCD command
 port_in_11:
+	;; LCD data
 port_out_11:
+	;; LCD data
 port_in_12:
 port_out_12:
 port_in_13:
