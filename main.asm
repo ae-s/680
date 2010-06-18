@@ -46,36 +46,42 @@
 
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
-FETCHB	MACRO			; 14 cycles, 4 bytes
-	;; XXX deref
-	move.b	0(a6,\1.w),\2
+FETCHB	MACRO			; XX cycles, X bytes
+	move.w	\1,d1
+	bsr	deref
+	move.b	(a0),\2
 	ENDM
 
-	;; Macro to write a byte in \1 to main memory at \2 (regs only)
+	;; Macro to write a byte in \1 to main memory at \2
 PUTB	MACRO			; 14 cycles, 4 bytes
-	;; XXX deref
-	move.b	\1,0(a6,\2)
+	move.w	\2,d1
+	bsr	deref
+	move.b	\1,(a0)
 	ENDM
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
 	;;
-	;; XXX deref
-	;;
 	;; <debrouxl> It decrements sp by 2, but stores the result at
 	;; sp, not at 1(sp). So you essentially get a "free" shift
 	;; left by 8 bits. Much faster than lsl.w / rol.w #8, at
 	;; least.
-FETCHW	MACRO
-	move.b	1(a6,\1.w),-(sp); 18/4
+FETCHW	MACRO			;  ?/16
+	move.w	\1,d1		;  4/2
+	bsr	deref		;  ?/4
+	move.b	(a0),-(sp)	; 18/4
 	move.w	(sp)+,\2	;  8/2
-	move.b	0(a6,\1.w),\2	; 14/4
+	move.b	(a0),\2		; 14/4
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
-PUTW	MACRO			; 14 cycles, 4 bytes
-	;; XXX ALIGNMENT
-	move.b	\1,0(a6,\2)
+PUTW	MACRO			; 
+	move.w	\2,d1
+	bsr	deref
+	move.w	\1,d0
+	move.b	d0,(a0)+
+	LOHI	d0
+	move.b	d0,(a0)
 	ENDM
 
 	;; Push the word in \1 (register) using stack register a4.
@@ -2088,6 +2094,8 @@ emu_op_e1:
 emu_op_e2:
 	;; EX	(SP),HL
 	;; Exchange
+	
+
 	START
 emu_op_e3:
 	START
