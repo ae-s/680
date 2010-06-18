@@ -109,32 +109,34 @@ flags_normalize:
 	rts
 
 flag_storage:
+	;; Numbers in comments are offsets from flag_storage, so use
+	;; offset(a3) to address.
 	;; 1 if tmp_???b is valid, 0 if tmp_???w is valid
-f_tmp_byte:	ds.b	0
+f_tmp_byte:	ds.b	0	; 0
 	;; 2 if P is 0, 3 if P is 1, 4 if P is Parity, 5 if P is oVerflow
-f_tmp_p_type:	ds.b	0
+f_tmp_p_type:	ds.b	0	; 1
 
 	;; byte operands
-f_tmp_src_b:	ds.b	0
-f_tmp_dst_b:	ds.b	0
-f_tmp_result_b:	ds.b	0
+f_tmp_src_b:	ds.b	0	; 2
+f_tmp_dst_b:	ds.b	0	; 3
+f_tmp_result_b:	ds.b	0	; 4
 
 	EVEN
-f_tmp_src_w:	ds.w	0
-f_tmp_dst_w:	ds.w	0
-f_tmp_result_w:	ds.w	0
+f_tmp_src_w:	ds.w	0	; 6
+f_tmp_dst_w:	ds.w	0	; 8
+f_tmp_result_w:	ds.w	0	; 10
 
-flag_n:		ds.w	0
+flag_n:		ds.w	0	; 12
 
 	;; 000XNZVC
 	EVEN			; Compositing a word from two bytes ...
-f_host_sr:	ds.b	0
-f_host_ccr:	ds.b	0
+f_host_sr:	ds.b	0	; 14
+f_host_ccr:	ds.b	0	; 15
 
 	EVEN
 	;; DO NOT REARRANGE THESE.
-flag_byte:	ds.b	0	; Byte of all flags
-flag_valid:	ds.b	0	; Validity mask -- 1 if valid.
+flag_byte:	ds.b	0	; 16 Byte of all flags
+flag_valid:	ds.b	0	; 17 Validity mask -- 1 if valid.
 
 	;; LUT for the CCR -> F mapping
 lut_ccr:
