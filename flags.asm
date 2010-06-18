@@ -17,15 +17,16 @@ F_CLEAR	MACRO
 	;; Sets or clears the bit explicitly.
 	;;
 	;; Byte for which parity is calculated must be in \1.  High
-	;; byte of \1.w must be zero, using d0 is suggested. (d1
+	;; byte of \1.w must be zero, using d0 is suggested. (a0,d1
 	;; destroyed)
 
 F_PAR	MACRO
-	ori.b	#%00000100,flag_valid-flag_storage(a3)	; ??/4
-	move.b	flag_byte-flag_storage(a3),d1		; ??/2
-	andi.b	#%11111011,d1				; ??/4
-	or.b	lut_parity-flag_storage(a3,\1.w),d1	; ??/4
-	move.b	d1,flag_byte-flag_storage(a3)		; ??/2
+	ori.b	#%00000100,(flag_valid).w	; ??/4
+	move.b	(flag_byte).w,d1		; ??/2
+	andi.b	#%11111011,d1			; ??/4
+	lea	(lut_parity).w,a0
+	or.b	0(a0,\1.w),d1			; ??/4
+	move.b	d1,(flag_byte).w		; ??/2
 	ENDM				;xxx cycles (!)
 
 
@@ -37,9 +38,9 @@ F_OVFL	MACRO
 
 	;; Save the two operands from ADD \1,\2
 F_ADD_SAVE	MACRO
-	move.b	\1,f_tmp_src_b-flag_storage(a3)
-	move.b	\2,f_tmp_dst_b-flag_storage(a3)
-	move.b	#$01,f_tmp_byte-flag_storage(a3)
+	move.b	\1,(f_tmp_src_b).w
+	move.b	\2,(f_tmp_dst_b).w
+	move.b	#$01,(f_tmp_byte).w
 	F_SET	#%
 	ENDM
 
@@ -84,6 +85,18 @@ FNPV_ok:
 	andi.b	#%00000100,d1
 	rts
 
+	;; Normalize and return Sign bit (loaded into Z bit).
+	;; Destroys d1
+f_norm_sign:
+	move.b	flag_valid-flag_storage(a3),d1
+	andi.b	#%01000000,d1
+	bne.s	FNsign_ok	; Bit is already valid
+	bsr	flags_normalize
+FNsign_ok:
+	move.b	flag_byte-flag_storage(a3),d1
+	andi.b	#%01000000,d1
+	rts
+
 	;; Routine to turn 68k flags into z80 flags.
 	;; Preconditions:
 	;;   Flags to change are noted in d0 by a 1 bit
@@ -119,6 +132,7 @@ f_host_sr:	ds.b	0
 f_host_ccr:	ds.b	0
 
 	EVEN
+	;; DO NOT REARRANGE THESE.
 flag_byte:	ds.b	0	; Byte of all flags
 flag_valid:	ds.b	0	; Validity mask -- 1 if valid.
 
