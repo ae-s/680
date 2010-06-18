@@ -667,16 +667,13 @@ emu_op_28:
 	;; SPEED can be made faster
 	;; No flags
 	bsr	f_norm_z
-	beq	end_28
-	FETCHBI	d1
-	add.w	d1,a6		; XXX deref?
-end_28:
+	bne	emu_op_18
 	DONE
 
 	START
 emu_op_29:
 	;; ADD	HL,HL
-	;; Flags: 
+	;; No flags
 	F_ADD_W	d6,d6
 	DONE
 
@@ -726,14 +723,7 @@ emu_op_30:
 	;; If carry clear
 	;;  PC <- PC+immed.b
 	bsr	f_norm_c
-	bne	end_30		; branch taken: carry set
-	FETCHBI	d1
-	move	a6,a0
-	bsr	underef
-	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
-	bsr	deref
-	move	a0,a6
-end_30:
+	beq	emu_op_18	; branch taken: carry clear
 	DONE
 
 	START
@@ -756,8 +746,9 @@ emu_op_32:
 emu_op_33:
 	;; INC	SP
 	;; No flags
+	;;
 	;; FYI:  Do not have to deref because this will never cross a
-	;; page boundary.
+	;; page boundary.  So sayeth BrandonW.
 	addq.w	#1,a4
 	DONE
 
@@ -805,10 +796,7 @@ emu_op_38:
 	;; If carry set
 	;;  PC <- PC+immed.b
 	bsr	f_norm_c
-	beq	end_38
-	FETCHBI	d1
-	add.w	d1,a6		; XXX deref?
-end_38:
+	bne	emu_op_18
 	DONE
 
 	START
@@ -1441,7 +1429,6 @@ F_ADC_B	MACRO			; S34
 emu_op_88:
 	;; ADC	A,B
 	;; A <- A + B + (carry)
-	;; XXX fix this shit up
 	LOHI	d4
 	F_ADC_B	d4,d3
 	HILO	d4
@@ -1451,14 +1438,12 @@ emu_op_88:
 emu_op_89:
 	;; ADC	A,C
 	;; A <- A + C + (carry)
-	;; XXX fix this shit up
 	F_ADC_B	d4,d3
 	DONE
 
 	START
 emu_op_8a:
 	;; ADC	A,D
-	;; XXX fix this shit up
 	LOHI	d5
 	F_ADC_B	d5,d3
 	HILO	d5
@@ -1505,7 +1490,7 @@ emu_op_8f:
 
 	;; Do a SUB \2,\1
 	;; XXX CHECK
-F_SUB_B	MACRO			;22 bytes?
+F_SUB_B	MACRO			; 22 bytes?
 	;; XXX use lea and then d(an) if you have a spare register.
 	move.b	\1,(f_tmp_src_b).w	; preserve operands for flagging
 	move.b	\2,(f_tmp_dst_b).w
