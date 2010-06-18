@@ -1967,11 +1967,12 @@ emu_op_c7:
 	;;  == CALL 0
 	;; XXX check
 	;; XXX FIX D2
-	move.l	d2,d1
-	swap	d1		; d1 has SP
-	PUSHW	d2		; d1=SP implicit
-	clr.w	d1
-	FETCHW	d1,d2		; ($0000)
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$00,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2019,12 +2020,11 @@ emu_op_cd:
 	;;  (SP-2) <- PCl
 	;;  SP <- SP - 2
 	;;  PC <- address
-	;; XXX FIX D2
-	move.l	d2,d1		; d1 has PC
-	swap	d2		; d2 has SP
-	PUSHW	d1		; slow ... but CALL is slow.
-	swap	d2
-	FETCHWI	d2
+	move	a6,a0
+	bsr	underef		; d0 has PC
+	PUSHW	d0
+	FETCHWI	d0
+	bra	emu_op_ca	; JP
 
 	START
 emu_op_ce:
@@ -2037,7 +2037,12 @@ emu_op_ce:
 emu_op_cf:
 	;; RST	&08
 	;;  == CALL 8
-	;; XXX do this
+	move	a6,a0
+	bsr	underef		; d0 has PC
+	PUSHW	d0
+	move.w	#$08,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2092,7 +2097,12 @@ emu_op_d6:
 emu_op_d7:
 	;; RST	&10
 	;;  == CALL 10
-	;; XXX do this
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$10,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2147,7 +2157,12 @@ emu_op_de:
 emu_op_df:
 	;; RST	&18
 	;;  == CALL 18
-	;; XXX do this
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$18,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2205,7 +2220,12 @@ emu_op_e6:
 emu_op_e7:
 	;; RST	&20
 	;;  == CALL 20
-	;; XXX do this
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$20,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2261,7 +2281,12 @@ emu_op_ee:
 emu_op_ef:
 	;; RST	&28
 	;;  == CALL 28
-	;; XXX DO THIS
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$28,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2322,7 +2347,12 @@ emu_op_f6:
 emu_op_f7:
 	;; RST	&30
 	;;  == CALL 30
-	;; XXX do this
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$08,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 	START
@@ -2379,7 +2409,12 @@ emu_op_fe:
 emu_op_ff:
 	;; RST	&38
 	;;  == CALL 38
-	;; XXX do this
+	move	a6,a0
+	bsr	underef
+	PUSHW	d0
+	move.w	#$08,d0
+	bsr	deref
+	move	a0,a6
 	DONE
 
 emu_op_undo_cb:
