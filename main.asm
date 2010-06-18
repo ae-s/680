@@ -14,7 +14,7 @@
 ;;; A6 = emulated PC XXX
 ;;; A5 = instruction table base pointer
 ;;; A4 = emulated SP XXX
-;;; A3 =
+;;; A3 = pointer to flag_storage
 ;;; A2 =
 ;;; A1 =
 ;;; A0 =
@@ -33,6 +33,11 @@
 ;;; IY is used more often so it's easier to get at.  It can be slow
 ;;; but I don't really care to go to the effort to make it so.
 ;;; D7 = IX (hi), IY (low)
+
+;;; Assemble with the following flags:
+;;; a68k -l -n -g -t main.asm
+;;; -n is important, it disables optimizations
+
 
 ;;; emulated I and R are both in RAM
 
@@ -166,7 +171,7 @@ DONE	MACRO
 	clr.w	d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
 	rol.w	#5,d0		;16 cycles
-	jmp	0(a3,d0)	;14 cycles
+	jmp	0(a5,d0)	;14 cycles
 	;; overhead:		 42 cycles
 	ENDM
 
@@ -212,9 +217,9 @@ _main:
 	bsr	emu_setup
 	rts
 
-	include	"flags.asm"
 	include	"ports.asm"
 	include "interrupts.asm"
+	include	"flags.asm"
 
 emu_setup:
 	movea	emu_plain_op,a5
@@ -783,11 +788,13 @@ emu_op_36:
 emu_op_37:
 	;; SCF
 	;; Set Carry Flag
-	move.b	#%00111011,(flag_valid).w
+	move.b	#%00111011,flag_valid-flag_storage(a3)
+	move.b	#%00111011,17(a3)
 	move.b	d3,d1
 	ori.b	#%00000001,d1
 	andi.b	#%00101001,d1
-	or.b	d1,(flag_byte).w
+;	or.b	d1,flag_byte(a3)
+	or.b	d1,16(a3)
 	DONE
 
 	START
@@ -848,7 +855,8 @@ emu_op_3f:
 	;; Toggle carry flag
 	bsr	flags_normalize
 	;; 	  SZ5H3PNC
-	eor.b	#%00010001,(flag_byte).w
+;	eor.b	#%00010001,flag_byte-flag_storage(a3)
+	eor.b	#%00010001,16(a3)
 	DONE
 
 	START
@@ -1347,10 +1355,13 @@ emu_op_7f:
 F_ADD_B	MACRO			; 14 bytes?
 	move.b	\1,f_tmp_src_b	; preserve operands for flag work
 	move.b	\2,f_tmp_dst_b
-	move.b	#1,(f_tmp_byte).w
+;	move.b	#1,(f_tmp_byte-flag_storage)(a3)
+	move.b	#1,0(a3)
 	add	\1,\2
-	move	sr,(f_host_ccr).w
-	move.w	#0202,(flag_byte).w
+;	move	sr,(f_host_sr-flag_storage)(a3)
+	move	sr,14(a3)
+;	move.w	#0202,(flag_byte-flag_storage)(a3)
+	move.w	#0202,16(a3)
 	ENDM
 
 	START
@@ -1415,14 +1426,18 @@ emu_op_87:
 F_ADC_B	MACRO			; S34
 	;; XXX TOO BIG
 	bsr	flags_normalize
-	move.b	(flag_byte).w,d0
+	move.b	flag_byte(pc),d0
 	andi.b	#1,d0
 	add.b	\1,d0
-	move.b	d0,(f_tmp_src_b).w
-	move.b	\2,(f_tmp_dst_b).w
+;	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
+	move.b	d0,2(a3)
+;	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	\2,3(a3)
 	add.b	d0,\2
-	move	sr,(f_host_ccr).w
-	move.w	#$0202,(flag_byte).w
+;	move	sr,(f_host_ccr-flag_storage)(a3)
+	move	sr,15(a3)
+;	move.w	#$0202,(flag_byte-flag_storage)(a3)
+	move.w	#$0202,16(a3)
 	ENDM
 
 	START
@@ -1492,13 +1507,20 @@ emu_op_8f:
 	;; XXX CHECK
 F_SUB_B	MACRO			; 22 bytes?
 	;; XXX use lea and then d(an) if you have a spare register.
-	move.b	\1,(f_tmp_src_b).w	; preserve operands for flagging
-	move.b	\2,(f_tmp_dst_b).w
-	move.b	#1,(f_tmp_byte).w
-	andi.b	#%00000010,(flag_valid).w
-	move.b	#%00000010,(flag_byte).w
+	;; preserve operands for flagging
+;	move.b	\1,(f_tmp_src_b-flag_storage)(a3)
+	move.b	\1,2(a3)
+;	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	\2,3(a3)
+;	move.b	#1,(f_tmp_byte-flag_storage)(a3)
+	move.b	#1,0(a3)
+;	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
+	andi.b	#%00000010,17(a3)
+;	move.b	#%00000010,(flag_byte-flag_storage)(a3)
+	move.b	#%00000010,16(a3)
 	sub	\1,\2
-	move	sr,(f_host_ccr).w
+;	move	sr,(f_host_sr-flag_storage)(a3)
+	move	sr,14(a0)
 	ENDM
 
 	START
@@ -1563,14 +1585,18 @@ emu_op_97:
 F_SBC_B	MACRO
 	;; XXX TOO BIG
 	bsr	flags_normalize
-	move.b	(flag_byte).w,d0
+	move.b	flag_byte(pc),d0
 	andi.b	#1,d0
 	add.b	\1,d0
-	move.b	d0,(f_tmp_src_b).w
-	move.b	\2,(f_tmp_dst_b).w
+;	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
+	move.b	d0,2(a3)
+;	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	\2,3(a3)
 	sub.b	d0,\2
-	move	sr,(f_host_ccr).w
-	move.w	#$0202,(flag_byte).w
+;	move	sr,(f_host_sr-flag_storage)(a3)
+	move	sr,14(a3)
+;	move.w	#$0202,(flag_byte-flag_storage)(a3)
+	move.w	#$0202,16(a3)
 
 	ENDM
 
@@ -2287,8 +2313,10 @@ emu_op_f1:
 	;; POP	AF
 	;; SPEED this can be made faster ...
 	POPW	d3
-	move.w	d3,(flag_byte).w
-	move.b	#$ff,(flag_valid).w
+;	move.w	d3,(flag_byte-flag_storage)(a3)
+	move.w	d3,16(a3)
+;	move.b	#$ff,(flag_valid-flag_storage)(a3)
+	move.b	#$ff,17(a3)
 	DONE
 
 	START
@@ -2316,7 +2344,7 @@ emu_op_f5:
 	;; PUSH	AF
 	bsr	flags_normalize
 	LOHI	d3
-	move.b	(flag_byte).w,d3
+	move.b	flag_byte(pc),d3
 	HILO	d3
 	PUSHW	d3
 	DONE
