@@ -664,8 +664,14 @@ port_out_10_set_row:
 
 port_in_11:
 	;; LCD data
+	move.b	LCD_MEM,d1
+	rts
+
 port_out_11:
 	;; LCD data
+	move.b	d1,LCD_MEM
+	rts
+
 port_in_12:
 port_out_12:
 port_in_13:
