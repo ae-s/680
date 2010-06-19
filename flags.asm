@@ -89,7 +89,7 @@ FNPV_ok:
 	;; d1. Destroys d0,d1.
 f_calc_parity:
 	andi.w	#$ff,d1
-	move.b	lut_parity(pc,d1),d1
+	move.b	lut_parity-flag_storage(a3,d1),d1
 	move.w	flag_byte(pc),d0
 	and.b	#%11110111,d0
 	or.w	#%0000100000000000,d0
@@ -139,7 +139,8 @@ f_tmp_dst_w:	dc.w	0
 f_tmp_result_w:	dc.w	0
 
 	;; 000XNZVC
-	EVEN			; Compositing a word from two bytes
+	EVEN
+	;; DO NOT REARRANGE THESE
 f_host_sr:	dc.b	0
 f_host_ccr:	dc.b	0
 
@@ -147,6 +148,7 @@ f_host_ccr:	dc.b	0
 	;; DO NOT REARRANGE THESE.
 flag_byte:	dc.b	0	; Byte of all flags
 flag_valid:	dc.b	0	; Validity mask -- 1 if valid.
+
 
 	;; LUT for the CCR -> F mapping
 lut_ccr:
