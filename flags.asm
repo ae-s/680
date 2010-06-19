@@ -100,6 +100,22 @@ f_calc_parity:
 	;; Routine to make both the Carry and Half-Carry flags valid.
 f_calc_carries:
 	;; XXX do this
+	;; if f_tmp_byte == 0 {
+	;;   return, shit is valid
+	;; } else if f_tmp_byte == 1 {
+	;;   // it's a word
+	;;   add f_tmp_src_w to f_tmp_dst_w
+	;;     low bytes only, create a carry and save
+	;;     then high bytes, create a carry and output
+	;;     then 3rd nibble, create a half-carry and output
+	;; } else if f_tmp_byte == 2 {
+	;;   // it's a byte
+	;;   add f_tmp_src_b to f_tmp_dst_b
+	;;     create a carry and output
+	;;   add low nybbles only
+	;;     create a half-carry and output
+	;; }
+	;; set f_tmp_byte = 0
 	rts
 
 	;; Normalize and return Sign bit (loaded into Z bit).
@@ -136,9 +152,9 @@ flags_all:
 	rts
 
 flag_storage:
-	;; Numbers in comments are offsets from flag_storage, so use
-	;; offset(a3) to address.
-	;; 1 if tmp_???b is valid, 0 if tmp_???w is valid
+	;; 0 if the flag is already valid
+	;; 1 if tmp_???b is valid
+	;; 2 if tmp_???w is valid
 f_tmp_byte:	dc.b	0
 	;; 2 if P is 0, 3 if P is 1, 4 if P is Parity, 5 if P is oVerflow
 f_tmp_p_type:	dc.b	0
