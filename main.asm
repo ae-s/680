@@ -21,8 +21,8 @@
 ;;;
 ;;; D0 = current instruction, scratch for macros
 ;;; D1 = scratch for instructions
+;;; D2 = undefined
 ;;;
-;;; D2 = emulated SP, PC	SP high, PC low - both virtual addresses
 ;;;
 ;;; The following have their shadows in the top half of the register
 ;;; D3 = AF	A is in the low byte, F in the high byte (yeah ... speed)
@@ -402,6 +402,7 @@ emu_op_07:			; S2 T4
 emu_op_08:			; S2 T4
 	;; EX	AF,AF'
 	;; No flags
+	;; XXX AF
 	swap	d3
 	DONE
 
@@ -2307,6 +2308,7 @@ emu_op_f0:
 emu_op_f1:
 	;; POP	AF
 	;; SPEED this can be made faster ...
+	;; XXX AF
 	POPW	d3
 	move.w	d3,(flag_byte-flag_storage)(a3)
 	move.b	#$ff,(flag_valid-flag_storage)(a3)
@@ -2338,6 +2340,7 @@ emu_op_f5:
 	bsr	flags_normalize
 	LOHI	d3
 	move.b	flag_byte(pc),d3
+	;; XXX wrong
 	HILO	d3
 	PUSHW	d3
 	DONE
