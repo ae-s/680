@@ -186,9 +186,21 @@ F_SUB_W	MACRO
 
 	;; INC and DEC macros
 F_INC_B	MACRO
+	move.b	#1,f_tmp_byte-flag_storage(a3)
+	move.b	#1,f_tmp_src_b-flag_storage(a3)
+	move.b	\1,f_tmp_dst_b-flag_storage(a3)
+	addq	#1,\1
+	moveq	#2,d0
+	F_CLEAR	d0
+	F_OVFL
 	ENDM
 
 F_DEC_B	MACRO
+	move.b	#1,f_tmp_byte-flag_storage(a3)
+	move.b	#-1,f_tmp_src_b-flag_storage(a3)
+	move.b	\1,f_tmp_dst_b-flag_storage(a3)
+	subq	#1,\1
+	F_SET	#2
 	ENDM
 
 F_INC_W	MACRO
