@@ -97,6 +97,11 @@ f_calc_parity:
 	move.w	d0,flag_byte-flag_storage(a3)
 	rts
 
+	;; Routine to make both the Carry and Half-Carry flags valid.
+f_calc_carries:
+	;; XXX do this
+	rts
+
 	;; Normalize and return Sign bit (loaded into Z bit).
 	;; Destroys d1
 f_norm_sign:
@@ -110,8 +115,6 @@ FNsign_ok:
 	rts
 
 	;; Routine to turn 68k flags into z80 flags.
-	;; Preconditions:
-	;;   Flags to change are noted in d0 by a 1 bit
 flags_normalize:
 	move.b	f_host_ccr(pc),d1	;  8/4
 	;; .w keeps d1 clean
@@ -124,6 +127,12 @@ flags_normalize:
 	ori.b	#%11000101,d0
 	move.b	d0,flag_valid-flag_storage(a3)
 	or.b	d1,flag_byte-flag_storage(a3)
+	rts
+
+	;; Routine to completely fill the flags register
+flags_all:
+	bsr	flags_normalize
+	bsr	f_calc_carries
 	rts
 
 flag_storage:
