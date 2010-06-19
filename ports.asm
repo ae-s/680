@@ -572,14 +572,16 @@ port_in_10:
 	or.b	p10_busy(pc),d1
 	rts
 
-p10_increment:	ds.b	0	; $01 if in row mode
+p10_increment:	dc.b	0	; $01 if in row mode
 				; $00 if in column mode
-p10_row:	ds.b	0	; $02 if in increment mode
+p10_row:	dc.b	0	; $02 if in increment mode
 				; $00 if in decrement mode
-p10_enabled:	ds.b	0	; $20 if screen is blanked
-p10_6bit:	ds.b	0	; $40 if in 8 bit mode, $00 if in 6
+p10_enabled:	dc.b	0	; $20 if screen is blanked
+p10_6bit:	dc.b	0	; $40 if in 8 bit mode, $00 if in 6
 				; bit mode
-p10_busy:	ds.b	0	; always 0
+p10_busy:	dc.b	0	; always 0
+
+	EVEN
 
 port_out_10:
 	;; LCD command

@@ -48,13 +48,13 @@ F_ADD_SAVE	MACRO
 	;; Destroys d1
 f_norm_c:
 	move.b	flag_valid-flag_storage(a3),d1
-	andi.b	#%00000001,d1
-	bne.s	FNC_ok		; Bit is valid
+; d1 is destroyed in all cases, so you can use lsr and the C bit (same speed, smaller)
+	lsr.b	#1,d1
+	bcs.s	FNC_ok		; Bit is valid
 	move.b	f_host_ccr-flag_storage(a3),d1
 	andi.b	#%00000001,d1
-;; XXX see above comment for using lea and then d(an) if you have a spare register.
 	or.b	d1,flag_byte-flag_storage(a3)
-	ori.b	#%00000001,flag_valid
+	ori.b	#%00000001,flag_valid-flag_storage(a3)
 FNC_ok:
 	move.b	flag_byte-flag_storage(a3),d1
 	andi.b	#%00000001,d1
@@ -89,7 +89,7 @@ FNPV_ok:
 	;; d1. Destroys d0,d1.
 f_calc_parity:
 	andi.w	#$ff,d1
-	move.b	lut_parity-flag_storage(a3,d1),d1
+	move.b	lut_parity-flag_storage(a3,d1.w),d1
 	move.w	flag_byte(pc),d0
 	and.b	#%11110111,d0
 	or.w	#%0000100000000000,d0
