@@ -1,16 +1,16 @@
 	;; Routine to set the given flags
 	;;   Noted in \1 by a 1 bit
 F_SET	MACRO
-	or.b	\1,flag_byte
-	or.b	\1,flag_valid
+	or.b	\1,flag_byte-flag_storage(a3)
+	or.b	\1,flag_valid-flag_storage(a3)
 	ENDM
 
 	;; Clear the given flags
 	;;   Noted in \1 (must be a reg) by a 1 bit
 F_CLEAR	MACRO
-	or.b	\1,flag_valid
+	or.b	\1,flag_valid-flag_storage(a3)
 	not.b	\1
-	and.b	\1,flag_byte
+	and.b	\1,flag_byte-flag_storage(a3)
 	ENDM
 
 	;; Use this when an instruction uses the P/V bit as Parity.
@@ -21,26 +21,26 @@ F_CLEAR	MACRO
 	;; destroyed)
 
 F_PAR	MACRO
-	ori.b	#%00000100,(flag_valid).w	; ??/4
-	move.b	(flag_byte).w,d1		; ??/2
-	andi.b	#%11111011,d1			; ??/4
-	lea	(lut_parity).w,a0
-	or.b	0(a0,\1.w),d1			; ??/4
-	move.b	d1,(flag_byte).w		; ??/2
-	ENDM				;xxx cycles (!)
+	ori.b	#%00000100,flag_valid-flag_storage(a3)
+	move.b	flag_byte(pc),d1
+	andi.b	#%11111011,d1
+	lea	lut_parity(pc),a0
+	or.b	0(a0,\1.w),d1
+	move.b	d1,flag_byte-flag_storage(a3)
+	ENDM
 
 
 	;; Use this when an instruction uses the P/V bit as Overflow.
 	;; Leaves the bit itself implicit; simply marks it dirty.
 F_OVFL	MACRO
-	andi.b	#%11111011
+	andi.b	#%11111011,flag_valid-flag_storage(a3)
 	ENDM
 
 	;; Save the two operands from ADD \1,\2
 F_ADD_SAVE	MACRO
-	move.b	\1,(f_tmp_src_b).w
-	move.b	\2,(f_tmp_dst_b).w
-	move.b	#$01,(f_tmp_byte).w
+	move.b	\1,f_tmp_src_b-flag_storage(a3)
+	move.b	\2,f_tmp_dst_b-flag_storage(a3)
+	move.b	#$01,f_tmp_byte-flag_storage(a3)
 	F_SET	#%
 	ENDM
 
