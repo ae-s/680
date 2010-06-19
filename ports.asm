@@ -8,12 +8,6 @@ port_in:
 	jmp	(a0)
 	rts
 
-port_out:
-	;; Fix this to work properly ...
-;	movea	lut_ports_in(pc,d0),a0
-	jmp	(a0)
-	rts
-
 lut_ports_in:
 	dc.l	port_in_00
 	dc.l	port_in_01
@@ -271,6 +265,11 @@ lut_ports_in:
 	dc.l	port_in_fd
 	dc.l	port_in_fe
 	dc.l	port_in_ff
+
+port_out:
+	movea	lut_ports_out(pc,d0.w),a0
+	jmp	(a0)
+	rts
 
 lut_ports_out:
 	dc.l	port_out_00
@@ -632,7 +631,7 @@ port_out_10_01:		; 8-bit mode
 	rts
 port_out_10_02:		; screen off
 	move.b	#$20,p10_enabled
-	rtsp
+	rts
 port_out_10_03:		; screen on
 	move.b	#$00,p10_enabled
 	rts
