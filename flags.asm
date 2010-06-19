@@ -98,17 +98,18 @@ f_calc_parity:
 	rts
 
 	;; Routine to make both the Carry and Half-Carry flags valid.
+	;; Trashes d0, d1.
 f_calc_carries:
 	;; XXX do this
 	;; if f_tmp_byte == 0 {
 	;;   return, shit is valid
-	;; } else if f_tmp_byte == 1 {
+	;; } else if f_tmp_byte == 2 {
 	;;   // it's a word
 	;;   add f_tmp_src_w to f_tmp_dst_w
 	;;     low bytes only, create a carry and save
 	;;     then high bytes, create a carry and output
 	;;     then 3rd nibble, create a half-carry and output
-	;; } else if f_tmp_byte == 2 {
+	;; } else if f_tmp_byte == 3 {
 	;;   // it's a byte
 	;;   add f_tmp_src_b to f_tmp_dst_b
 	;;     create a carry and output
@@ -116,6 +117,47 @@ f_calc_carries:
 	;;     create a half-carry and output
 	;; }
 	;; set f_tmp_byte = 0
+	pushm	d2-d5		; how many registers do I need?
+	move.b	f_tmp_byte(pc),d0
+	bne	f_cc_dirty
+	rts
+f_cc_dirty:
+	cmpi.b	#2,d0
+	bne	f_cc_byte
+	;; it's a word!
+	move.w	f_tmp_src_w(pc),d2
+	move.w	f_tmp_dst_w(pc),d3
+	move.w	d3,d4
+	add.w	d2,d3
+	move	sr,d5
+	andi.w	#1,d5
+	rol	#8,d5
+	andi.w	#$0fff,d2
+	andi.w	#$0fff,d4
+	add.w	d2,d4
+	andi.l	#$1000,d4
+	ori.w	#%00010001,d5
+	or.w	d4,d5
+	or.w	d5,flag_byte-flag_storage(a3)
+	clr.b	f_tmp_byte-flag_storage(a3)
+	popm	d2-d5
+	rts
+f_cc_byte:
+	move.b	f_tmp_src_b(pc),d2
+	move.b	f_tmp_dst_b(pc),d3
+	move.b	d3,d4
+	add.b	d2,d3
+	move	sr,d5
+	andi.b	#1,d5
+	andi.b	#$0f,d2
+	andi.b	#$0f,d4
+	add.b	d2,d4
+	andi.b	#$10,d4
+	or.b	d4,d5
+	or.b	d5,flag_byte-flag_storage(a3)
+	clr.b	f_tmp_byte-flag_storage(a3)
+	or.b	#%00010001,flag_valid-flag_storage(a3)
+	popm	d2-d5
 	rts
 
 	;; Normalize and return Sign bit (loaded into Z bit).
@@ -153,8 +195,8 @@ flags_all:
 
 flag_storage:
 	;; 0 if the flag is already valid
-	;; 1 if tmp_???b is valid
-	;; 2 if tmp_???w is valid
+	;; 2 if tmp_???b is valid
+	;; 3 if tmp_???w is valid
 f_tmp_byte:	dc.b	0
 	;; 2 if P is 0, 3 if P is 1, 4 if P is Parity, 5 if P is oVerflow
 f_tmp_p_type:	dc.b	0
