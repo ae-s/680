@@ -572,17 +572,97 @@ port_in_10:
 	or.b	p10_busy(pc),d1
 	rts
 
-p10_increment:	ds.b	0	; $01 if in row mode
-				; $00 if in column mode
-p10_row:	ds.b	0	; $02 if in increment mode
+p10_row:	dc.b	0	; $01 if in row mode - x
+				; $00 if in column mode - y
+p10_increment:	dc.b	0	; $02 if in increment mode
 				; $00 if in decrement mode
-p10_enabled:	ds.b	0	; $20 if screen is blanked
-p10_6bit:	ds.b	0	; $40 if in 8 bit mode, $00 if in 6
+p10_enabled:	dc.b	0	; $20 if screen is blanked
+p10_6bit:	dc.b	0	; $40 if in 8 bit mode, $00 if in 6
 				; bit mode
-p10_busy:	ds.b	0	; always 0
+p10_busy:	dc.b	0	; always 0
+
+p10_cur_row:	dc.b	0
+p10_cur_col:	dc.b	0
 
 port_out_10:
 	;; LCD command
+	tst.b	d1
+	beq	port_out_10_00
+	subq.b	#1,d1
+	beq	port_out_10_01
+	subq.b	#1,d1
+	beq	port_out_10_02
+	subq.b	#1,d1
+	beq	port_out_10_03
+	subq.b	#1,d1
+	beq	port_out_10_04
+	subq.b	#1,d1
+	beq	port_out_10_05
+	subq.b	#1,d1
+	beq	port_out_10_06
+	subq.b	#1,d1
+	beq	port_out_10_07
+	addq.b	#7,d1
+	cmpi.b	#$0b,d1		; power supply enhancement
+	ble	port_out_10_undef
+	cmpi.b	#$13,d1		; power supply level
+	ble	port_out_10_undef
+	cmpi.b	#$17,d1		; undefined
+	ble	port_out_10_undef
+	cmpi.b	#$18,d1		; cancel test mode
+	beq	port_out_10_undef
+	cmpi.b	#$1b,d1		; undefined
+	beq	port_out_10_undef
+	cmpi.b	#$1f,d1		; enter test mode
+	ble	port_out_10_undef
+	cmpi.b	#$3f,d1		; set column
+	ble	port_out_10_set_col
+	cmpi.b	#$7f,d1		; z-addressing
+	ble	port_out_10_undef ; XXX?
+	cmpi.b	#$df,d1		; set row
+	ble	port_out_10_set_row
+	;; fallthrough: set contrast (unimplemented)
+	rts
+	;; ...
+port_out_10_00:		; 6-bit mode
+	move.b	#$00,p10_6bit
+	rts
+port_out_10_01:		; 8-bit mode
+	move.b	#$40,p10_6bit
+	rts
+port_out_10_02:		; screen off
+	move.b	#$20,p10_enabled
+	rtsp
+port_out_10_03:		; screen on
+	move.b	#$00,p10_enabled
+	rts
+port_out_10_04:		; x--
+	move.b	#$01,p10_row
+	move.b	#$00,p10_increment
+	rts
+port_out_10_05:		; x++
+	move.b	#$01,p10_row
+	move.b	#$02,p10_increment
+	rts
+port_out_10_06:		; y--
+	move.b	#$00,p10_row
+	move.b	#$00,p10_increment
+	rts
+port_out_10_07:		; y++
+	move.b	#$00,p10_row
+	move.b	#$02,p10_increment
+	rts
+port_out_10_undef:
+	rts
+port_out_10_set_col:
+	sub.b	#$20,d1
+	move.b	d1,p10_cur_col
+	rts
+port_out_10_set_row:
+	sub.b	#$80,d1
+	move.b	d1,p10_cur_row
+	rts
+
 port_in_11:
 	;; LCD data
 port_out_11:
