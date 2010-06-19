@@ -113,11 +113,17 @@ FNsign_ok:
 	;; Preconditions:
 	;;   Flags to change are noted in d0 by a 1 bit
 flags_normalize:
-	move.b	f_host_ccr-flag_storage(a3),d1	;  8/4
+	move.b	f_host_ccr(pc),d1	;  8/4
 	;; .w keeps d1 clean
 	andi.w	#%00011111,d1			;  8/4
 	move.b	lut_ccr(pc,d1.w),d1 		; 10/4
-	;; XXX do this
+	move.b	flag_valid(pc),d0
+	not.b	d0
+	and.b	d0,d1		; Mask out all the unwanted bits
+	not.b	d0
+	ori.b	#%11000101,d0
+	move.b	d0,flag_valid-flag_storage(a3)
+	or.b	d1,flag_byte-flag_storage(a3)
 	rts
 
 flag_storage:
