@@ -99,9 +99,8 @@ PUTW	MACRO			;
 PUSHW	MACRO
 	move.w	\1,d0
 	LOHI	d0		;slow
-	move.b	d0,-1(a4)	; high byte
-	move.b	\1,-2(a4)	; low byte
-	subq	#2,a4
+	move.b	d0,-(a4)	; high byte
+	move.b	\1,-(a4)	; low byte
 	ENDM
 
 	;; Pop the word at the top of stack a4 into \1.
@@ -110,6 +109,7 @@ PUSHW	MACRO
 	;;   \1_h <- (SP+1)
 	;;   \1_l <- (SP)
 	;;   SP <- SP + 2
+; XXX why not (a4)+ both times, and then get rid of addq.w #2,a4 ?
 POPW	MACRO
 	move.b	(a4),\1
 	LOHI	\1		;slow
@@ -171,7 +171,7 @@ DONE	MACRO
 	clr.w	d0		; 4 cycles
 	move.b	(a4)+,d0	; 8 cycles
 	rol.w	#5,d0		;16 cycles
-	jmp	0(a5,d0)	;14 cycles
+	jmp	0(a5,d0.w)	;14 cycles
 	;; overhead:		 42 cycles
 	ENDM
 
@@ -197,7 +197,7 @@ F_INC_B	MACRO
 
 F_DEC_B	MACRO
 	move.b	#1,f_tmp_byte-flag_storage(a3)
-	move.b	#-1,f_tmp_src_b-flag_storage(a3)
+	st	f_tmp_src_b-flag_storage(a3)
 	move.b	\1,f_tmp_dst_b-flag_storage(a3)
 	subq	#1,\1
 	F_SET	#2
@@ -226,7 +226,9 @@ F_DEC_W	MACRO
 
 
 _main:
+	movem.l d0-d7/a0-a6,-(sp)
 	bsr	emu_setup
+	movem.l (sp)+,d0-d7/a0-a6
 	rts
 
 	include	"ports.asm"
@@ -257,7 +259,7 @@ deref:
 	move.w	d1,d0
 	andi.w	#$C000,d0	; Can cut this out by pre-masking the table.
 	rol.w	#2,d0
-	adda.l	deref_table(pc,d0),a0
+	adda.l	deref_table(pc,d0.w),a0
 	rts
 
 deref_table:
@@ -269,27 +271,29 @@ ref_3:	dc.l	0		; bank 3
 	;; Take a physical address in a0 and turn it into a virtual
 	;; address in d0
 	;; Destroys d0
+; XXX AFAICS, a1 is currently a scratch address register, so you can load deref_table in it, and then save some space:
+; But you may wish to use it for other purposes in the future, so you needn't integrate that immediately.
 underef:
+	lea	deref_table(pc),a1
 	move.l	a0,d0
-	sub.l	ref_0(pc,d0),d0
-	bmi	underef_not0
+	sub.l	(a1)+,d0
+	bmi.s	underef_not0
 	cmpi.l	#$4000,d0
-	bmi	underef_thatsit
+	bmi.s	underef_thatsit
 underef_not0:
 	move.l	a0,d0
-	sub.l	ref_1(pc,d0),d0
-	bmi	underef_not1
+	sub.l	(a1)+,d0
+	bmi.s	underef_not1
 	cmpi.l	#$4000,d0
-	bmi	underef_thatsit
+	bmi.s	underef_thatsit
 underef_not1:
 	move.l	a0,d0
-	sub.l	ref_2(pc,d0),d0
-	bmi	underef_not2
+	sub.l	(a1)+,d0
+	bmi.s	underef_not2
 	cmpi.l	#$4000,d0
-	bmi	underef_thatsit
+	bmi.s	underef_thatsit
 underef_not2:
-	move.l	a0,d0
-	sub.l	ref_3(pc,d0),d0
+	suba.l	(a1)+,a0
 	;; if that fails too, well shit man!
 underef_thatsit:
 	rts
@@ -470,7 +474,7 @@ emu_op_10:			; S32
 	;; No flags
 	LOHI	d4
 	subq.b	#1,d4
-	beq	end_10	; slooooow
+	beq.s	end_10	; slooooow
 	FETCHBI	d1
 	move	a6,a0
 	bsr	underef
@@ -609,7 +613,7 @@ emu_op_20:
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
-	beq	end_20
+	beq.s	end_20
 	FETCHBI	d1
 	add.w	d1,a6		; XXX deref?
 end_20:
@@ -801,12 +805,10 @@ emu_op_37:
 	;; SCF
 	;; Set Carry Flag
 	move.b	#%00111011,flag_valid-flag_storage(a3)
-	move.b	#%00111011,17(a3)
 	move.b	d3,d1
 	ori.b	#%00000001,d1
 	andi.b	#%00101001,d1
-;	or.b	d1,flag_byte(a3)
-	or.b	d1,16(a3)
+	or.b	d1,flag_byte-flag_storage(a3)
 	DONE
 
 	START
@@ -826,7 +828,7 @@ emu_op_39:
 	bsr	underef
 	F_ADD_W	d6,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
-	move	a0,a4
+	move.l	a0,a4
 	DONE
 
 	START
@@ -867,8 +869,7 @@ emu_op_3f:
 	;; Toggle carry flag
 	bsr	flags_normalize
 	;; 	  SZ5H3PNC
-;	eor.b	#%00010001,flag_byte-flag_storage(a3)
-	eor.b	#%00010001,16(a3)
+	eor.b	#%00010001,flag_byte-flag_storage(a3)
 	DONE
 
 	START
@@ -953,9 +954,9 @@ emu_op_47:
 emu_op_48:
 	;; LD	C,B
 	;; C <- B
-	move.w	d4,d1		; 4
-	lsr.w	#8,d1		; 6
-	move.b	d1,d4		; 4
+	move.w	d4,-(sp)
+	move.b	(sp),d4
+	addq.l #2,sp
 	DONE
 				;14 cycles
 	START
@@ -966,9 +967,9 @@ emu_op_49:
 	START
 emu_op_4a:
 	;; LD	C,D
-	move.w	d5,d1
-	lsr.w	#8,d1
-	move.b	d1,d4
+	move.w	d5,-(sp)
+	move.b	(sp),d4
+	addq.l #2,sp
 	DONE
 
 	START
@@ -1006,6 +1007,12 @@ emu_op_4f:
 
 	START
 emu_op_50:
+; faster (slightly bigger) if we abuse sp again, something along the lines of (UNTESTED)
+; move.w d4,-(sp)   ; 8, 2
+; move.w d5,-(sp)   ; 8, 2
+; move.b 2(sp),(sp) ; 16, 4
+; move.w (sp)+,d5   ; 8, 2
+; addq.l #2,sp      ; 8, 2
 	;; LD	D,B
 	LOHI	d4
 	LOHI	d5
@@ -1091,7 +1098,7 @@ emu_op_5a:
 	;; LD	E,D
 	andi.w	#$ff00,d5	; 8/4
 	move.b	d5,d1		; 4/2
-	lsr	#8,d1		;22/2
+	lsr.w	#8,d1		;22/2
 	or.w	d1,d5		; 4/2
 	DONE
 				;38/2
@@ -1934,7 +1941,7 @@ emu_op_c2:
 	;; if ~Z
 	;;   PC <- immed.w
 	bsr	f_norm_z
-	bne	emu_op_c3
+	bne.s	emu_op_c3
 	DONE
 
 	START
@@ -1985,7 +1992,7 @@ emu_op_c7:
 emu_op_c8:
 	;; RET	Z
 	bsr	f_norm_z
-	beq	emu_op_c9
+	beq.s	emu_op_c9
 	DONE
 
 	START
@@ -2015,7 +2022,7 @@ emu_op_cb:			; prefix
 emu_op_cc:
 	;; CALL	Z,immed.w
 	bsr	f_norm_z
-	beq	emu_op_cd
+	beq.s	emu_op_cd
 	DONE
 
 	START
