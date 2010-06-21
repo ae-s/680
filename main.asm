@@ -52,6 +52,7 @@
 __main:
 	movem.l d0-d7/a0-a6,-(sp)
 	bsr	emu_setup
+	lea	emu_plain_op,a5
 	bsr	emu_run
 	movem.l (sp)+,d0-d7/a0-a6
 	rts
@@ -83,7 +84,7 @@ emu_setup:
 	move.l	a0,ref_3
 
 	movea	emu_plain_op,a5
-	lea	emu_run(pc),a2
+	lea	emu_run,a2
 
 	rts
 
