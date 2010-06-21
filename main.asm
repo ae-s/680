@@ -61,25 +61,29 @@ __main:
 	include	"flags.asm"
 
 emu_setup:
-	movea	emu_plain_op,a5
-	lea	emu_run(pc),a2
-
 	;; Allocate memory pages; for now I assume this succeeds
 	move.l	#$4000,-(a7)
 	ROM_CALL	malloc
+	addq	#4,a7
 	move.l	a0,ref_0
 
 	move.l	#$4000,-(a7)
 	ROM_CALL	malloc
+	addq	#4,a7
 	move.l	a0,ref_1
 
 	move.l	#$4000,-(a7)
 	ROM_CALL	malloc
+	addq	#4,a7
 	move.l	a0,ref_2
 
 	move.l	#$4000,-(a7)
 	ROM_CALL	malloc
+	addq	#4,a7
 	move.l	a0,ref_3
+
+	movea	emu_plain_op,a5
+	lea	emu_run(pc),a2
 
 	rts
 

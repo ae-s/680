@@ -5,7 +5,7 @@
  */
 
 #include <graph.h>
-#include <nostub.h>
+
 
 #define VIDEO_ROWMODE 0x01
 #define VIDEO_COLMODE 0x00
