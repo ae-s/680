@@ -1368,15 +1368,10 @@ emu_op_8f:
 	;; Do a SUB \2,\1
 	;; XXX CHECK
 F_SUB_B	MACRO			; 22 bytes?
-	;; XXX use lea and then d(an) if you have a spare register.
-	;; preserve operands for flagging
-	move.b	\1,(f_tmp_src_b-flag_storage)(a3)
-	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
-	move.b	#1,(f_tmp_byte-flag_storage)(a3)
-	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
-	move.b	#%00000010,(flag_byte-flag_storage)(a3)
-	sub	\1,\2
-	move	sr,(f_host_sr-flag_storage)(a3)
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_sub
+	move.b	d1,\2
 	ENDM
 
 	START
