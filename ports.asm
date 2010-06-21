@@ -669,7 +669,7 @@ port_in_11:
 
 port_out_11:
 	;; LCD data
-	move.b	d1,(a7)+
+	move.b	d1,-(a7)
 	bra	video_write
 
 port_in_12:
