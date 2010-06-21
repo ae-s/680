@@ -236,6 +236,7 @@ _main:
 	rts
 
 	include	"ports.asm"
+	include	"video.asm"
 	include "interrupts.asm"
 	include	"flags.asm"
 
