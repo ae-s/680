@@ -60,6 +60,7 @@ __main:
 	include	"ports.asm"
 	include "interrupts.asm"
 	include	"flags.asm"
+	include	"alu.asm"
 
 emu_setup:
 	;; Allocate memory pages; for now I assume this succeeds
