@@ -44,7 +44,7 @@
 	xdef	_ti89
 ;	xdef	_ti92plus
 	xdef	__main
-	xdef	_nostub
+	xdef	_tigcc_native
 	include "../tios.h"
 
 	;; == Memory Macros ================================================
