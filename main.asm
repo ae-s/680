@@ -43,7 +43,7 @@
 
 	xdef	_ti89
 ;	xdef	_ti92plus
-	xdef	_main
+	xdef	__main
 	xdef	_nostub
 	include "../tios.h"
 
@@ -218,25 +218,15 @@ F_DEC_W	MACRO
 	;; I might be able to unify rotation flags or maybe use a
 	;; lookup table
 
-;;; one-off flag operations:
-;;; CCF - invert CARRY
-;;; CPL - H,N=1
-;;; RLD
-;;; 
 
 
-
-
-
-
-_main:
+__main:
 	movem.l d0-d7/a0-a6,-(sp)
 	bsr	emu_setup
 	movem.l (sp)+,d0-d7/a0-a6
 	rts
 
 	include	"ports.asm"
-	include	"video.asm"
 	include "interrupts.asm"
 	include	"flags.asm"
 

@@ -562,13 +562,23 @@ port_out_0e:
 port_in_0f:
 port_out_0f:
 port_in_10:
+	xref	video_row
+	xref	video_increment
+	xref	video_enabled
+	xref	video_6bit
+	xref	video_busy
+	xref	video_cur_row
+	xref	video_cur_col
+	xref	video_write
+	xref	video_read
+
 	;; LCD status
 	clr.b	d1
-	or.b	video_increment(pc),d1
-	or.b	video_row(pc),d1
-	or.b	video_enabled(pc),d1
-	or.b	video_6bit(pc),d1
-	or.b	video_busy(pc),d1
+	or.b	video_increment,d1
+	or.b	video_row,d1
+	or.b	video_enabled,d1
+	or.b	video_6bit,d1
+	or.b	video_busy,d1
 	rts
 
 port_out_10:
@@ -653,10 +663,13 @@ port_out_10_set_row:
 
 port_in_11:
 	;; LCD data
-	bra	video_read
+	jsr	video_read
+	move.b	d0,d1		; return value
+	rts
 
 port_out_11:
 	;; LCD data
+	move.b	d1,(a7)+
 	bra	video_write
 
 port_in_12:
