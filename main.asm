@@ -223,6 +223,7 @@ F_DEC_W	MACRO
 __main:
 	movem.l d0-d7/a0-a6,-(sp)
 	bsr	emu_setup
+	bsr	emu_run
 	movem.l (sp)+,d0-d7/a0-a6
 	rts
 
@@ -232,8 +233,25 @@ __main:
 
 emu_setup:
 	movea	emu_plain_op,a5
-	lea	emu_fetch(pc),a2
-	;; XXX finish
+	lea	emu_run(pc),a2
+
+	;; Allocate memory pages; for now I assume this succeeds
+	move.l	#$4000,-(a7)
+	ROM_CALL	malloc
+	move.l	a0,ref_0
+
+	move.l	#$4000,-(a7)
+	ROM_CALL	malloc
+	move.l	a0,ref_1
+
+	move.l	#$4000,-(a7)
+	ROM_CALL	malloc
+	move.l	a0,ref_2
+
+	move.l	#$4000,-(a7)
+	ROM_CALL	malloc
+	move.l	a0,ref_3
+
 	rts
 
 
@@ -305,27 +323,17 @@ underef_thatsit:
 ;; ==========       ========================================================
 ;; =========================================================================
 
-emu_fetch:
-	;; Move this into DONE, saving 8 more cycles but using extra
-	;; space.
-	;;
-	;; Likely impossible to get rid of the clr
-	clr.w	d0		;  4 cycles
-	move.b	(a4)+,d0	;  8 cycles
-	rol.w	#5,d0		; 16 cycles   adjust to actual alignment
-	jmp	0(a5,d0.w)	; 14 cycles
-	;; overhead:		  42 cycles
-
+emu_run:
+	;; XXX: make this actually return
+	DONE
+	rts
 
 	include "opcodes.asm"
 
 
 emu_op_undo_cb:
-
-	movea.w	emu_fetch(pc),a2
-	
 emu_op_undo_dd:
 emu_op_undo_ed:
 emu_op_undo_fd:
-
+	rts
 
