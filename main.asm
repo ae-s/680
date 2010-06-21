@@ -159,18 +159,24 @@ HILO	MACRO			; 22 cycles, 2 bytes
 	rol.w	#8,\1
 	ENDM
 
+	;; Rearrange a register: ABCD -> ACBD.
+WORD	MACRO
+	move.l	\1,-(a7)	;12 cycles / 2 bytes
+	movep.w	0(a7),\1	;16 cycles / 4 bytes
+	swap	\1		; 4 cycles / 2 bytes
+	movep.w	1(a7),\1	;16 cycles / 4 bytes
+	addq	#4,a7		; 4 cycles / 2 bytes
+	;; overhead:		 52 cycles /14 bytes
+	ENDM
 
-	;; calc84maniac suggests putting emu_fetch into this in order
-	;; to save 8 cycles per instruction, at the expense of code
-	;; size
-	;;
-	;; See if I can get rid of the eor
+
+	;; This is run at the end of every instruction routine.
 DONE	MACRO
-	clr.w	d0		; 4 cycles
-	move.b	(a4)+,d0	; 8 cycles
-	rol.w	#5,d0		;16 cycles
-	jmp	0(a5,d0.w)	;14 cycles
-	;; overhead:		 42 cycles
+	clr.w	d0		; 4 cycles / 2 bytes
+	move.b	(a4)+,d0	; 8 cycles / 2 bytes
+	rol.w	#5,d0		;16 cycles / 2 bytes
+	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
+	;; overhead:		 42 cycles /10 bytes
 	ENDM
 
 	;; == Special Opcode Macros ========================================
