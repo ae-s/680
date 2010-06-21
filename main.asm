@@ -109,13 +109,11 @@ PUSHW	MACRO
 	;;   \1_h <- (SP+1)
 	;;   \1_l <- (SP)
 	;;   SP <- SP + 2
-; XXX why not (a4)+ both times, and then get rid of addq.w #2,a4 ?
 POPW	MACRO
-	move.b	(a4),\1
+	move.b	(a4)+,\1
 	LOHI	\1		;slow
-	move.b	(a4),\1		; high byte
+	move.b	(a4)+,\1	; high byte
 	HILO	\1		;slow
-	addq.w	#2,a4
 	ENDM
 
 	;; == Immediate Memory Macros ==
