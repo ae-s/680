@@ -105,6 +105,15 @@ START	MACRO
 _align	SET	_align+$20
 	ENDM
 
+	;; This is run at the end of every instruction routine.
+DONE	MACRO
+	clr.w	d0		; 4 cycles / 2 bytes
+	move.b	(a4)+,d0	; 8 cycles / 2 bytes
+	rol.w	#5,d0		;16 cycles / 2 bytes
+	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
+	;; overhead:		 42 cycles /10 bytes
+	ENDM
+
 	;; LOHI/HILO are hideously slow for instructions used often.
 	;; Interleave registers instead:
 	;;
@@ -131,16 +140,6 @@ WORD	MACRO
 	movep.w	1(a7),\1	;16 cycles / 4 bytes
 	addq	#4,a7		; 4 cycles / 2 bytes
 	;; overhead:		 52 cycles /14 bytes
-	ENDM
-
-
-	;; This is run at the end of every instruction routine.
-DONE	MACRO
-	clr.w	d0		; 4 cycles / 2 bytes
-	move.b	(a4)+,d0	; 8 cycles / 2 bytes
-	rol.w	#5,d0		;16 cycles / 2 bytes
-	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
-	;; overhead:		 42 cycles /10 bytes
 	ENDM
 
 	;; == Special Opcode Macros ========================================
