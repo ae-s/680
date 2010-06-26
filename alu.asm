@@ -14,6 +14,19 @@ alu_add:
 	rts
 
 alu_adc:
+	;; ADC instruction
+	;; ADC d1,d0
+	;; d1 + d0 + carry -> d1
+	bsr	flags_normalize
+	move.b	flag_byte(pc),d2
+	andi.b	#1,d2
+	add.b	d0,d2
+	move.b	d2,(f_tmp_src_b-flag_storage)(a3)
+	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
+	add.b	d2,d1
+	move	sr,(f_host_ccr-flag_storage)(a3)
+	move.w	#$0202,(flag_byte-flag_storage)(a3)
+	rts
 
 alu_sbc:
 	;; SBC instruction
