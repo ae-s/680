@@ -1,6 +1,20 @@
 	;; Parting out the big math/logic routines from the
 	;; instruction dispatch table.
 
+alu_add:
+	;; ADD instruction
+	;; ADD d1,d0
+	;; d1 + d0 -> d1
+	move.b	d0,f_tmp_src_b	; preserve operands for flag work
+	move.b	d1,f_tmp_dst_b
+	move.b	#1,(f_tmp_byte-flag_storage)(a3)
+	add	d0,d1
+	move	sr,(f_host_sr-flag_storage)(a3)
+	move.w	#0202,(flag_byte-flag_storage)(a3)
+	rts
+
+alu_adc:
+
 alu_sbc:
 	;; SBC instruction
 	;; SBC d1,d0
