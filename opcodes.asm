@@ -1222,12 +1222,10 @@ emu_op_7f:
 	;; XXX check this
 	;; XXX make it shorter ... D:
 F_ADD_B	MACRO			; 14 bytes?
-	move.b	\1,f_tmp_src_b	; preserve operands for flag work
-	move.b	\2,f_tmp_dst_b
-	move.b	#1,(f_tmp_byte-flag_storage)(a3)
-	add	\1,\2
-	move	sr,(f_host_sr-flag_storage)(a3)
-	move.w	#0202,(flag_byte-flag_storage)(a3)
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_add
+	move.b	d1,\2
 	ENDM
 
 	START
