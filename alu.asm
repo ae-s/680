@@ -54,8 +54,8 @@ alu_sub:
 	;; sets flags
 
 	;; XXX use lea and then d(an) if you have a spare register.
-	;; preserve operands for flagging
 
+	;; preserve operands for flagging
 	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
 	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
 	move.b	#1,(f_tmp_byte-flag_storage)(a3)
@@ -78,5 +78,13 @@ alu_or:
 	rts
 
 alu_cp:
-	;; XXX do this
+	;; Same as SUB but the macro that calls this doesn't save the
+	;; result.
+	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
+	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	#1,(f_tmp_byte-flag_storage)(a3)
+	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
+	move.b	#%00000010,(flag_byte-flag_storage)(a3)
+	sub	d0,d1
+	move	sr,(f_host_sr-flag_storage)(a3)
 	rts
