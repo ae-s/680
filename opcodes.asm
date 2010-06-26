@@ -1219,8 +1219,6 @@ emu_op_7f:
 
 
 	;; Do an ADD \2,\1
-	;; XXX check this
-	;; XXX make it shorter ... D:
 F_ADD_B	MACRO			; 14 bytes?
 	move.b	\2,d1
 	move.b	\1,d0
@@ -1358,8 +1356,7 @@ emu_op_8f:
 
 
 	;; Do a SUB \2,\1
-	;; XXX CHECK
-F_SUB_B	MACRO			; 22 bytes?
+F_SUB_B	MACRO
 	move.b	\2,d1
 	move.b	\1,d0
 	bsr	alu_sub
@@ -1493,7 +1490,10 @@ emu_op_9f:
 
 
 F_AND_B	MACRO
-	;; XXX
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_and
+	move.b	d1,\2
 	ENDM
 
 	START
@@ -1557,7 +1557,10 @@ emu_op_a7:
 
 
 F_XOR_B	MACRO
-	;; XXX
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_xor
+	move.b	d1,\2
 	ENDM
 
 	START
@@ -1622,7 +1625,10 @@ emu_op_af:
 
 
 F_OR_B	MACRO
-	;; XXX
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_or
+	move.b	d1,\2
 	ENDM
 
 	START
@@ -1687,7 +1693,11 @@ emu_op_b7:
 
 	;; COMPARE instruction
 F_CP_B	MACRO
-	;; XXX
+	;; XXX deal with \2 or \1 being d1 or d0
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_cp
+	;; no result to save
 	ENDM
 
 	START
