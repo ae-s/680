@@ -51,7 +51,7 @@ f_norm_c:
 ; d1 is destroyed in all cases, so you can use lsr and the C bit (same speed, smaller)
 	lsr.b	#1,d1
 	bcs.s	FNC_ok		; Bit is valid
-	move.b	f_host_ccr-flag_storage(a3),d1
+	move.b	(f_host_sr+1)-flag_storage(a3),d1
 	andi.b	#%00000001,d1
 	or.b	d1,flag_byte-flag_storage(a3)
 	ori.b	#%00000001,flag_valid-flag_storage(a3)
@@ -174,7 +174,7 @@ FNsign_ok:
 
 	;; Routine to turn 68k flags into z80 flags.
 flags_normalize:
-	move.b	f_host_ccr(pc),d1	;  8/4
+	move.b	(f_host_sr+1)(pc),d1	;  8/4
 	;; .w keeps d1 clean
 	andi.w	#%00011111,d1			;  8/4
 	move.b	lut_ccr(pc,d1.w),d1 		; 10/4
@@ -214,7 +214,7 @@ f_tmp_result_w:	dc.w	0
 	;; 000XNZVC
 	EVEN
 	;; DO NOT REARRANGE THESE
-f_host_sr:	dc.b	0
+f_host_sr:	dc.w	0
 f_host_ccr:	dc.b	0
 
 	EVEN
