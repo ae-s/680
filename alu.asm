@@ -64,3 +64,19 @@ alu_sub:
 	sub	d0,d1
 	move	sr,(f_host_sr-flag_storage)(a3)
 	rts
+
+alu_and:
+	;; XXX do this
+	rts
+
+alu_xor:
+	;; XXX do this
+	rts
+
+alu_or:
+	;; XXX do this
+	rts
+
+alu_cp:
+	;; XXX do this
+	rts
