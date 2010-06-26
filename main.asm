@@ -21,7 +21,7 @@
 ;;;
 ;;; D0 = current instruction, scratch for macros
 ;;; D1 = scratch for instructions
-;;; D2 = undefined
+;;; D2 = further scratch
 ;;;
 ;;;
 ;;; The following have their shadows in the top half of the register

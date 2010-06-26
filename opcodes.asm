@@ -1288,16 +1288,10 @@ emu_op_87:
 
 	;; Do an ADC \2,\1
 F_ADC_B	MACRO			; S34
-	;; XXX TOO BIG
-	bsr	flags_normalize
-	move.b	flag_byte(pc),d0
-	andi.b	#1,d0
-	add.b	\1,d0
-	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
-	move.b	\2,(f_tmp_dst_b-flag_storage)(a3)
-	add.b	d0,\2
-	move	sr,(f_host_ccr-flag_storage)(a3)
-	move.w	#$0202,(flag_byte-flag_storage)(a3)
+	move.b	\2,d1
+	move.b	\1,d0
+	bsr	alu_adc
+	move.b	d1,\2
 	ENDM
 
 	START
