@@ -51,6 +51,7 @@
 
 __main:
 	movem.l d0-d7/a0-a6,-(sp)
+	bsr	init_load
 	bsr	emu_setup
 	lea	emu_plain_op,a5
 	bsr	emu_run
@@ -63,27 +64,6 @@ __main:
 	include	"alu.asm"
 
 emu_setup:
-	;; Allocate memory pages; for now I assume this succeeds
-	move.l	#$4000,-(a7)
-	ROM_CALL	malloc
-	addq	#4,a7
-	move.l	a0,ref_0
-
-	move.l	#$4000,-(a7)
-	ROM_CALL	malloc
-	addq	#4,a7
-	move.l	a0,ref_1
-
-	move.l	#$4000,-(a7)
-	ROM_CALL	malloc
-	addq	#4,a7
-	move.l	a0,ref_2
-
-	move.l	#$4000,-(a7)
-	ROM_CALL	malloc
-	addq	#4,a7
-	move.l	a0,ref_3
-
 	movea	emu_plain_op,a5
 	lea	emu_run,a2
 
@@ -111,10 +91,15 @@ deref:
 	rts
 
 deref_table:
-ref_0:	dc.l	0		; bank 0
-ref_1:	dc.l	0		; bank 1
-ref_2:	dc.l	0		; bank 2
-ref_3:	dc.l	0		; bank 3
+mem_page_0:	dc.l	0		; bank 0
+mem_page_1:	dc.l	0		; bank 1
+mem_page_2:	dc.l	0		; bank 2
+mem_page_3:	dc.l	0		; bank 3
+
+mem_page_loc_0:	dc.b	0
+mem_page_loc_1:	dc.b	0
+mem_page_loc_2:	dc.b	0
+mem_page_loc_3:	dc.b	0
 
 	;; Take a physical address in a0 and turn it into a virtual
 	;; address in d0
