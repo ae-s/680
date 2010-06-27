@@ -539,10 +539,24 @@ port_in_03:
 port_out_03:
 port_in_04:
 port_out_04:
+	;; Bank B paging
+	;; XXX save registers
+	move.b	d1,-(a7)
+	jsr	bankswap_b_write
+	addq	2,a7
+	rts
+
 port_in_05:
 port_out_05:
 port_in_06:
 port_out_06:
+	;; Bank A paging
+	;; XXX save registers
+	move.b	d1,-(a7)
+	jsr	bankswap_a_write
+	addq	2,a7
+	rts
+
 port_in_07:
 port_out_07:
 port_in_08:
@@ -663,6 +677,7 @@ port_out_10_set_row:
 
 port_in_11:
 	;; LCD data
+	;; XXX save registers
 	jsr	video_read
 	move.b	d0,d1		; return value
 	rts
@@ -670,7 +685,9 @@ port_in_11:
 port_out_11:
 	;; LCD data
 	move.b	d1,-(a7)
-	bra	video_write
+	;; XXX save registers
+	jsr	video_write
+	rts
 
 port_in_12:
 port_out_12:
