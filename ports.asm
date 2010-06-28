@@ -539,7 +539,7 @@ port_in_03:
 port_out_03:
 port_in_04:
 port_out_04:
-	;; Bank B paging
+	;; Bank B paging, among other things
 	;; XXX save registers
 	move.b	d1,-(a7)
 	jsr	bankswap_b_write

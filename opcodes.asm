@@ -1819,7 +1819,6 @@ emu_op_c7:
 	;; RST	&0
 	;;  == CALL 0
 	;; XXX check
-	;; XXX FIX D2
 	move	a6,a0
 	bsr	underef
 	PUSHW	d0
