@@ -38,13 +38,13 @@ instruction with a fixed 42 cycle overhead:
 	emu_fetch:
 	  eor.w    d0,d0     ; 4 cycles
 	  move.b   (a4)+,d0  ; 8 cycles
-	  rol.w    #5,d0     ;16 cycles   adjust to actual alignment
+	  rol.w    #5,d0     ;16 cycles
 	  jmp      0(a3,d0)  ;14 cycles
 	  ;; overhead:        42 cycles
 
 From there, an instruction will take anywhere from 0 to, well, lots of
 additional cycles.  Generally, however, it will take under 50, for 92
-total.  In the worst reasonable case, a 4 cycle instruction emlulated
+total.  In the worst reasonable case, a 4 cycle instruction emulated
 in 92 cycles, that's a 23:1 ratio.  In the best possible case, a
 17-cycle instruction emulated in 42 cycles, is more nearly a 1:2
 ratio.
