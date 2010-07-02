@@ -11,7 +11,7 @@ void* pages[256];
 /* Address 0000 is always bound to ROM page 0. */
 
 /* Process orders to swap bank A (port 06, 0x4000). */
-void bankswap_4000_write(char data)
+void bankswap_a_write(char data)
 {
 	mem_page_1 = pages[data];
 	mem_page_loc_1 = data;
