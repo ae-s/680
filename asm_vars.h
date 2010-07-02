@@ -10,7 +10,7 @@ extern void* mem_page_loc_1;
 extern void* mem_page_loc_2;
 extern void* mem_page_loc_3;
 
-extern void* pages[];
+extern void** pages;
 
 
 
