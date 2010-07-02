@@ -193,6 +193,7 @@ flags_all:
 	bsr	f_calc_carries
 	rts
 
+	EVEN
 flag_storage:
 	;; 0 if the flag is already valid
 	;; 2 if tmp_???b is valid
@@ -215,7 +216,7 @@ f_tmp_result_w:	dc.w	0
 	EVEN
 	;; DO NOT REARRANGE THESE
 f_host_sr:	dc.w	0
-f_host_ccr:	dc.b	0
+f_host_ccr:	dc.b	0	;XXX make overlap somehow?
 
 	EVEN
 	;; DO NOT REARRANGE THESE.

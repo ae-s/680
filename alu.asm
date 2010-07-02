@@ -43,7 +43,8 @@ alu_sbc:
 	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
 	sub.b	d2,d1
 	move	sr,(f_host_sr-flag_storage)(a3)
-	move.w	#$0202,(flag_byte-flag_storage)(a3)
+	move.b	#$02,(flag_byte-flag_storage)(a3)
+	move.b	#$02,(flag_valid-flag_storage)(a3)
 	pop.l	d2
 	rts
 
