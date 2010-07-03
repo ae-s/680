@@ -1,0 +1,42 @@
+This file best viewed in Emacs' -*- outline-mode -*-.
+
+Each image is split into many files.  One for each 16k page, with
+header information.  Also one descriptor file, containing pointers to
+the page files.  This way multiple images can share the same data.
+
+* Fields in the page image header:
+
+** Magic number
+   0x0680
+** Size (page only)
+   0x4000
+** Checksum
+   CRC-16 of the whole page
+** Version
+   string-32, 0-terminated
+** Page number
+   Byte
+** Calculator model
+   Byte, some undefined enum
+
+* Fields in the descriptor file:
+
+** Header
+*** Magic Number
+    0x1680
+*** Size
+*** Name
+    string-32, 0-terminated
+
+** Data
+   List of these records:
+*** Page number
+    word
+    0x00?? for a real page
+    0xffff for final record
+*** Checksum
+    word
+*** Version
+    string-32, 0-term
+*** Calculator model
+    Byte, same undefined enum
