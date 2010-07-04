@@ -6,8 +6,6 @@
 
 #include "asm_vars.h"
 
-void* pages[256];
-
 /* Address 0000 is always bound to ROM page 0. */
 
 /* Process orders to swap bank A (port 06, 0x4000). */

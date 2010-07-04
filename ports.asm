@@ -543,7 +543,7 @@ port_out_04:
 	SAVEREG
 	move.b	d1,-(a7)
 	jsr	bankswap_b_write
-	addq	2,a7
+	addq	#2,a7
 	RESTREG
 	rts
 
@@ -555,7 +555,7 @@ port_out_06:
 	SAVEREG
 	move.b	d1,-(a7)
 	jsr	bankswap_a_write
-	addq	2,a7
+	addq	#2,a7
 	RESTREG
 	rts
 

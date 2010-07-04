@@ -67,6 +67,7 @@ __main:
 emu_setup:
 	movea	emu_plain_op,a5
 	lea	emu_run,a2
+	lea	flag_storage,a3
 
 	rts
 
@@ -97,10 +98,24 @@ mem_page_1:	dc.l	0		; bank 1
 mem_page_2:	dc.l	0		; bank 2
 mem_page_3:	dc.l	0		; bank 3
 
+	xdef	mem_page_0
+	xdef	mem_page_1
+	xdef	mem_page_2
+	xdef	mem_page_3
+
 mem_page_loc_0:	dc.b	0
 mem_page_loc_1:	dc.b	0
 mem_page_loc_2:	dc.b	0
 mem_page_loc_3:	dc.b	0
+
+	xdef	mem_page_loc_0
+	xdef	mem_page_loc_1
+	xdef	mem_page_loc_2
+	xdef	mem_page_loc_3
+
+pages:	dc.l	0
+
+	xdef pages
 
 	;; Take a physical address in a0 and turn it into a virtual
 	;; address in d0
