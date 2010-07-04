@@ -5,17 +5,19 @@
  * Copyright 2010, Duncan Smith
  * GPL
  */
-#include <tigcc.h>
+#include <tigcclib.h>
 #include "asm_vars.h"
 
 void init_load(void)
 {
+	int i;
+
 	pages = malloc(256 * sizeof(void*));
 
 	/* Page layout:
 	 * 0x40  RAM
 	 * 0x41  RAM
-
+	 *
 	 * 0x00  ROM
 	 * ... all the way to ...
 	 * 0x1f  ROM
@@ -26,7 +28,7 @@ void init_load(void)
 	pages[0x41] = malloc(PAGE_SIZE * sizeof(char));
 
 	// ROM pages
-	for (int i = 0; i++; i <= 0x1f) {
+	for (i = 0; i++; i <= 0x1f) {
 		pages[i] = pages[0x40];
 	}
 
