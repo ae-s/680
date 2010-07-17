@@ -68,6 +68,10 @@ emu_setup:
 	movea	emu_plain_op,a5
 	lea	emu_run,a2
 	lea	flag_storage,a3
+	move.w	#$4000,d1
+	bsr	deref
+	move	a0,a6
+	move	a0,a4
 
 	rts
 
