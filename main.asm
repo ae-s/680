@@ -92,10 +92,11 @@ deref:
 	movea.w	d0,a0
 	move.w	d1,d0
 	andi.w	#$C000,d0	; Can cut this out by pre-masking the table.
-	rol.w	#2,d0
+	rol.w	#4,d0
 	adda.l	deref_table(pc,d0.w),a0
 	rts
 
+	EVEN
 deref_table:
 mem_page_0:	dc.l	0		; bank 0
 mem_page_1:	dc.l	0		; bank 1
