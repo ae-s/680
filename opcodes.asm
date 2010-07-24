@@ -806,6 +806,7 @@ emu_op_48:
 	;; C <- B
 	move.w	d4,-(sp)
 	move.b	(sp),d4
+	;; XXX emfasten?
 	addq.l #2,sp
 	DONE
 				;14 cycles
@@ -819,6 +820,7 @@ emu_op_4a:
 	;; LD	C,D
 	move.w	d5,-(sp)
 	move.b	(sp),d4
+	;; XXX emfasten?
 	addq.l #2,sp
 	DONE
 
