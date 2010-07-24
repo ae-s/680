@@ -97,7 +97,7 @@ FETCHWI	MACRO			; 28 cycles, 6 bytes
 
 	;; == Common Opcode Macros =========================================
 
-	;; To align subroutines.
+	;; To align opcode routines.
 _align	SET	0
 
 START	MACRO
