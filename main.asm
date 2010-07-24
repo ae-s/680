@@ -34,10 +34,6 @@
 ;;; but I don't really care to go to the effort to make it so.
 ;;; D7 = IX (hi), IY (low)
 
-;;; Assemble with the following flags:
-;;; a68k -l -n -g -t main.asm
-;;; -n is important, it disables optimizations
-
 
 ;;; emulated I and R are both in RAM
 
