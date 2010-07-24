@@ -12,6 +12,10 @@ HANDLE page_handles[256];
 
 char infloop[16] = { 0xc3, 0, 0, 0 };
 
+void init_load(void);
+void *deref_page(int);
+void close_pages(void);
+
 void init_load(void)
 {
 	int i;
@@ -27,7 +31,7 @@ void init_load(void)
 	 * 0x1f  ROM
 	 */
 
-	for (i = 0 ; i++ ; i <= 255)
+	for (i = 0 ; i <= 255; i++)
 		page_handles[i] = 0;
 
 	i = 0;
@@ -43,7 +47,7 @@ void init_load(void)
 
 
 	// ROM pages
-	for (i = 0; i++; i <= 0x1f) {
+	for (i = 0; i <= 0x1f; i++) {
 		pages[i] = deref_page(i);
 		if (pages[i] == NULL)
 			pages[i] = pages[0x40];
@@ -69,9 +73,13 @@ void *deref_page(int number)
 {
 /* Bits of code here stolen from MulTI */
 
-	char *page_name[8];
+	char page_name[8];
+	HSYM hsym;
+	HANDLE fhandle;
+	char *fdata;
+	int fsize;
 
-	sprintf(page_name, "pg_%02x", number);
+	sprintf(&page_name, "pg_%02x", number);
 	hsym = SymFind(SYMSTR(page_name));
 
 	if(hsym.folder == 0)
@@ -81,7 +89,7 @@ void *deref_page(int number)
 
 	fdata = HLock(fhandle);
 	if(fdata == NULL)
-		throw_error("Couldn't lock page")
+		throw_error("Couldn't lock page");
 
 	page_handles[number] = fhandle;
 
@@ -102,9 +110,9 @@ void close_pages(void)
 {
 	int i;
 
-	for (i = 0; i++; i < 256)
-		if (page_handles(i) != 0)
-			HeapUnlock(page_handles(i));
+	for (i = 0; i < 256; i++)
+		if (page_handles[i] != 0)
+			HeapUnlock(page_handles[i]);
 }
 
 
