@@ -51,7 +51,7 @@ char video_read(void)
 	short int data = *((short int *)addr);
 	data <<= (shift-8);
 	data &= 0xff;
-	return;
+	return data;
 }
 
 void *video_compute_address()
