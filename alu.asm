@@ -7,10 +7,10 @@ alu_add:
 	;; d1 + d0 -> d1
 	move.b	d0,f_tmp_src_b	; preserve operands for flag work
 	move.b	d1,f_tmp_dst_b
-	move.b	#1,(f_tmp_byte-flag_storage)(a3)
+	move.b	#1,f_tmp_byte
 	add	d0,d1
-	move	sr,(f_host_sr-flag_storage)(a3)
-	move.w	#0202,(flag_byte-flag_storage)(a3)
+	move	sr,f_host_sr
+	move.w	#0202,flag_byte
 	rts
 
 alu_adc:
@@ -21,11 +21,11 @@ alu_adc:
 	move.b	flag_byte(pc),d2
 	andi.b	#1,d2
 	add.b	d0,d2
-	move.b	d2,(f_tmp_src_b-flag_storage)(a3)
-	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	d2,f_tmp_src_b
+	move.b	d1,f_tmp_dst_b
 	add.b	d2,d1
-	move	sr,(f_host_ccr-flag_storage)(a3)
-	move.w	#$0202,(flag_byte-flag_storage)(a3)
+	move	sr,f_host_ccr
+	move.w	#$0202,flag_byte
 	rts
 
 alu_sbc:
@@ -39,12 +39,12 @@ alu_sbc:
 	move.b	flag_byte(pc),d2
 	andi.b	#1,d2
 	add.b	d0,d2
-	move.b	d2,(f_tmp_src_b-flag_storage)(a3)
-	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
+	move.b	d2,f_tmp_src_b
+	move.b	d1,f_tmp_dst_b
 	sub.b	d2,d1
-	move	sr,(f_host_sr-flag_storage)(a3)
-	move.b	#$02,(flag_byte-flag_storage)(a3)
-	move.b	#$02,(flag_valid-flag_storage)(a3)
+	move	sr,f_host_sr
+	move.b	#$02,flag_byte
+	move.b	#$02,flag_valid
 	pop.l	d2
 	rts
 
@@ -57,13 +57,13 @@ alu_sub:
 	;; XXX use lea and then d(an) if you have a spare register.
 
 	;; preserve operands for flagging
-	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
-	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
-	move.b	#1,(f_tmp_byte-flag_storage)(a3)
-	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
-	move.b	#%00000010,(flag_byte-flag_storage)(a3)
+	move.b	d0,f_tmp_src_b
+	move.b	d1,f_tmp_dst_b
+	move.b	#1,f_tmp_byte
+	andi.b	#%00000010,flag_valid
+	move.b	#%00000010,flag_byte
 	sub	d0,d1
-	move	sr,(f_host_sr-flag_storage)(a3)
+	move	sr,f_host_sr
 	rts
 
 alu_and:
@@ -81,11 +81,11 @@ alu_or:
 alu_cp:
 	;; Same as SUB but the macro that calls this doesn't save the
 	;; result.
-	move.b	d0,(f_tmp_src_b-flag_storage)(a3)
-	move.b	d1,(f_tmp_dst_b-flag_storage)(a3)
-	move.b	#1,(f_tmp_byte-flag_storage)(a3)
-	andi.b	#%00000010,(flag_valid-flag_storage)(a3)
-	move.b	#%00000010,(flag_byte-flag_storage)(a3)
+	move.b	d0,f_tmp_src_b
+	move.b	d1,f_tmp_dst_b
+	move.b	#1,f_tmp_byte
+	andi.b	#%00000010,flag_valid
+	move.b	#%00000010,flag_byte
 	sub	d0,d1
-	move	sr,(f_host_sr-flag_storage)(a3)
+	move	sr,f_host_sr
 	rts
