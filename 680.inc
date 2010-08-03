@@ -1,3 +1,5 @@
+;; -*- asm -*-
+
 
 SAVEREG	MACRO
 	movem	d3-d7/a3-a6,-(sp)
