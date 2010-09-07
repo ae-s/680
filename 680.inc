@@ -3,7 +3,7 @@
 	;; Register naming
 esp	EQUR	a4
 epc	EQUR	a6
-	
+
 eaf	EQUR	d3
 ebc	EQUR	d4
 ede	EQUR	d5
