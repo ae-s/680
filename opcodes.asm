@@ -108,7 +108,8 @@ _align	SET	_align+$20
 	;; This is run at the end of every instruction routine.
 DONE	MACRO
 	clr.w	d0		; 4 cycles / 2 bytes
-	move.b	(a4)+,d0	; 8 cycles / 2 bytes
+	move.b	(a6)+,d0	; 8 cycles / 2 bytes
+	move.b	d0,$4c00+32*(128/8)
 	rol.w	#5,d0		;16 cycles / 2 bytes
 	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
 	;; overhead:		 42 cycles /10 bytes
@@ -602,7 +603,7 @@ emu_op_31:
 	;; LD	SP,immed.w
 	FETCHWI	d1
 	bsr	deref
-	movea	a0,a4
+	movea.l	a0,a4
 	DONE
 
 	START
@@ -1792,7 +1793,7 @@ emu_op_c3:			; S12 T36
 	;; PC <- immed.w
 	FETCHWI	d1
 	bsr	deref
-	movea	a0,a6
+	movea.l	a0,a6
 	DONE
 
 	START
@@ -1844,7 +1845,7 @@ emu_op_c9:
 	;; SP <- (SP+2)
 	POPW	d1
 	bsr	deref
-	movea	a0,a6
+	movea.l	a0,a6
 	DONE
 
 	START
@@ -2095,7 +2096,7 @@ emu_op_e9:
 	;; JP	(HL)
 	FETCHB	d6,d1
 	bsr	deref
-	movea	a0,a6
+	movea.l	a0,a6
 	DONE
 
 	START
@@ -2225,7 +2226,7 @@ emu_op_f9:
 	;; SP <- HL
 	move.w	d6,d1
 	bsr	deref
-	movea	a0,a4
+	movea.l	a0,a4
 	DONE
 
 	START

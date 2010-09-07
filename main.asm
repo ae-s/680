@@ -66,8 +66,8 @@ emu_setup:
 	lea	flag_storage,a3
 	move.w	#$4000,d1
 	bsr	deref
-	move	a0,a6
-	move	a0,a4
+	move.l	a0,a6
+	move.l	a0,a4
 
 	rts
 
