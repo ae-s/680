@@ -8,9 +8,11 @@
 #include <tigcclib.h>
 #include "asm_vars.h"
 
+#include "680.h"
+
 HANDLE page_handles[256];
 
-char infloop[16] = { 0xc3, 0, 0, 0 };
+char infloop[16] = { 0xC3, 0x40, 0, 0, 0, 0 };
 
 void init_load(void);
 void *deref_page(int);
@@ -55,7 +57,8 @@ void init_load(void)
 
 	mem_page_0 = pages[0];
 	mem_page_loc_0 = 0;
-	mem_page_1 = pages[0x1f];
+//	mem_page_1 = pages[0x1f];
+	mem_page_1 = infloop;
 	mem_page_loc_1 = 0x1f;
 	mem_page_2 = pages[0];
 	mem_page_loc_2 = 0;
