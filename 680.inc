@@ -11,11 +11,11 @@ ehl	EQUR	d6
 eixy	EQUR	d7
 
 SAVEREG	MACRO
-	movem	d3-d7/a3-a6,-(sp)
+	movem.l	d3-d7/a3-a6,-(sp)
 	ENDM
 
 RESTREG	MACRO
-	movem	(sp)+,d3-d7/a3-a6
+	movem.l	(sp)+,d3-d7/a3-a6
 	ENDM
 
 ;; pushm	MACRO
