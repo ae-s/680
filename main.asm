@@ -61,7 +61,7 @@ __main:
 	include	"alu.asm"
 
 emu_setup:
-	movea	emu_plain_op,a5
+	movea.l	emu_plain_op,a5
 	lea	emu_run,a2
 	lea	flag_storage,a3
 	move.w	#$4000,d1

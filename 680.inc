@@ -17,19 +17,3 @@ SAVEREG	MACRO
 RESTREG	MACRO
 	movem.l	(sp)+,d3-d7/a3-a6
 	ENDM
-
-;; pushm	MACRO
-;; 	movem	\1,-(sp)
-;; 	ENDM
-
-;; popm	MACRO
-;; 	movem	(sp)+,\1
-;; 	ENDM
-
-;; push	MACRO
-;; 	move.\0	\1,-(sp)
-;; 	ENDM
-
-;; pop	MACRO
-;; 	move.\0	(sp)+,\1
-;; 	ENDM
