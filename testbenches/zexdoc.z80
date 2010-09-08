@@ -179,9 +179,9 @@ _:
 #endif
 #endmacro
 
-#macro	tmsg(m)
-_:	.db	m
-	.fill	&lab+30-$,'.'
+#macro	tmsg(mesg)
+_:	.db	(mesg)
+	.fill	-_+30-$,'.'
 	.db	'$'
 #endmacro
 
