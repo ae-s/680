@@ -12,7 +12,12 @@
 
 HANDLE page_handles[256];
 
-char infloop[16] = { 0xC3, 0x40, 0, 0, 0, 0 };
+char infloop[16] = { 0xC3, 0x40,	// JP 4000h
+		     0, 0, 0, 0 };
+char writestr[16] = { 0x3E, 0x41,	// LD A,'A'
+		      0xD3, 0x00,	// OUT 00h,A
+		      0xC3, 0x40, 0x00	// JP 4000h
+};
 
 void init_load(void);
 void *deref_page(int);
@@ -58,7 +63,7 @@ void init_load(void)
 	mem_page_0 = pages[0];
 	mem_page_loc_0 = 0;
 //	mem_page_1 = pages[0x1f];
-	mem_page_1 = infloop;
+	mem_page_1 = writestr;
 	mem_page_loc_1 = 0x1f;
 	mem_page_2 = pages[0];
 	mem_page_loc_2 = 0;

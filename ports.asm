@@ -4,7 +4,10 @@
 	;; Port is in d0, byte is in d1
 	;; Destroys a0
 port_in:
-	movea	lut_ports_in(pc,d0),a0
+	andi.w	#$ff,d0
+	add.w	d0,d0
+	add.w	d0,d0
+	movea.l	lut_ports_in(pc,d0),a0
 	jmp	(a0)
 	rts
 
@@ -267,7 +270,10 @@ lut_ports_in:
 	dc.l	port_in_ff
 
 port_out:
-	movea	lut_ports_out(pc,d0.w),a0
+	andi.w	#$ff,d0
+	add.w	d0,d0
+	add.w	d0,d0
+	movea.l	lut_ports_out(pc,d0.w),a0
 	jmp	(a0)
 	rts
 
@@ -531,6 +537,16 @@ lut_ports_out:
 
 port_in_00:
 port_out_00:
+	;; Temporary test harness.  Writing to this port writes a
+	;; character to the screen.
+	SAVEREG
+	andi.w	#$ff,d1
+	move.w	d1,-(sp)
+	jsr	char_draw
+	addq	#2,sp
+	RESTREG
+	rts
+
 port_in_01:
 port_out_01:
 port_in_02:

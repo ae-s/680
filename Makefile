@@ -1,6 +1,6 @@
 ASM_FILES=alu.asm flags.asm opcodes.asm ports.asm interrupts.asm main.asm
 ASM=main.asm
-C_FILES=loader.c bankswap.c video.c misc.c
+C_FILES=loader.c bankswap.c video.c misc.c debug.c
 
 TIGCCFLAGS=-Wall
 CFLAGS=-Wall -ltifiles
