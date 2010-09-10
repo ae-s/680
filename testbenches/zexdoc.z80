@@ -760,7 +760,7 @@ stt:	push	hl
 tlp:	ld	a,(iut)
 	cp	076h		; pragmatically avoid halt intructions
 	jp	z,tlp2
-	and	a,0dfh
+	and	0dfh
 	cp	0ddh
 	jp	nz,tlp1
 	ld	a,(iut+1)
@@ -876,7 +876,7 @@ nxtcbit: push	bc
 	ld	c,a
 	rlca
 	ld	(hl),a
-	cp	a,1
+	cp	1
 	jp	nz,ncb1
 	ld	hl,(cntbyt)
 	inc	hl
@@ -902,7 +902,7 @@ nxtsbit: push	bc
 	ld	c,a
 	rlca
 	ld	(hl),a
-	cp	a,1
+	cp	1
 	jp	nz,nsb1
 	ld	hl,(shfbyt)
 	inc	hl
@@ -947,13 +947,13 @@ initmask:
 	ld	d,0		; bit counter
 imlp:	ld	e,(hl)
 imlp1:	ld	a,e
-	and	a,c
+	and	c
 	jp	z,imlp2
 	inc	d
 imlp2:	ld	a,c
 	rlca
 	ld	c,a
-	cp	a,1
+	cp	1
 	jp	nz,imlp1
 	inc	hl
 	dec	b
@@ -967,7 +967,7 @@ imlp2:	ld	a,c
 	ld	l,a
 	ld	h,0
 	ld	a,d
-	and	a,7		; bit offset
+	and	7		; bit offset
 	inc	a
 	ld	b,a
 	ld	a,080h
@@ -996,7 +996,7 @@ cntlp:	inc	(hl)
 	jp	z,cntlp1	; overflow to next byte
 	ld	b,a
 	ld	a,(de)
-	and	a,b		; test for terminal value
+	and	b		; test for terminal value
 	jp	z,cntend
 	ld	(hl),0		; reset to zero
 cntend:	pop	bc
@@ -1027,7 +1027,7 @@ shflp:	ld	a,(hl)
 	jp	nz,shlpe
 	ld	a,b
 	rlca
-	cp	a,1
+	cp	1
 	jp	nz,shflp2
 	ld	(hl),0
 	inc	hl
@@ -1042,15 +1042,15 @@ shflp1:	inc	hl
 	inc	de
 	jp	shflp
 
-counter: ds	2*20
-shifter: ds	2*20
+counter: .fill	2*20
+shifter: .fill	2*20
 
 ; test harness
 test:	push	af
 	push	bc
 	push	de
 	push	hl
-      if	0
+#if	0
 	ld	de,crlf
 	call	writestr
 	ld	hl,iut
@@ -1061,7 +1061,7 @@ test:	push	af
 	ld	b,16
 	ld	hl,msbt
 	call	hexstr
-      endif	
+#endif
 	di			; disable interrupts
 	ld	(spsav),sp	; save stack pointer
 	ld	sp,msbt+2	; point to test-case machine state
@@ -1072,7 +1072,7 @@ test:	push	af
 	pop	bc
 	pop	af
 	ld	sp,(spbt)
-iut:	ds	4		; max 4 byte instruction under test
+iut:	.fill	4		; max 4 byte instruction under test
 	ld	(spat),sp	; save stack pointer
 	ld	sp,spat
 	push	af		; save other registers
@@ -1087,7 +1087,7 @@ iut:	ds	4		; max 4 byte instruction under test
 	ld	(msat),hl
 	ld	hl,flgsat	; flags after test
 	ld	a,(hl)
-flgmsk:	and	a,0d7h		; mask-out irrelevant bits (self-modified code!)
+flgmsk:	and	0d7h		; mask-out irrelevant bits (self-modified code!)
 	ld	(hl),a
 	ld	b,16		; total of 16 bytes of state
 	ld	de,msat
@@ -1097,7 +1097,7 @@ tcrc:	ld	a,(de)
 	call	updcrc		; accumulate crc of this test case
 	dec	b
 	jp	nz,tcrc
-      if	0
+#if	0
 	ld	e,' '
 	call	writechar
 	ld	hl,crcval
@@ -1109,7 +1109,7 @@ tcrc:	ld	a,(de)
 	call	hexstr
 	ld	de,crlf
 	call	writestr
-      endif
+#endif
 	pop	hl
 	pop	de
 	pop	bc
@@ -1117,11 +1117,11 @@ tcrc:	ld	a,(de)
 	ret
 
 ; machine state after test
-msat:	ds	14	; memop,iy,ix,hl,de,bc,af
-spat:	ds	2	; stack pointer after test
-flgsat:	equ	spat-2	; flags
+msat:	.fill	14	; memop,iy,ix,hl,de,bc,af
+spat:	.fill	2	; stack pointer after test
+#define	flgsat	spat-2	; flags
 
-spsav:	ds	2	; saved stack pointer
+spsav:	.fill	2	; saved stack pointer
 
 ; display hex string (pointer in hl, byte count in b)
 hexstr:	ld	a,(hl)
@@ -1162,8 +1162,8 @@ phex1:	push	af
 	push	bc
 	push	de
 	push	hl
-	and	a,0fh
-	cp	a,10
+	and	0fh
+	cp	10
 	jp	c,ph11
 	add	a,'a'-'9'-1
 ph11:	add	a,'0'
@@ -1178,22 +1178,22 @@ ph11:	add	a,'0'
 	;; Output routine.
 	;; Print the character in A.
 writechar:
-	out	000h,a
+	out	(000h),a
 	ret
 
 	;; Print the string in (DE), terminated by '$' (024h)
 writestr:
 	push	de
-	push	a
-	push	c
+	push	af
+	push	bc
 	ld	c,'$'
 writestr_loop:
 	ld	a,(de)
 	inc	de
 	cp	c
 	jp	nz,writestr_loop
-	pop	c
-	pop	a
+	pop	bc
+	pop	af
 	pop	de
 	ret
 
@@ -1212,7 +1212,7 @@ cmpcrc:	push	bc
 	ld	de,crcval
 	ld	b,4
 cclp:	ld	a,(de)
-	cp	a,(hl)
+	cp	(hl)
 	jp	nz,cce
 	inc	hl
 	inc	de
@@ -1233,7 +1233,7 @@ updcrc:	push	af
 	push	hl
 	ld	de,3
 	add	hl,de	; point to low byte of old crc
-	xor	a,(hl)	; xor with new byte
+	xor	(hl)	; xor with new byte
 	ld	l,a
 	ld	h,0
 	add	hl,hl	; use result as index into table of 4 byte entries
@@ -1245,27 +1245,28 @@ updcrc:	push	af
 	pop	hl
 	ld	bc,4	; c = byte count, b = accumulator
 crclp:	ld	a,(de)
-	xor	a,b
+	xor	b
 	ld	b,(hl)
 	ld	(hl),a
 	inc	de
 	inc	hl
 	dec	c
 	jp	nz,crclp
-      if	0
+#if	0
 	ld	hl,crcval
 	call	phex8
 	ld	de,crlf
 	ld	c,9
 	call	bdos
-      endif
+#endif
 	pop	hl
 	pop	de
 	pop	bc
 	pop	af
 	ret
 
-initcrc:push	af
+initcrc:
+	push	af
 	push	bc
 	push	hl
 	ld	hl,crcval
