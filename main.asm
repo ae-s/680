@@ -49,9 +49,15 @@
 __main:
 	movem.l d0-d7/a0-a6,-(sp)
 	bsr	init_load
+	bsr	display_setup
+
 	bsr	emu_setup
 	lea	emu_plain_op,a5
 	bsr	emu_run
+	bsr	emu_teardown
+
+	bsr	display_teardown
+	bsr	unload
 	movem.l (sp)+,d0-d7/a0-a6
 	rts
 
@@ -69,6 +75,9 @@ emu_setup:
 	move.l	a0,epc
 	move.l	a0,esp
 
+	rts
+
+emu_teardown:
 	rts
 
 
