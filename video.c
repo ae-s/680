@@ -5,6 +5,8 @@
  */
 
 #include <graph.h>
+#include <wingraph.h>
+#include <alloc.h>
 
 
 #define VIDEO_ROWMODE 0x01
@@ -28,10 +30,26 @@ char video_busy;        // Always 0
 char video_cur_row;
 char video_cur_col;
 
+WINDOW *screen_window;
+
 void video_write(char);
 char video_read(void);
 void *video_compute_address(void);
 int video_compute_shift(void);
+
+void display_setup(void)
+{
+	screen_window = HeapAllocPtr(sizeof(WINDOW));
+	WinOpen(screen_window, MakeWinRect(10, 10, 106, 74), WF_SAVE_SCR | WF_TTY | WF_ROUNDEDBORDER | WF_TITLE, "TI-83+ Emulator");
+	WinActivate(screen_window);
+	return;
+}
+
+void display_teardown(void)
+{
+	WinClose(screen_window);
+	HeapFreePtr(screen_window);
+}
 
 void video_write(char data)
 {

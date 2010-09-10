@@ -20,6 +20,7 @@ char writestr[16] = { 0x3E, 0x41,	// LD A,'A'
 };
 
 void init_load(void);
+void unload(void);
 void *deref_page(int);
 void close_pages(void);
 
@@ -72,6 +73,11 @@ void init_load(void)
 
 	return;
 
+}
+
+void unload(void)
+{
+	return;
 }
 
 /* Turns a page number into a pointer to a page.  Returns NULL if not
