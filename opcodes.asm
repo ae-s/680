@@ -30,17 +30,14 @@ PUTB	MACRO
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
-	;;
-	;; <debrouxl> It decrements sp by 2, but stores the result at
-	;; sp, not at 1(sp). So you essentially get a "free" shift
-	;; left by 8 bits. Much faster than lsl.w / rol.w #8, at
-	;; least.
 FETCHW	MACRO			;  ?/16
 	move.w	\1,d1		;  4/2
 	bsr	deref		;  ?/4
-	move.b	(a0),-(sp)	; 18/4
-	move.w	(sp)+,\2	;  8/2
-	move.b	(a0),\2		; 14/4
+	;; XXX SPEED
+	move.b	(a0)+,d2
+	move.b	(a0),\2
+	rol.w	#8,\2
+	move.b	d2,\2
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
@@ -88,12 +85,13 @@ FETCHBI	MACRO			; 8 cycles, 2 bytes
 	ENDM
 
 	;; Macro to read an immediate word (unaligned) into \1.
-FETCHWI	MACRO			; 28 cycles, 6 bytes
-	;; See FETCHW for an explanation of this trick.
-	move.b	(epc)+,-(sp)	; 12/2
-	move.w	(sp)+,\1	;  8/2
-	move.b	(epc)+,\1	;  8/2
-	ENDM			; 28/6
+FETCHWI	MACRO			; 42 cycles, 8 bytes
+	;; XXX SPEED
+	move.b	(epc)+,d2
+	move.b	(epc)+,\1
+	rol.w	#8,\1
+	move.b	d2,\1
+	ENDM
 
 	;; == Common Opcode Macros =========================================
 
