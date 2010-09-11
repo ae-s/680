@@ -90,7 +90,7 @@ loop:	ld	a,(hl)		; end of list ?
 	dec	hl
 	call	stt
 	jp	loop
-	
+
 done:	ld	de,msg2
 	call	writestr
 	jp	0		; warm boot
