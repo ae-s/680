@@ -52,15 +52,15 @@ PUTW	MACRO			;
 
 	;; Push the word in \1 (register) using stack register a4.
 	;; Sadly, I can't trust the stack register to be aligned.
-	;; Destroys d0.
+	;; Destroys d2.
 
 	;;   (SP-2) <- \1_l
 	;;   (SP-1) <- \1_h
 	;;   SP <- SP - 2
 PUSHW	MACRO
-	move.w	\1,d0
-	LOHI	d0		;slow
-	move.b	d0,-(a4)	; high byte
+	move.w	\1,d2
+	LOHI	d2		;slow
+	move.b	d2,-(a4)	; high byte
 	move.b	\1,-(a4)	; low byte
 	ENDM
 
