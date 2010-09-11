@@ -19,6 +19,8 @@ char writestr[16] = { 0x3E, 0x41,	// LD A,'A'
 		      0xC3, 0x40, 0x00	// JP 4000h
 };
 
+#include "testbenches/zexdoc.h"
+
 void init_load(void);
 void unload(void);
 void *deref_page(int);
@@ -64,7 +66,7 @@ void init_load(void)
 	mem_page_0 = pages[0];
 	mem_page_loc_0 = 0;
 //	mem_page_1 = pages[0x1f];
-	mem_page_1 = writestr;
+	mem_page_1 = zexdoc;
 	mem_page_loc_1 = 0x1f;
 	mem_page_2 = pages[0];
 	mem_page_loc_2 = 0;
