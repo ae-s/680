@@ -103,16 +103,6 @@ START	MACRO
 _align	SET	_align+$40
 	ENDM
 
-	;; This is run at the end of every instruction routine.
-DONE	MACRO
-	clr.w	d0		; 4 cycles / 2 bytes
-	move.b	(epc)+,d0	; 8 cycles / 2 bytes
-	move.b	d0,$4c00+32*(128/8)
-	rol.w	#6,d0		;18 cycles / 2 bytes
-	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
-	;; overhead:		 42 cycles /10 bytes
-	ENDM
-
 	;; LOHI/HILO are hideously slow for instructions used often.
 	;; Interleave registers instead:
 	;;
@@ -180,6 +170,20 @@ F_DEC_W	MACRO
 	;; I might be able to unify rotation flags or maybe use a
 	;; lookup table
 
+
+	;; This is run at the end of every instruction routine.
+done:
+	clr.w	d0		; 4 cycles / 2 bytes
+	move.b	(epc)+,d0	; 8 cycles / 2 bytes
+	move.b	d0,$4c00+32*(128/8)
+	rol.w	#6,d0		;18 cycles / 2 bytes
+	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
+	;; overhead:		 42 cycles /10 bytes
+
+
+DONE	MACRO
+	bra	done
+	ENDM
 
 
 	CNOP	0,32
