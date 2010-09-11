@@ -325,11 +325,11 @@ emu_op_10:			; S32
 	subq.b	#1,ebc
 	beq.s	end_10	; slooooow
 	FETCHBI	d1
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 end_10:
 	HILO	ebc
 	DONE
@@ -396,11 +396,11 @@ emu_op_18:
 	;; Branch relative by a signed immediate byte
 	;; No flags
 	FETCHBI	d1
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -675,7 +675,7 @@ emu_op_38:
 emu_op_39:
 	;; ADD	HL,SP
 	;; HL <- HL+SP
-	move	esp,a0
+	move.l	esp,a0
 	bsr	underef
 	F_ADD_W	ehl,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
@@ -1822,12 +1822,12 @@ emu_op_c7:
 	;; RST	&0
 	;;  == CALL 0
 	;; XXX check
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$00,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -1891,12 +1891,12 @@ emu_op_ce:
 emu_op_cf:
 	;; RST	&08
 	;;  == CALL 8
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -1951,12 +1951,12 @@ emu_op_d6:
 emu_op_d7:
 	;; RST	&10
 	;;  == CALL 10
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$10,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -2011,12 +2011,12 @@ emu_op_de:
 emu_op_df:
 	;; RST	&18
 	;;  == CALL 18
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$18,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -2074,12 +2074,12 @@ emu_op_e6:
 emu_op_e7:
 	;; RST	&20
 	;;  == CALL 20
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$20,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -2135,12 +2135,12 @@ emu_op_ee:
 emu_op_ef:
 	;; RST	&28
 	;;  == CALL 28
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$28,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -2203,12 +2203,12 @@ emu_op_f6:
 emu_op_f7:
 	;; RST	&30
 	;;  == CALL 30
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
 
 	START
@@ -2265,10 +2265,10 @@ emu_op_fe:
 emu_op_ff:
 	;; RST	&38
 	;;  == CALL 38
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
-	move	a0,epc
+	move.l	a0,epc
 	DONE
