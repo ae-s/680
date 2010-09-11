@@ -1190,6 +1190,7 @@ writestr:
 writestr_loop:
 	ld	a,(de)
 	inc	de
+	out	(000h),a
 	cp	c
 	jp	nz,writestr_loop
 	pop	bc
