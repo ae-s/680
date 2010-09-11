@@ -154,6 +154,7 @@ underef_not1:
 underef_not2:
 	suba.l	(a1)+,a0
 	;; if that fails too, well shit man!
+	moveq	#0,d0
 underef_thatsit:
 	rts
 

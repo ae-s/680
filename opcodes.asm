@@ -555,6 +555,8 @@ emu_op_2a:
 	FETCHW	d1,ehl
 	DONE
 
+	;; XXX TOO LONG
+
 	START
 emu_op_2b:
 	;; DEC	HL
@@ -1873,7 +1875,7 @@ emu_op_cd:
 	;;  (SP-2) <- PCl
 	;;  SP <- SP - 2
 	;;  PC <- address
-	move	epc,a0
+	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	PUSHW	d0
 	FETCHWI	d0
