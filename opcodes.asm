@@ -1878,8 +1878,7 @@ emu_op_cd:
 	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	PUSHW	d0
-	FETCHWI	d0
-	bra	emu_op_ca	; JP
+	bra	emu_op_c3	; JP
 
 	START
 emu_op_ce:
