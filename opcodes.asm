@@ -100,7 +100,7 @@ _align	SET	0
 
 START	MACRO
 	ORG	emu_plain_op+_align
-_align	SET	_align+$20
+_align	SET	_align+$40
 	ENDM
 
 	;; This is run at the end of every instruction routine.
@@ -108,7 +108,7 @@ DONE	MACRO
 	clr.w	d0		; 4 cycles / 2 bytes
 	move.b	(epc)+,d0	; 8 cycles / 2 bytes
 	move.b	d0,$4c00+32*(128/8)
-	rol.w	#5,d0		;16 cycles / 2 bytes
+	rol.w	#6,d0		;18 cycles / 2 bytes
 	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
 	;; overhead:		 42 cycles /10 bytes
 	ENDM
