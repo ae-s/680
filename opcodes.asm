@@ -396,9 +396,11 @@ emu_op_17:
 
 	START
 emu_op_18:
-	;; JR
+	;; JR	immed.b
+	;; PC <- immed.b
 	;; Branch relative by a signed immediate byte
 	;; No flags
+	clr.w	d1
 	FETCHBI	d1
 	move.l	epc,a0
 	bsr	underef
