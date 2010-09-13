@@ -1181,9 +1181,8 @@ writechar:
 	out	(000h),a
 	ret
 
-	;; Print the string in (DE), terminated by '$' (024h)
+	;; Print the string in (DE), terminated by '$' (24h)
 writestr:
-	push	de
 	push	af
 	push	bc
 	ld	c,'$'
@@ -1195,7 +1194,6 @@ writestr_loop:
 	jp	nz,writestr_loop
 	pop	bc
 	pop	af
-	pop	de
 	ret
 
 msg1:	.db	'Z80 instruction exerciser',10,13,'$'
