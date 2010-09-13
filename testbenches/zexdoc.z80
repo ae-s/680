@@ -93,7 +93,7 @@ loop:	ld	a,(hl)		; end of list ?
 
 done:	ld	de,msg2
 	call	writestr
-	jp	0		; warm boot
+	halt
 
 tests:
 	.dw	adc16
