@@ -275,7 +275,9 @@ emu_op_0a:			; S4 T14
 	;; LD	A,(BC)
 	;; A <- (BC)
 	;; No flags
-	FETCHB	ebc,eaf
+	move.w	ebc,d1
+	rol.w	#8,d1
+	FETCHB	d1,eaf
 	DONE
 
 	START
@@ -349,7 +351,9 @@ emu_op_11:			; S
 emu_op_12:
 	;; LD	(DE),A
 	;; No flags
-	FETCHB	ede,eaf
+	move.w	ede,d0
+	rol.w	#8,d0
+	FETCHB	d0,eaf
 	DONE
 
 	START
@@ -617,6 +621,7 @@ emu_op_32:
 	;; LD	(immed.w),A
 	;; store indirect
 	FETCHWI	d1
+	rol.w	#8,d1
 	PUTB	eaf,d1
 	DONE
 
