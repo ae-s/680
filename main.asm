@@ -92,6 +92,7 @@ emu_teardown:
 	;; Take a virtual address in d1 and dereference it.  Returns the
 	;; host address in a0.  Destroys a0, d0.
 deref:
+	rol.w	#8,d1
 	move.w	d1,d0
 	andi.w	#$3FFF,d0
 	movea.w	d0,a0
