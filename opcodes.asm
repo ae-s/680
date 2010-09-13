@@ -1163,6 +1163,7 @@ emu_op_75:
 emu_op_76:
 	;; HALT
 	;; XXX do this
+	bra	emu_op_76
 	DONE
 
 	START
