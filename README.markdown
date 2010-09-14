@@ -42,6 +42,10 @@ instruction with a fixed 42 cycle overhead:
 	  jmp      0(a3,d0)  ;14 cycles
 	  ;; overhead:        42 cycles
 
+(Using techniques borrowed from
+[Tezxas](http://tezxas.ticalc.org/technica.htm) I will be able to get
+this to 30 cycles.)
+
 From there, an instruction will take anywhere from 0 to, well, lots of
 additional cycles.  Generally, however, it will take under 50, for 92
 total.  In the worst reasonable case, a 4 cycle instruction emulated
