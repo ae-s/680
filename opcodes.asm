@@ -185,6 +185,12 @@ DONE	MACRO
 	bra	done
 	ENDM
 
+	;; Timing correction for more precise emulation
+	;; 
+	;; \1 is number of tstates the current instruction should take
+	;; \2 is number of cycles taken already
+TIME	MACRO
+	ENDM
 
 	CNOP	0,32
 
@@ -192,6 +198,7 @@ emu_plain_op:			; Size(bytes) Time(cycles)
 	START
 emu_op_00:			; S0 T0
 	;; NOP
+	TIME	4,0
 	DONE
 
 	START
