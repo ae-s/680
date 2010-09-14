@@ -1291,9 +1291,10 @@ emu_op_85:
 	START
 emu_op_86:
 	;; ADD	A,(HL)
-	FETCHB	ehl,d1
-	F_ADD_B	d1,eaf
-	PUTB	d1,ehl
+	;; XXX size?
+	FETCHB	ehl,d2
+	F_ADD_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1360,9 +1361,9 @@ emu_op_8d:
 	START
 emu_op_8e:
 	;; ADC	A,(HL)
-	FETCHB	ehl,d1
-	F_ADC_B	d1,eaf
-	PUTB	d1,ehl
+	FETCHB	ehl,d2
+	F_ADC_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1427,9 +1428,9 @@ emu_op_95:
 	START
 emu_op_96:
 	;; SUB	A,(HL)
-	FETCHB	ehl,d1
-	F_SUB_B	d1,eaf
-	PUTB	d1,ehl
+	FETCHB	ehl,d2
+	F_SUB_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1494,9 +1495,9 @@ emu_op_9d:
 	START
 emu_op_9e:
 	;; SBC	A,(HL)
-	FETCHB	ehl,d1
-	F_SBC_B	d1,eaf
-	PUTB	d1,ehl
+	FETCHB	ehl,d2
+	F_SBC_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1560,9 +1561,9 @@ emu_op_a5:
 	START
 emu_op_a6:
 	;; AND	(HL)
-	FETCHB	ehl,d1
-	F_AND_B	d1,eaf
-	PUTB	d1,ehl
+	FETCHB	ehl,d2
+	F_AND_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1628,9 +1629,9 @@ emu_op_ad:
 	START
 emu_op_ae:
 	;; XOR	(HL)
-	FETCHB	ehl,d1
-	F_XOR_B	d1,eaf
-	PUTB	d1,ehl
+	FETCHB	ehl,d2
+	F_XOR_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1696,9 +1697,9 @@ emu_op_b5:
 	START
 emu_op_b6:
 	;; OR	(HL)
-	FETCHB	ehl,d1
-	F_OR_B	d1,eaf
-	PUTB	d1,ehl
+	FETCHB	ehl,d2
+	F_OR_B	d2,eaf
+	PUTB	d2,ehl
 	DONE			;nok
 
 	START
@@ -1723,9 +1724,9 @@ F_CP_B	MACRO
 	START
 emu_op_b8:
 	;; CP	B
-	move.b	ebc,d1
-	LOHI	d1
-	F_CP_B	d1,eaf
+	move.b	ebc,d2
+	LOHI	d2
+	F_CP_B	d2,eaf
 	DONE			;nok
 
 	START
@@ -1737,9 +1738,9 @@ emu_op_b9:
 	START
 emu_op_ba:
 	;; CP	D
-	move.b	ede,d1
-	LOHI	d1
-	F_CP_B	d1,eaf
+	move.b	ede,d2
+	LOHI	d2
+	F_CP_B	d2,eaf
 	DONE			;nok
 
 	START
@@ -1751,9 +1752,9 @@ emu_op_bb:
 	START
 emu_op_bc:
 	;; CP	H
-	move.b	ehl,d1
-	LOHI	d1
-	F_CP_B	d1,eaf
+	move.b	ehl,d2
+	LOHI	d2
+	F_CP_B	d2,eaf
 	DONE			;nok
 
 	START
@@ -1765,8 +1766,8 @@ emu_op_bd:
 	START
 emu_op_be:
 	;; CP	(HL)
-	FETCHB	ehl,d1
-	F_CP_B	d1,eaf		; if F_CP_B uses d1, watch out for this
+	FETCHB	ehl,d2
+	F_CP_B	d2,eaf
 	;; no result to store
 	DONE			;nok
 
