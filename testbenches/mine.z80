@@ -20,16 +20,16 @@ dec8:
 	ret			;c9
 
 cond_jr:
-	ld	a,01h		;3e
+	ld	a,01h		;3e 01
 	cp	a		;bf
-	jr	nz,wrong	;20
+	jr	nz,wrong	;20 07
 
 	ccf			;3f
-	jr	c,wrong		;38
+	jr	c,wrong		;38 
 
 	scf			;37
-	jr	nc,wrong	;30
-	ret
+	jr	nc,wrong	;30 
+	ret			;c9
 
 
 wrong:

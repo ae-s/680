@@ -738,9 +738,11 @@ emu_op_3e:
 emu_op_3f:
 	;; CCF
 	;; Clear carry flag
+	;; XXX fuck flags
 	bsr	flags_normalize
 	;; 	  SZ5H3PNC
-	eor.b	#%00010001,flag_byte-flag_storage(a3)
+	andi.b	#%11111110,flag_byte-flag_storage(a3)
+	ori.b	#%00000001,flag_valid-flag_storage(a3)
 	DONE			;nok
 
 	START
