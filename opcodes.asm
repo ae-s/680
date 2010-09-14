@@ -729,7 +729,7 @@ emu_op_3e:
 	START
 emu_op_3f:
 	;; CCF
-	;; Toggle carry flag
+	;; Clear carry flag
 	bsr	flags_normalize
 	;; 	  SZ5H3PNC
 	eor.b	#%00010001,flag_byte-flag_storage(a3)
@@ -747,11 +747,9 @@ emu_op_40:
 	START
 emu_op_41:
 	;; LD	B,C
-	;; SPEED
-	move.b	ebc,d1
-	LOHI	ebc
+	move.w	ebc,d1
+	LOHI	d1
 	move.b	d1,ebc
-	HILO	ebc
 	DONE			;nok
 
 	START
@@ -779,6 +777,7 @@ emu_op_43:
 emu_op_44:
 	;; LD	B,H
 	;; B <- H
+	;; SPEED
 	LOHI	ebc
 	LOHI	ehl
 	move.b	ehl,ebc
@@ -826,6 +825,7 @@ emu_op_48:
 	START
 emu_op_49:
 	;; LD	C,C
+	move.b	ebc,ebc
 	DONE			;nok
 
 	START
@@ -971,6 +971,7 @@ emu_op_5a:
 	START
 emu_op_5b:
 	;; LD	E,E
+	move.b	ede,ede
 	DONE			;nok
 
 	START
@@ -1038,6 +1039,9 @@ emu_op_63:
 	START
 emu_op_64:
 	;; LD	H,H
+	LOHI	ehl
+	move.b	ehl,ehl
+	HILO	ehl
 	DONE			;nok
 
 	START
@@ -1098,15 +1102,15 @@ emu_op_6b:
 	START
 emu_op_6c:
 	;; LD	L,H
-	LOHI	ehl
 	move.b	ehl,d1
-	HILO	ehl
+	LOHI	d1
 	move.b	d1,ehl
 	DONE			;nok
 
 	START
 emu_op_6d:
 	;; LD	L,L
+	move.b	ehl,ehl
 	DONE			;nok
 
 	START
@@ -1770,7 +1774,7 @@ emu_op_be:
 emu_op_bf:
 	;; CP	A
 	F_CP_B	eaf,eaf
-	DONE			;nok
+	DONE
 
 	START
 emu_op_c0:
