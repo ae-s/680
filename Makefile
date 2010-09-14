@@ -1,7 +1,7 @@
 ASM_FILES=alu.asm flags.asm opcodes.asm ports.asm interrupts.asm main.asm
 ASM=main.asm
 C_FILES=loader.c bankswap.c video.c misc.c debug.c
-MADE_FILES=testbenches/zexdoc.h
+MADE_FILES=testbenches/zexdoc.h testbenches/mine.h
 
 TIGCCFLAGS=-Wall
 CFLAGS=-Wall -ltifiles
@@ -19,3 +19,12 @@ testbenches/zexdoc.h:	testbenches/zexdoc.bin
 
 testbenches/zexdoc.bin:	testbenches/zexdoc.z80
 	spasm testbenches/zexdoc.z80
+
+
+testbenches/mine.h:	testbenches/mine.bin
+	echo 'char zexdoc[] = {' > testbenches/mine.h
+	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' testbenches/mine.bin | sed -e 's/0x *,//g' >> testbenches/mine.h
+	echo '};' >> testbenches/mine.h
+
+testbenches/zexdoc.bin:	testbenches/mine.z80
+	spasm testbenches/mine.z80
