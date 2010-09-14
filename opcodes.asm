@@ -153,7 +153,7 @@ F_INC_B	MACRO
 
 F_DEC_B	MACRO
 	move.b	#1,f_tmp_byte-flag_storage(a3)
-	st	f_tmp_src_b-flag_storage(a3)
+	st	f_tmp_src_b-flag_storage(a3) ;; why did I do this?
 	move.b	\1,f_tmp_dst_b-flag_storage(a3)
 	subq	#1,\1
 	F_SET	#2
@@ -723,7 +723,7 @@ emu_op_3d:
 emu_op_3e:
 	;; LD	A,immed.b
 	FETCHBI	eaf
-	DONE			;nok
+	DONE
 
 	START
 emu_op_3f:
@@ -1871,6 +1871,7 @@ emu_op_ca:
 	START
 emu_op_cb:			; prefix
 	movea.w	emu_op_undo_cb(pc),a2
+	;; nok
 
 	START
 emu_op_cc:
@@ -1889,6 +1890,7 @@ emu_op_cd:
 	;;  PC <- address
 	move.l	epc,a0
 	bsr	underef		; d0 has PC
+	add.w	#2,d0
 	PUSHW	d0
 	bra	emu_op_c3	; JP
 
@@ -1929,7 +1931,7 @@ emu_op_d2:
 	;; JP	NC,immed.w
 	bsr	f_norm_c
 	beq	emu_op_c3
-	DONE			;nok
+	DONE
 
 	START
 emu_op_d3:
