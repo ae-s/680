@@ -234,17 +234,18 @@ emu_op_05:
 	LOHI	ebc
 	F_DEC_B	ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_06:			; S10 T26
 	;; LD	B,immed.b
 	;; Read a byte and put it in B
+	;; B <- immed.b
 	;; No flags
 	LOHI	ebc
 	FETCHBI	ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_07:			; S2 T4
@@ -253,7 +254,7 @@ emu_op_07:			; S2 T4
 	;; Flags: H,N=0; C aff.
 	;; XXX flags
 	rol.b	#1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_08:			; S2 T4
@@ -261,7 +262,7 @@ emu_op_08:			; S2 T4
 	;; No flags
 	;; XXX AF
 	swap	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_09:
@@ -285,7 +286,7 @@ emu_op_0b:			; S2 T4
 	;; BC <- BC-1
 	;; No flags
 	F_DEC_W	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_0c:
@@ -293,7 +294,7 @@ emu_op_0c:
 	;; C <- C+1
 	;; Flags: S,Z,H aff.; P=overflow, N=0
 	F_INC_B	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_0d:
@@ -301,14 +302,14 @@ emu_op_0d:
 	;; C <- C-1
 	;; Flags: S,Z,H aff., P=overflow, N=1
 	F_DEC_B	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_0e:			; S6 T18
 	;; LD	C,immed.b
 	;; No flags
 	FETCHBI	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_0f:
@@ -317,7 +318,7 @@ emu_op_0f:
 	;; Flags: H,N=0; C aff.
 	;; XXX FLAGS
 	ror.b	#1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_10:			; S32
@@ -337,14 +338,14 @@ emu_op_10:			; S32
 	move.l	a0,epc
 end_10:
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_11:			; S
 	;; LD	DE,immed.w
 	;; No flags
 	FETCHWI	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_12:
@@ -353,14 +354,14 @@ emu_op_12:
 	move.w	ede,d0
 	rol.w	#8,d0
 	FETCHB	d0,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_13:
 	;; INC	DE
 	;; No flags
 	F_INC_W	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_14:
@@ -369,7 +370,7 @@ emu_op_14:
 	LOHI	ede
 	F_INC_B	ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_15:
@@ -378,7 +379,7 @@ emu_op_15:
 	LOHI	ede
 	F_DEC_B	ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_16:
@@ -387,7 +388,7 @@ emu_op_16:
 	LOHI	ede
 	FETCHBI	ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_17:
@@ -395,7 +396,7 @@ emu_op_17:
 	;; Flags: P,N=0; C aff.
 	;; XXX flags
 	roxl.b	#1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_18:
@@ -410,7 +411,7 @@ emu_op_18:
 	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_19:
@@ -418,7 +419,7 @@ emu_op_19:
 	;; HL <- HL+DE
 	;; Flags: H,C aff,; N=0
 	F_ADD_W	ede,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_1a:
@@ -426,35 +427,35 @@ emu_op_1a:
 	;; A <- (DE)
 	;; No flags
 	FETCHB	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_1b:
 	;; DEC	DE
 	;; No flags
 	subq.w	#1,ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_1c:
 	;; INC	E
 	;; Flags: S,Z,H aff.; P=overflow; N=0
 	F_INC_B	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_1d:
 	;; DEC	E
 	;; Flags: S,Z,H aff.; P=overflow, N=1
 	F_DEC_B	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_1e:
 	;; LD	E,immed.b
 	;; No flags
 	FETCHBI	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_1f:
@@ -462,7 +463,7 @@ emu_op_1f:
 	;; Flags: H,N=0; C aff.
 	;; XXX FLAGS
 	roxr.b	#1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_20:
@@ -475,14 +476,14 @@ emu_op_20:
 	FETCHBI	d1
 	add.w	d1,epc		; XXX deref?
 end_20:
-	DONE
+	DONE			;nok
 
 	START
 emu_op_21:
 	;; LD	HL,immed.w
 	;; No flags
 	FETCHWI	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_22:
@@ -491,14 +492,14 @@ emu_op_22:
 	;; No flags
 	FETCHWI	d1
 	PUTW	ehl,d1
-	DONE
+	DONE			;nok
 
 	START
 emu_op_23:
 	;; INC	HL
 	;; No flags
 	addq.w	#1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_24:
@@ -507,7 +508,7 @@ emu_op_24:
 	LOHI	ehl
 	F_INC_B	ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_25:
@@ -516,7 +517,7 @@ emu_op_25:
 	LOHI	ehl
 	F_DEC_B	ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_26:
@@ -525,7 +526,7 @@ emu_op_26:
 	LOHI	ehl
 	FETCHBI	ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_27:
@@ -536,7 +537,7 @@ emu_op_27:
 	;; XXX DO THIS
 
 	F_PAR	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_28:
@@ -547,14 +548,14 @@ emu_op_28:
 	;; No flags
 	bsr	f_norm_z
 	bne	emu_op_18
-	DONE
+	DONE			;nok
 
 	START
 emu_op_29:
 	;; ADD	HL,HL
 	;; No flags
 	F_ADD_W	ehl,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_2a:
@@ -562,7 +563,7 @@ emu_op_2a:
 	;; address is absolute
 	FETCHWI	d1
 	FETCHW	d1,ehl
-	DONE
+	DONE			;nok
 
 	;; XXX TOO LONG
 
@@ -570,25 +571,25 @@ emu_op_2a:
 emu_op_2b:
 	;; DEC	HL
 	F_DEC_W	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_2c:
 	;; INC	L
 	F_INC_B	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_2d:
 	;; DEC	L
 	F_DEC_B	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_2e:
 	;; LD	L,immed.b
 	FETCHBI	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_2f:
@@ -596,7 +597,7 @@ emu_op_2f:
 	;; A <- NOT A
 	;; XXX flags
 	not.b	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_30:
@@ -605,7 +606,7 @@ emu_op_30:
 	;;  PC <- PC+immed.b
 	bsr	f_norm_c
 	beq	emu_op_18	; branch taken: carry clear
-	DONE
+	DONE			;nok
 
 	START
 emu_op_31:
@@ -613,7 +614,7 @@ emu_op_31:
 	FETCHWI	d1
 	bsr	deref
 	movea.l	a0,esp
-	DONE
+	DONE			;nok
 
 	START
 emu_op_32:
@@ -622,7 +623,7 @@ emu_op_32:
 	FETCHWI	d1
 	rol.w	#8,d1
 	PUTB	eaf,d1
-	DONE
+	DONE			;nok
 
 	START
 emu_op_33:
@@ -632,7 +633,7 @@ emu_op_33:
 	;; FYI:  Do not have to deref because this will never cross a
 	;; page boundary.  So sayeth BrandonW.
 	addq.w	#1,esp
-	DONE
+	DONE			;nok
 
 	START
 emu_op_34:
@@ -642,7 +643,7 @@ emu_op_34:
 	FETCHB	ehl,d1
 	F_INC_B	d1
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_35:
@@ -652,14 +653,14 @@ emu_op_35:
 	FETCHB	ehl,d1
 	F_DEC_B	d1
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_36:
 	;; LD	(HL),immed.b
 	FETCHBI	d1
 	PUTB	ehl,d1
-	DONE
+	DONE			;nok
 
 	START
 emu_op_37:
@@ -670,7 +671,7 @@ emu_op_37:
 	ori.b	#%00000001,d1
 	andi.b	#%00101001,d1
 	or.b	d1,flag_byte-flag_storage(a3)
-	DONE
+	DONE			;nok
 
 	START
 emu_op_38:
@@ -679,7 +680,7 @@ emu_op_38:
 	;;  PC <- PC+immed.b
 	bsr	f_norm_c
 	bne	emu_op_18
-	DONE
+	DONE			;nok
 
 	START
 emu_op_39:
@@ -690,21 +691,21 @@ emu_op_39:
 	F_ADD_W	ehl,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,esp
-	DONE
+	DONE			;nok
 
 	START
 emu_op_3a:
 	;; LD	A,(immed.w)
 	FETCHWI	d1
 	FETCHB	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_3b:
 	;; DEC	SP
 	;; No flags
 	subq.l	#1,esp
-	DONE
+	DONE			;nok
 
 	START
 emu_op_3c:
@@ -716,13 +717,13 @@ emu_op_3c:
 emu_op_3d:
 	;; DEC	A
 	F_DEC_B	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_3e:
 	;; LD	A,immed.b
 	FETCHBI	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_3f:
@@ -731,7 +732,7 @@ emu_op_3f:
 	bsr	flags_normalize
 	;; 	  SZ5H3PNC
 	eor.b	#%00010001,flag_byte-flag_storage(a3)
-	DONE
+	DONE			;nok
 
 	START
 emu_op_40:
@@ -740,7 +741,7 @@ emu_op_40:
 	LOHI	ebc
 	move.b	ebc,ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_41:
@@ -750,7 +751,7 @@ emu_op_41:
 	LOHI	ebc
 	move.b	d1,ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_42:
@@ -762,7 +763,7 @@ emu_op_42:
 	move.b	ede,ebc
 	HILO	ebc
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_43:
@@ -771,7 +772,7 @@ emu_op_43:
 	LOHI	ebc
 	move.b	ebc,ede		; 4
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_44:
@@ -782,7 +783,7 @@ emu_op_44:
 	move.b	ehl,ebc
 	HILO	ebc
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_45:
@@ -791,7 +792,7 @@ emu_op_45:
 	LOHI	ebc
 	move.b	ehl,ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_46:
@@ -800,7 +801,7 @@ emu_op_46:
 	LOHI	ebc
 	FETCHB	ehl,ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_47:
@@ -809,7 +810,7 @@ emu_op_47:
 	LOHI	ebc
 	move.b	eaf,ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_48:
@@ -819,12 +820,12 @@ emu_op_48:
 	move.b	(sp),ebc
 	;; XXX emfasten?
 	addq.l #2,sp
-	DONE
+	DONE			;nok
 				;14 cycles
 	START
 emu_op_49:
 	;; LD	C,C
-	DONE
+	DONE			;nok
 
 	START
 emu_op_4a:
@@ -833,13 +834,13 @@ emu_op_4a:
 	move.b	(sp),ebc
 	;; XXX emfasten?
 	addq.l #2,sp
-	DONE
+	DONE			;nok
 
 	START
 emu_op_4b:
 	;; LD	C,E
 	move.b	ebc,ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_4c:
@@ -847,26 +848,26 @@ emu_op_4c:
 	LOHI	ehl
 	move.b	ebc,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_4d:
 	;; LD	C,L
 	move.b	ebc,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_4e:
 	;; LD	C,(HL)
 	;; C <- (HL)
 	FETCHB	ehl,ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_4f:
 	;; LD	C,A
 	move.b	eaf,ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_50:
@@ -882,7 +883,7 @@ emu_op_50:
 	move.b	ebc,ede
 	HILO	ebc
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_51:
@@ -890,12 +891,12 @@ emu_op_51:
 	LOHI	ede
 	move.b	ebc,ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_52:
 	;; LD	D,D
-	DONE
+	DONE			;nok
 
 	START
 emu_op_53:
@@ -904,7 +905,7 @@ emu_op_53:
 	move.b	ede,d1
 	lsl	#8,d1
 	or.w	d1,ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_54:
@@ -914,7 +915,7 @@ emu_op_54:
 	move.b	ehl,ede		; 4
 	HILO	ede		; 4
 	HILO	ehl		; 4
-	DONE
+	DONE			;nok
 				;20 cycles
 
 	START
@@ -923,7 +924,7 @@ emu_op_55:
 	LOHI	ede
 	move.b	ehl,ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_56:
@@ -932,7 +933,7 @@ emu_op_56:
 	LOHI	ede
 	FETCHB	ehl,ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_57:
@@ -940,7 +941,7 @@ emu_op_57:
 	LOHI	ede
 	move.b	eaf,ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_58:
@@ -948,13 +949,13 @@ emu_op_58:
 	LOHI	ebc
 	move.b	ebc,ede
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_59:
 	;; LD	E,C
 	move.b	ebc,ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_5a:
@@ -963,13 +964,13 @@ emu_op_5a:
 	move.b	ede,d1		; 4/2
 	lsr.w	#8,d1		;22/2
 	or.w	d1,ede		; 4/2
-	DONE
+	DONE			;nok
 				;38/2
 
 	START
 emu_op_5b:
 	;; LD	E,E
-	DONE
+	DONE			;nok
 
 	START
 emu_op_5c:
@@ -977,25 +978,25 @@ emu_op_5c:
 	LOHI	ehl
 	move.b	ede,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_5d:
 	;; LD	E,L
 	move.b	ede,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_5e:
 	;; LD	E,(HL)
 	FETCHB	ehl,d1
-	DONE
+	DONE			;nok
 
 	START
 emu_op_5f:
 	;; LD	E,A
 	move.b	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_60:
@@ -1005,7 +1006,7 @@ emu_op_60:
 	move.b	ehl,ebc
 	HILO	ebc
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_61:
@@ -1013,7 +1014,7 @@ emu_op_61:
 	LOHI	ehl
 	move.b	ebc,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_62:
@@ -1023,7 +1024,7 @@ emu_op_62:
 	move.b	ede,ehl
 	HILO	ede
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_63:
@@ -1031,12 +1032,12 @@ emu_op_63:
 	LOHI	ehl
 	move.b	ede,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_64:
 	;; LD	H,H
-	DONE
+	DONE			;nok
 
 	START
 emu_op_65:
@@ -1046,7 +1047,7 @@ emu_op_65:
 	LOHI	ehl
 	move.b	d1,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_66:
@@ -1055,7 +1056,7 @@ emu_op_66:
 	LOHI	ehl
 	move.b	d1,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_67:
@@ -1063,7 +1064,7 @@ emu_op_67:
 	LOHI	ehl
 	move.b	eaf,ehl
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_68:
@@ -1071,13 +1072,13 @@ emu_op_68:
 	LOHI	ebc
 	move.b	ebc,ehl
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_69:
 	;; LD	L,C
 	move.b	ebc,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_6a:
@@ -1085,13 +1086,13 @@ emu_op_6a:
 	LOHI	ede
 	move.b	ede,ehl
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_6b:
 	;; LD	L,E
 	move.b	ede,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_6c:
@@ -1100,25 +1101,25 @@ emu_op_6c:
 	move.b	ehl,d1
 	HILO	ehl
 	move.b	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_6d:
 	;; LD	L,L
-	DONE
+	DONE			;nok
 
 	START
 emu_op_6e:
 	;; LD	L,(HL)
 	;; L <- (HL)
 	FETCHB	ehl,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_6f:
 	;; LD	L,A
 	move.b	eaf,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_70:
@@ -1126,13 +1127,13 @@ emu_op_70:
 	LOHI	ebc
 	PUTB	ehl,ebc
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_71:
 	;; LD	(HL),C
 	PUTB	ehl,ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_72:
@@ -1140,13 +1141,13 @@ emu_op_72:
 	LOHI	ede
 	PUTB	ehl,ede
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_73:
 	;; LD	(HL),E
 	PUTB	ehl,ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_74:
@@ -1154,27 +1155,27 @@ emu_op_74:
 	move.w	ehl,d1
 	HILO	d1
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_75:
 	;; LD	(HL),L
 	move.b	ehl,d1
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_76:
 	;; HALT
 	;; XXX do this
 	bra	emu_op_76
-	DONE
+	DONE			;nok
 
 	START
 emu_op_77:
 	;; LD	(HL),A
 	PUTB	eaf,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_78:
@@ -1182,13 +1183,13 @@ emu_op_78:
 	move.w	ebc,d1
 	LOHI	d1
 	move.b	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_79:
 	;; LD	A,C
 	move.b	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_7a:
@@ -1196,13 +1197,13 @@ emu_op_7a:
 	move.w	ede,d1
 	LOHI	d1
 	move.b	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_7b:
 	;; LD	A,E
 	move.b	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_7c:
@@ -1210,25 +1211,25 @@ emu_op_7c:
 	move.w	ehl,d1
 	LOHI	d1
 	move.b	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_7d:
 	;; LD	A,L
 	move.b	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_7e:
 	;; LD	A,(HL)
 	;; A <- (HL)
 	FETCHB	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_7f:
 	;; LD	A,A
-	DONE
+	DONE			;nok
 
 
 
@@ -1246,13 +1247,13 @@ emu_op_80:
 	LOHI	ebc
 	F_ADD_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_81:
 	;; ADD	A,C
 	F_ADD_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_82:
@@ -1260,13 +1261,13 @@ emu_op_82:
 	LOHI	ede
 	F_ADD_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_83:
 	;; ADD	A,E
 	F_ADD_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_84:
@@ -1274,13 +1275,13 @@ emu_op_84:
 	LOHI	ehl
 	F_ADD_B	ehl,eaf
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_85:
 	;; ADD	A,L
 	F_ADD_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_86:
@@ -1288,13 +1289,13 @@ emu_op_86:
 	FETCHB	ehl,d1
 	F_ADD_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_87:
 	;; ADD	A,A
 	F_ADD_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 
 
@@ -1313,14 +1314,14 @@ emu_op_88:
 	LOHI	ebc
 	F_ADC_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_89:
 	;; ADC	A,C
 	;; A <- A + C + (carry)
 	F_ADC_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_8a:
@@ -1328,14 +1329,14 @@ emu_op_8a:
 	LOHI	ede
 	F_ADC_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_8b:
 	;; ADC	A,E
 	;; A <- A + E + carry
 	F_ADC_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_8c:
@@ -1343,13 +1344,13 @@ emu_op_8c:
 	LOHI	eaf
 	F_ADC_B	ehl,eaf
 	HILO	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_8d:
 	;; ADC	A,L
 	F_ADC_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_8e:
@@ -1357,13 +1358,13 @@ emu_op_8e:
 	FETCHB	ehl,d1
 	F_ADC_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_8f:
 	;; ADC	A,A
 	F_ADC_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 
 
@@ -1383,13 +1384,13 @@ emu_op_90:
 	LOHI	ebc
 	F_SUB_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_91:
 	;; SUB	A,C
 	F_SUB_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_92:
@@ -1397,13 +1398,13 @@ emu_op_92:
 	LOHI	ede
 	F_SUB_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_93:
 	;; SUB	A,E
 	F_SUB_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_94:
@@ -1411,7 +1412,7 @@ emu_op_94:
 	LOHI	ehl
 	F_SUB_B	ehl,eaf
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_95:
@@ -1424,13 +1425,13 @@ emu_op_96:
 	FETCHB	ehl,d1
 	F_SUB_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_97:
 	;; SUB	A,A
 	F_SUB_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 
 
@@ -1449,13 +1450,13 @@ emu_op_98:
 	LOHI	ebc
 	F_SBC_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_99:
 	;; SBC	A,C
 	F_SBC_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_9a:
@@ -1463,13 +1464,13 @@ emu_op_9a:
 	LOHI	ede
 	F_SBC_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_9b:
 	;; SBC	A,E
 	F_SBC_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_9c:
@@ -1477,13 +1478,13 @@ emu_op_9c:
 	LOHI	ehl
 	F_SBC_B	ehl,eaf
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_9d:
 	;; SBC	A,L
 	F_SBC_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_9e:
@@ -1491,13 +1492,13 @@ emu_op_9e:
 	FETCHB	ehl,d1
 	F_SBC_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_9f:
 	;; SBC	A,A
 	F_SBC_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 
 
@@ -1516,7 +1517,7 @@ emu_op_a0:
 	LOHI	ebc
 	F_AND_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a1:
@@ -1529,13 +1530,13 @@ emu_op_a2:
 	LOHI	ede
 	F_AND_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a3:
 	;; AND	E
 	F_AND_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a4:
@@ -1543,13 +1544,13 @@ emu_op_a4:
 	LOHI	ehl
 	F_AND_B	ehl,eaf
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a5:
 	;; AND	L
 	F_AND_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a6:
@@ -1557,14 +1558,14 @@ emu_op_a6:
 	FETCHB	ehl,d1
 	F_AND_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a7:
 	;; AND	A
 	;; SPEED ... It's probably not necessary to run this faster.
 	F_AND_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 
 
@@ -1583,13 +1584,13 @@ emu_op_a8:
 	LOHI	ebc
 	F_XOR_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_a9:
 	;; XOR	C
 	F_XOR_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_aa:
@@ -1597,13 +1598,13 @@ emu_op_aa:
 	LOHI	ede
 	F_XOR_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ab:
 	;; XOR	E
 	F_XOR_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ac:
@@ -1611,13 +1612,13 @@ emu_op_ac:
 	LOHI	ehl
 	F_XOR_B	ehl,eaf
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ad:
 	;; XOR	L
 	F_XOR_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ae:
@@ -1625,14 +1626,14 @@ emu_op_ae:
 	FETCHB	ehl,d1
 	F_XOR_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_af:
 	;; XOR	A
 	F_XOR_B	eaf,eaf
 	;; XXX
-	DONE
+	DONE			;nok
 
 
 
@@ -1651,13 +1652,13 @@ emu_op_b0:
 	LOHI	ebc
 	F_OR_B	ebc,eaf
 	HILO	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b1:
 	;; OR	C
 	F_OR_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b2:
@@ -1665,13 +1666,13 @@ emu_op_b2:
 	LOHI	ede
 	F_OR_B	ede,eaf
 	HILO	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b3:
 	;; OR	E
 	F_OR_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b4:
@@ -1679,13 +1680,13 @@ emu_op_b4:
 	LOHI	ehl
 	F_OR_B	ehl,eaf
 	HILO	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b5:
 	;; OR	L
 	F_OR_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b6:
@@ -1693,13 +1694,13 @@ emu_op_b6:
 	FETCHB	ehl,d1
 	F_OR_B	d1,eaf
 	PUTB	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b7:
 	;; OR	A
 	F_OR_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 
 
@@ -1720,13 +1721,13 @@ emu_op_b8:
 	move.b	ebc,d1
 	LOHI	d1
 	F_CP_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_b9:
 	;; CP	C
 	F_CP_B	ebc,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ba:
@@ -1734,13 +1735,13 @@ emu_op_ba:
 	move.b	ede,d1
 	LOHI	d1
 	F_CP_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_bb:
 	;; CP	E
 	F_CP_B	ede,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_bc:
@@ -1748,13 +1749,13 @@ emu_op_bc:
 	move.b	ehl,d1
 	LOHI	d1
 	F_CP_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_bd:
 	;; CP	L
 	F_CP_B	ehl,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_be:
@@ -1762,13 +1763,13 @@ emu_op_be:
 	FETCHB	ehl,d1
 	F_CP_B	d1,eaf		; if F_CP_B uses d1, watch out for this
 	;; no result to store
-	DONE
+	DONE			;nok
 
 	START
 emu_op_bf:
 	;; CP	A
 	F_CP_B	eaf,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c0:
@@ -1780,14 +1781,14 @@ emu_op_c0:
 	bsr	f_norm_z
 	;; SPEED inline RET
 	beq	emu_op_c9	; RET
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c1:			; S10 T
 	;; POP	BC
 	;; Pops a word into BC
 	POPW	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c2:
@@ -1796,7 +1797,7 @@ emu_op_c2:
 	;;   PC <- immed.w
 	bsr	f_norm_z
 	bne.s	emu_op_c3
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c3:			; S12 T36
@@ -1805,7 +1806,7 @@ emu_op_c3:			; S12 T36
 	FETCHWI	d1
 	bsr	deref
 	movea.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c4:
@@ -1813,20 +1814,20 @@ emu_op_c4:
 	;; If ~Z, CALL immed.w
 	bsr	f_norm_z
 	bne	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c5:
 	;; PUSH	BC
 	PUSHW	ebc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c6:
 	;; ADD	A,immed.b
 	FETCHBI	d1
 	F_ADD_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c7:
@@ -1839,14 +1840,14 @@ emu_op_c7:
 	move.w	#$00,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c8:
 	;; RET	Z
 	bsr	f_norm_z
 	beq.s	emu_op_c9
-	DONE
+	DONE			;nok
 
 	START
 emu_op_c9:
@@ -1857,7 +1858,7 @@ emu_op_c9:
 	POPW	d1
 	bsr	deref
 	movea.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ca:
@@ -1865,7 +1866,7 @@ emu_op_ca:
 	;; If Z, jump
 	bsr	f_norm_z
 	beq	emu_op_c3
-	DONE
+	DONE			;nok
 
 	START
 emu_op_cb:			; prefix
@@ -1876,7 +1877,7 @@ emu_op_cc:
 	;; CALL	Z,immed.w
 	bsr	f_norm_z
 	beq.s	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_cd:
@@ -1896,7 +1897,7 @@ emu_op_ce:
 	;; ADC	A,immed.b
 	FETCHWI	d1
 	F_ADC_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_cf:
@@ -1908,27 +1909,27 @@ emu_op_cf:
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d0:
 	;; RET	NC
 	bsr	f_norm_c
 	beq	emu_op_c9
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d1:
 	;; POP	DE
 	POPW	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d2:
 	;; JP	NC,immed.w
 	bsr	f_norm_c
 	beq	emu_op_c3
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d3:
@@ -1936,27 +1937,27 @@ emu_op_d3:
 	move.b	eaf,d1
 	FETCHBI	d0
 	bsr	port_out
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d4:
 	;; CALL	NC,immed.w
 	bsr	f_norm_c
 	beq	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d5:
 	;; PUSH	DE
 	PUSHW	ede
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d6:
 	;; SUB	A,immed.b
 	FETCHBI	d1
 	F_SUB_B	eaf,d1
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d7:
@@ -1968,14 +1969,14 @@ emu_op_d7:
 	move.w	#$10,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d8:
 	;; RET	C
 	bsr	f_norm_c
 	bne	emu_op_c9
-	DONE
+	DONE			;nok
 
 	START
 emu_op_d9:
@@ -1983,14 +1984,14 @@ emu_op_d9:
 	swap	ebc
 	swap	ede
 	swap	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_da:
 	;; JP	C,immed.w
 	bsr	f_norm_c
 	bne	emu_op_c3
-	DONE
+	DONE			;nok
 
 	START
 emu_op_db:
@@ -1998,14 +1999,14 @@ emu_op_db:
 	move.b	eaf,d1
 	FETCHBI	d0
 	bsr	port_in
-	DONE
+	DONE			;nok
 
 	START
 emu_op_dc:
 	;; CALL	C,immed.w
 	bsr	f_norm_c
 	bne	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_dd:			; prefix
@@ -2016,7 +2017,7 @@ emu_op_de:
 	;; SBC	A,immed.b
 	FETCHWI	d1
 	F_SBC_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_df:
@@ -2028,7 +2029,7 @@ emu_op_df:
 	move.w	#$18,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e0:
@@ -2036,20 +2037,20 @@ emu_op_e0:
 	;; If parity odd (P zero), return
 	bsr	f_norm_pv
 	beq	emu_op_c9
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e1:
 	;; POP	HL
 	POPW	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e2:
 	;; JP	PO,immed.w
 	bsr	f_norm_pv
 	beq	emu_op_c3
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e3:
@@ -2058,7 +2059,7 @@ emu_op_e3:
 	POPW	d1
 	PUSHW	ehl
 	move.w	d1,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e4:
@@ -2066,20 +2067,20 @@ emu_op_e4:
 	;; if parity odd (P=0), call
 	bsr	f_norm_pv
 	beq	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e5:
 	;; PUSH	HL
 	PUSHW	ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e6:
 	;; AND	immed.b
 	FETCHBI	d1
 	F_AND_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e7:
@@ -2091,7 +2092,7 @@ emu_op_e7:
 	move.w	#$20,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e8:
@@ -2099,7 +2100,7 @@ emu_op_e8:
 	;; If parity odd (P zero), return
 	bsr	f_norm_pv
 	bne	emu_op_c9
-	DONE
+	DONE			;nok
 
 	START
 emu_op_e9:
@@ -2107,20 +2108,20 @@ emu_op_e9:
 	FETCHB	ehl,d1
 	bsr	deref
 	movea.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ea:
 	;; JP	PE,immed.w
 	bsr	f_norm_pv
 	bne	emu_op_c3
-	DONE
+	DONE			;nok
 
 	START
 emu_op_eb:
 	;; EX	DE,HL
 	exg.w	ede,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ec:
@@ -2128,19 +2129,19 @@ emu_op_ec:
 	;; If parity even (P=1), call
 	bsr	f_norm_c
 	bne	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ed:			; prefix
 	movea.w	emu_op_undo_ed(pc),a2
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ee:
 	;; XOR	immed.b
 	FETCHBI	d1
 	F_XOR_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ef:
@@ -2152,7 +2153,7 @@ emu_op_ef:
 	move.w	#$28,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f0:
@@ -2160,7 +2161,7 @@ emu_op_f0:
 	;; Return if Positive
 	bsr	f_norm_sign
 	beq	emu_op_c9	; RET
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f1:
@@ -2170,14 +2171,14 @@ emu_op_f1:
 	POPW	eaf
 	move.w	eaf,(flag_byte-flag_storage)(a3)
 	move.b	#$ff,(flag_valid-flag_storage)(a3)
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f2:
 	;; JP	P,immed.w
 	bsr	f_norm_sign
 	beq	emu_op_c3	; JP
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f3:
@@ -2190,7 +2191,7 @@ emu_op_f4:
 	;; Call if positive (S=0)
 	bsr	f_norm_sign
 	beq	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f5:
@@ -2201,14 +2202,14 @@ emu_op_f5:
 	;; XXX wrong
 	HILO	eaf
 	PUSHW	eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f6:
 	;; OR	immed.b
 	FETCHBI	d1
 	F_OR_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f7:
@@ -2220,7 +2221,7 @@ emu_op_f7:
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f8:
@@ -2228,7 +2229,7 @@ emu_op_f8:
 	;; Return if Sign == 1, minus
 	bsr	f_norm_sign
 	bne	emu_op_c9	; RET
-	DONE
+	DONE			;nok
 
 	START
 emu_op_f9:
@@ -2237,20 +2238,20 @@ emu_op_f9:
 	move.w	ehl,d1
 	bsr	deref
 	movea.l	a0,esp
-	DONE
+	DONE			;nok
 
 	START
 emu_op_fa:
 	;; JP	M,immed.w
 	bsr	f_norm_sign
 	bne	emu_op_c3	; JP
-	DONE
+	DONE			;nok
 
 	START
 emu_op_fb:
 	;; EI
 	bsr	ints_start
-	DONE
+	DONE			;nok
 
 	START
 emu_op_fc:
@@ -2258,7 +2259,7 @@ emu_op_fc:
 	;; Call if minus (S=1)
 	bsr	f_norm_sign
 	bne	emu_op_cd
-	DONE
+	DONE			;nok
 
 	START
 emu_op_fd:			; prefix
@@ -2270,7 +2271,7 @@ emu_op_fe:
 	;; CP	immed.b
 	FETCHBI	d1
 	F_CP_B	d1,eaf
-	DONE
+	DONE			;nok
 
 	START
 emu_op_ff:
@@ -2282,4 +2283,4 @@ emu_op_ff:
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
-	DONE
+	DONE			;nok
