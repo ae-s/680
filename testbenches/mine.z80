@@ -3,7 +3,7 @@
 
 .ORG 4000h
 
-	call	dec8
+	call	cond_jr		;cd
 	halt
 
 inc8:
@@ -17,8 +17,23 @@ inc8:
 dec8:
 	ld	a,0a5h		;3e
 	dec	a		;3d
+	ret			;c9
+
+cond_jr:
+	ld	a,01h		;3e
+	cp	a		;b8
+	jr	nz,wrong	;20
+
+	ccf			;3f
+	jr	c,wrong		;38
+
+	scf			;37
+	jr	nc,wrong	;30
 	ret
 
+
+wrong:
+	jp	wrong
 
 data8:
 	.db	0a5h
