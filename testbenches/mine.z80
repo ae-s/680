@@ -21,7 +21,7 @@ dec8:
 
 cond_jr:
 	ld	a,01h		;3e
-	cp	a		;b8
+	cp	a		;bf
 	jr	nz,wrong	;20
 
 	ccf			;3f

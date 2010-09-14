@@ -470,12 +470,10 @@ emu_op_20:
 	;; JR	NZ,immed.b
 	;; if ~Z,
 	;;  PC <- PC+immed.b
-	;; SPEED can be made faster
 	;; No flags
-	beq.s	end_20
-	FETCHBI	d1
-	add.w	d1,epc		; XXX deref?
-end_20:
+	bsr	f_norm_z
+	bne	emu_op_18	; branch taken: zero clear
+	add.l	#1,epc
 	DONE			;nok
 
 	START
@@ -548,6 +546,7 @@ emu_op_28:
 	;; No flags
 	bsr	f_norm_z
 	bne	emu_op_18
+	add.l	#1,epc
 	DONE			;nok
 
 	START
@@ -606,6 +605,7 @@ emu_op_30:
 	;;  PC <- PC+immed.b
 	bsr	f_norm_c
 	beq	emu_op_18	; branch taken: carry clear
+	add.l	#1,epc
 	DONE			;nok
 
 	START
@@ -680,6 +680,7 @@ emu_op_38:
 	;;  PC <- PC+immed.b
 	bsr	f_norm_c
 	bne	emu_op_18
+	add.l	#1,epc
 	DONE			;nok
 
 	START
@@ -1797,6 +1798,7 @@ emu_op_c2:
 	;;   PC <- immed.w
 	bsr	f_norm_z
 	bne.s	emu_op_c3
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -1814,6 +1816,7 @@ emu_op_c4:
 	;; If ~Z, CALL immed.w
 	bsr	f_norm_z
 	bne	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -1866,6 +1869,7 @@ emu_op_ca:
 	;; If Z, jump
 	bsr	f_norm_z
 	beq	emu_op_c3
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -1878,6 +1882,7 @@ emu_op_cc:
 	;; CALL	Z,immed.w
 	bsr	f_norm_z
 	beq.s	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -1931,6 +1936,7 @@ emu_op_d2:
 	;; JP	NC,immed.w
 	bsr	f_norm_c
 	beq	emu_op_c3
+	add.l	#2,epc
 	DONE
 
 	START
@@ -1946,6 +1952,7 @@ emu_op_d4:
 	;; CALL	NC,immed.w
 	bsr	f_norm_c
 	beq	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2008,6 +2015,7 @@ emu_op_dc:
 	;; CALL	C,immed.w
 	bsr	f_norm_c
 	bne	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2052,6 +2060,7 @@ emu_op_e2:
 	;; JP	PO,immed.w
 	bsr	f_norm_pv
 	beq	emu_op_c3
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2069,6 +2078,7 @@ emu_op_e4:
 	;; if parity odd (P=0), call
 	bsr	f_norm_pv
 	beq	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2117,6 +2127,7 @@ emu_op_ea:
 	;; JP	PE,immed.w
 	bsr	f_norm_pv
 	bne	emu_op_c3
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2131,6 +2142,7 @@ emu_op_ec:
 	;; If parity even (P=1), call
 	bsr	f_norm_c
 	bne	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2180,6 +2192,7 @@ emu_op_f2:
 	;; JP	P,immed.w
 	bsr	f_norm_sign
 	beq	emu_op_c3	; JP
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2247,6 +2260,7 @@ emu_op_fa:
 	;; JP	M,immed.w
 	bsr	f_norm_sign
 	bne	emu_op_c3	; JP
+	add.l	#2,epc
 	DONE			;nok
 
 	START
@@ -2261,6 +2275,7 @@ emu_op_fc:
 	;; Call if minus (S=1)
 	bsr	f_norm_sign
 	bne	emu_op_cd
+	add.l	#2,epc
 	DONE			;nok
 
 	START
