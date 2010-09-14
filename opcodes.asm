@@ -186,7 +186,7 @@ DONE	MACRO
 	ENDM
 
 	;; Timing correction for more precise emulation
-	;; 
+	;;
 	;; \1 is number of tstates the current instruction should take
 	;; \2 is number of cycles taken already
 TIME	MACRO
@@ -673,6 +673,7 @@ emu_op_36:
 emu_op_37:
 	;; SCF
 	;; Set Carry Flag
+	;; XXX flags are more complicated than this :(
 	move.b	#%00111011,flag_valid-flag_storage(a3)
 	move.b	eaf,d1
 	ori.b	#%00000001,d1
