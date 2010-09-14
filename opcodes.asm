@@ -205,8 +205,9 @@ emu_op_01:			; S12 T36
 	START
 emu_op_02:			; S4 T14
 	;; LD	(BC),A
+	;; (BC) <- A
 	;; No flags
-	FETCHB	ebc,eaf
+	PUTB	eaf,ebc
 	DONE
 
 	START
@@ -268,16 +269,14 @@ emu_op_09:
 	;; HL <- HL+BC
 	;; Flags: H, C aff.; N=0
 	F_ADD_W	ebc,ehl
-	DONE
+	DONE			;nok
 
 	START
 emu_op_0a:			; S4 T14
 	;; LD	A,(BC)
 	;; A <- (BC)
 	;; No flags
-	move.w	ebc,d1
-	rol.w	#8,d1
-	FETCHB	d1,eaf
+	FETCHB	ebc,eaf
 	DONE
 
 	START

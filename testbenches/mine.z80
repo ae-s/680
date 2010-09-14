@@ -1,0 +1,26 @@
+;;; -*- asm -*-
+;;; 
+
+.ORG 4000h
+
+	call	dec8
+	halt
+
+inc8:
+	ld	bc,data8	;01
+	;; BC should have &data8
+	ld	a,(bc)		;0a
+	inc	a		;3c
+	ld	(bc),a		;02
+	halt
+
+dec8:
+	ld	a,0a5h		;3e
+	dec	a		;3d
+	ret
+
+
+data8:
+	.db	0a5h
+data16:
+	.dw	data8
