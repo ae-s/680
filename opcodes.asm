@@ -415,7 +415,7 @@ emu_op_18:
 	FETCHBI	d1
 	move.l	epc,a0
 	bsr	underef
-	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
+	add.w	d0,d1		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,epc
 	DONE			;nok
@@ -479,7 +479,8 @@ emu_op_20:
 	;;  PC <- PC+immed.b
 	;; No flags
 	bsr	f_norm_z
-	bne	emu_op_18	; branch taken: zero clear
+	;; if the emulated Z flag is set, this will be clear
+	beq	emu_op_18	; branch taken: Z reset -> eq (zero set)
 	add.l	#1,epc
 	DONE			;nok
 
@@ -674,10 +675,10 @@ emu_op_37:
 	;; SCF
 	;; Set Carry Flag
 	;; XXX flags are more complicated than this :(
-	move.b	#%00111011,flag_valid-flag_storage(a3)
+	ori.b	#%00111011,flag_valid-flag_storage(a3)
 	move.b	eaf,d1
 	ori.b	#%00000001,d1
-	andi.b	#%00101001,d1
+	andi.b	#%11101101,d1
 	or.b	d1,flag_byte-flag_storage(a3)
 	DONE			;nok
 
@@ -1734,7 +1735,7 @@ F_CP_B	MACRO
 	START
 emu_op_b8:
 	;; CP	B
-	move.b	ebc,d2
+	move.w	ebc,d2
 	LOHI	d2
 	F_CP_B	d2,eaf
 	DONE			;nok
@@ -1748,7 +1749,7 @@ emu_op_b9:
 	START
 emu_op_ba:
 	;; CP	D
-	move.b	ede,d2
+	move.w	ede,d2
 	LOHI	d2
 	F_CP_B	d2,eaf
 	DONE			;nok
@@ -1762,7 +1763,7 @@ emu_op_bb:
 	START
 emu_op_bc:
 	;; CP	H
-	move.b	ehl,d2
+	move.w	ehl,d2
 	LOHI	d2
 	F_CP_B	d2,eaf
 	DONE			;nok

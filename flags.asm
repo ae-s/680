@@ -44,7 +44,9 @@ F_ADD_SAVE	MACRO
 	F_SET	#%
 	ENDM
 
-	;; Normalize and return carry bit (is loaded into Z bit)
+	;; Normalize and return inverse of emulated Carry bit (loaded
+	;; into host zero flag)
+
 	;; Destroys d1
 f_norm_c:
 	move.b	flag_valid-flag_storage(a3),d1
@@ -60,7 +62,9 @@ FNC_ok:
 	andi.b	#%00000001,d1
 	rts
 
-	;; Normalize and return zero bit (loaded into Z bit)
+	;; Normalize and return inverse of emulated Zero bit (loaded
+	;; into host zero flag)
+
 	;; Destroys d1
 f_norm_z:
 	move.b	flag_valid-flag_storage(a3),d1
@@ -72,8 +76,9 @@ FNZ_ok:
 	andi.b	#%01000000,d1
 	rts
 
-	;; Normalize and return Parity/oVerflow bit (loaded into Z
-	;; bit)
+	;; Normalize and return inverse of emulated Parity/oVerflow
+	;; bit (loaded into host zero flag)
+
 	;; Destroys d1
 f_norm_pv:
 	move.b	flag_valid-flag_storage(a3),d1
@@ -160,7 +165,9 @@ f_cc_byte:
 	popm	d2-d5
 	rts
 
-	;; Normalize and return Sign bit (loaded into Z bit).
+	;; Normalize and return inverse of emulated Sign bit (loaded
+	;; into host zero flag).
+
 	;; Destroys d1
 f_norm_sign:
 	move.b	flag_valid-flag_storage(a3),d1
