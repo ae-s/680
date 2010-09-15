@@ -86,6 +86,6 @@ alu_cp:
 	move.b	#1,f_tmp_byte
 	andi.b	#%00000010,flag_valid
 	move.b	#%00000010,flag_byte
-	sub	d0,d1
+	sub.b	d0,d1
 	move	sr,f_host_sr
 	rts

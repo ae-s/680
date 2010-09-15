@@ -26,5 +26,5 @@ testbenches/mine.h:	testbenches/mine.bin
 	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' testbenches/mine.bin | sed -e 's/0x *,//g' >> testbenches/mine.h
 	echo '};' >> testbenches/mine.h
 
-testbenches/zexdoc.bin:	testbenches/mine.z80
+testbenches/mine.bin:	testbenches/mine.z80
 	spasm testbenches/mine.z80
