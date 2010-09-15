@@ -741,8 +741,8 @@ emu_op_3f:
 	;; XXX fuck flags
 	bsr	flags_normalize
 	;; 	  SZ5H3PNC
-	andi.b	#%11111110,flag_byte-flag_storage(a3)
 	ori.b	#%00000001,flag_valid-flag_storage(a3)
+	andi.b	#%11111110,flag_byte-flag_storage(a3)
 	DONE			;nok
 
 	START

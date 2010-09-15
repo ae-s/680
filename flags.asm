@@ -177,6 +177,9 @@ flags_normalize:
 	move.b	(f_host_sr+1)(pc),d1	;  8/4
 	;; .w keeps d1 clean
 	andi.w	#%00011111,d1			;  8/4
+
+	;; doesn't this invalidate the previous contents of d1
+	;; entirely?
 	move.b	lut_ccr(pc,d1.w),d1 		; 10/4
 	move.b	flag_valid(pc),d0
 	not.b	d0

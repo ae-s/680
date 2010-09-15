@@ -4,7 +4,7 @@
 .ORG 4000h
 
 	call	cond_jr		;cd
-	halt
+	halt			;76
 
 inc8:
 	ld	bc,data8	;01
