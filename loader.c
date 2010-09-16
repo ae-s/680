@@ -95,7 +95,7 @@ void *deref_page(int number)
 	char *fdata;
 	int fsize;
 
-	sprintf(&page_name, "pg_%02x", number);
+	sprintf(page_name, "pg_%02x", number);
 	hsym = SymFind(SYMSTR(page_name));
 
 	if(hsym.folder == 0)
