@@ -1,14 +1,23 @@
 ASM_FILES=alu.asm flags.asm opcodes.asm ports.asm interrupts.asm main.asm
 ASM=main.asm
-C_FILES=loader.c bankswap.c video.c misc.c debug.c
 C_HEADERS=680.h asm_vars.h
+C_FILES=loader.c bankswap.c video.c misc.c debug.c
+S_FILES=loader.s bankswap.s video.s misc.s debug.s
+O_FILES=loader.o bankswap.o video.o misc.o debug.o
 MADE_FILES=testbenches/zexdoc.h testbenches/mine.h
+MADE_BINS=testbenches/zexdoc.bin testbenches/mine.bin
+OBJ=z680k.89z
 
 TIGCCFLAGS=-Wall
 CFLAGS=-Wall -ltifiles
 
+.PHONY: clean
+
 z680k.89z: $(ASM_FILES) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
-	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o z680k.89z
+	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
+
+clean:
+	rm -f $(S_FILES) $(O_FILES) $(MADE_FILES) $(OBJ) $(MADE_BINS)
 
 packager: packager.c
 	gcc $(CFLAGS) packager.c -o packager
