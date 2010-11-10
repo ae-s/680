@@ -206,7 +206,9 @@ emu_op_01:			; S12 T36
 	;; LD	BC,immed.w
 	;; Read a word and put it in BC
 	;; No flags
+	HOLD_INTS
 	FETCHWI	ebc
+	CONTINUE_INTS
 	DONE
 
 	START
@@ -249,8 +251,10 @@ emu_op_06:			; S10 T26
 	;; Read a byte and put it in B
 	;; B <- immed.b
 	;; No flags
+	HOLD_INTS
 	LOHI	ebc
 	FETCHBI	ebc
+	CONTINUE_INTS
 	HILO	ebc
 	DONE			;nok
 
@@ -315,7 +319,9 @@ emu_op_0d:
 emu_op_0e:			; S6 T18
 	;; LD	C,immed.b
 	;; No flags
+	HOLD_INTS
 	FETCHBI	ebc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -334,6 +340,7 @@ emu_op_10:			; S32
 	;;  and branch by immed.b
 	;;  if B not zero
 	;; No flags
+	HOLD_INTS
 	LOHI	ebc
 	subq.b	#1,ebc
 	beq.s	end_10	; slooooow
@@ -345,13 +352,16 @@ emu_op_10:			; S32
 	move.l	a0,epc
 end_10:
 	HILO	ebc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_11:			; S
 	;; LD	DE,immed.w
 	;; No flags
+	HOLD_INTS
 	FETCHWI	ede
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -392,8 +402,10 @@ emu_op_15:
 emu_op_16:
 	;; LD D,immed.b
 	;; No flags
+	HOLD_INTS
 	LOHI	ede
 	FETCHBI	ede
+	CONTINUE_INTS
 	HILO	ede
 	DONE			;nok
 
@@ -411,6 +423,7 @@ emu_op_18:
 	;; PC <- immed.b
 	;; Branch relative by a signed immediate byte
 	;; No flags
+	HOLD_INTS
 	clr.w	d1
 	FETCHBI	d1
 	move.l	epc,a0
@@ -418,6 +431,7 @@ emu_op_18:
 	add.w	d0,d1		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -461,7 +475,9 @@ emu_op_1d:
 emu_op_1e:
 	;; LD	E,immed.b
 	;; No flags
+	HOLD_INTS
 	FETCHBI	ede
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -478,17 +494,21 @@ emu_op_20:
 	;; if ~Z,
 	;;  PC <- PC+immed.b
 	;; No flags
+	HOLD_INTS
 	bsr	f_norm_z
 	;; if the emulated Z flag is set, this will be clear
 	beq	emu_op_18	; branch taken: Z reset -> eq (zero set)
-	add.l	#1,epc
-	DONE			;nok
+	add.l	#1,epc		; skip over the immediate byte
+	CONTINUE_INTS
+	DONE
 
 	START
 emu_op_21:
 	;; LD	HL,immed.w
 	;; No flags
+	HOLD_INTS
 	FETCHWI	ehl
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -496,7 +516,9 @@ emu_op_22:
 	;; LD	immed.w,HL
 	;; (address) <- HL
 	;; No flags
+	HOLD_INTS
 	FETCHWI	d1
+	CONTINUE_INTS
 	PUTW	ehl,d1
 	DONE			;nok
 
@@ -529,8 +551,10 @@ emu_op_25:
 emu_op_26:
 	;; LD	H,immed.b
 	;; No flags
+	HOLD_INTS
 	LOHI	ehl
 	FETCHBI	ehl
+	CONTINUE_INTS
 	HILO	ehl
 	DONE			;nok
 
@@ -552,9 +576,11 @@ emu_op_28:
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
+	HOLD_INTS
 	bsr	f_norm_z
 	bne	emu_op_18
 	add.l	#1,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -568,7 +594,9 @@ emu_op_29:
 emu_op_2a:
 	;; LD	HL,(immed.w)
 	;; address is absolute
+	HOLD_INTS
 	FETCHWI	d1
+	CONTINUE_INTS
 	FETCHW	d1,ehl
 	DONE			;nok
 
@@ -595,7 +623,9 @@ emu_op_2d:
 	START
 emu_op_2e:
 	;; LD	L,immed.b
+	HOLD_INTS
 	FETCHBI	ehl
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -614,21 +644,26 @@ emu_op_30:
 	bsr	f_norm_c
 	beq	emu_op_18	; branch taken: carry clear
 	add.l	#1,epc
-	DONE			;nok
+	;; INTERRUPTS: there is a race condition above
+	DONE
 
 	START
 emu_op_31:
 	;; LD	SP,immed.w
+	HOLD_INTS
 	FETCHWI	d1
 	bsr	deref
 	movea.l	a0,esp
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_32:
 	;; LD	(immed.w),A
 	;; store indirect
+	HOLD_INTS
 	FETCHWI	d1
+	CONTINUE_INTS
 	rol.w	#8,d1
 	PUTB	eaf,d1
 	DONE			;nok
@@ -640,7 +675,9 @@ emu_op_33:
 	;;
 	;; FYI:  Do not have to deref because this will never cross a
 	;; page boundary.  So sayeth BrandonW.
+	HOLD_INTS
 	addq.w	#1,esp
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -666,7 +703,9 @@ emu_op_35:
 	START
 emu_op_36:
 	;; LD	(HL),immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	PUTB	ehl,d1
 	DONE			;nok
 
@@ -687,26 +726,32 @@ emu_op_38:
 	;; JR	C,immed.b
 	;; If carry set
 	;;  PC <- PC+immed.b
+	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_18
 	add.l	#1,epc
-	DONE			;nok
+	CONTINUE_INTS
+	DONE
 
 	START
 emu_op_39:
 	;; ADD	HL,SP
 	;; HL <- HL+SP
+	HOLD_INTS
 	move.l	esp,a0
 	bsr	underef
 	F_ADD_W	ehl,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,esp
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_3a:
 	;; LD	A,(immed.w)
+	HOLD_INTS
 	FETCHWI	d1
+	CONTINUE_INTS
 	FETCHB	d1,eaf
 	DONE			;nok
 
@@ -732,7 +777,9 @@ emu_op_3d:
 	START
 emu_op_3e:
 	;; LD	A,immed.b
+	HOLD_INTS
 	FETCHBI	eaf
+	CONTINUE_INTS
 	DONE
 
 	START
@@ -1795,16 +1842,20 @@ emu_op_c0:
 	;;   PCl <- (SP)
 	;;   PCh <- (SP+1)
 	;;   SP <- (SP+2)
+	HOLD_INTS
 	bsr	f_norm_z
 	;; SPEED inline RET
 	beq	emu_op_c9	; RET
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_c1:			; S10 T
 	;; POP	BC
 	;; Pops a word into BC
+	HOLD_INTS
 	POPW	ebc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -1812,39 +1863,53 @@ emu_op_c2:
 	;; JP	NZ,immed.w
 	;; if ~Z
 	;;   PC <- immed.w
+	HOLD_INTS
 	bsr	f_norm_z
 	bne.s	emu_op_c3
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_c3:			; S12 T36
 	;; JP	immed.w
 	;; PC <- immed.w
+	HOLD_INTS
 	FETCHWI	d1
 	bsr	deref
 	movea.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_c4:
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
+	HOLD_INTS
 	bsr	f_norm_z
+	;; CALL (emu_op_cd) will run HOLD_INTS again. This doesn't
+	;; matter with the current implementation because HOLD_INTS
+	;; simply sets a bit.
 	bne	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
+	;; INTERRUPTS: there is a race condition above?
 	DONE			;nok
 
 	START
 emu_op_c5:
 	;; PUSH	BC
+	HOLD_INTS
 	PUSHW	ebc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_c6:
 	;; ADD	A,immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	F_ADD_B	d1,eaf
 	DONE			;nok
 
@@ -1853,19 +1918,23 @@ emu_op_c7:
 	;; RST	&0
 	;;  == CALL 0
 	;; XXX check
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$00,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_c8:
 	;; RET	Z
+	HOLD_INTS
 	bsr	f_norm_z
 	beq.s	emu_op_c9
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -1874,18 +1943,22 @@ emu_op_c9:
 	;; PCl <- (SP)
 	;; PCh <- (SP+1)	POPW
 	;; SP <- (SP+2)
+	HOLD_INTS
 	POPW	d1
 	bsr	deref
 	movea.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_ca:
 	;; JP	Z,immed.w
 	;; If Z, jump
+	HOLD_INTS
 	bsr	f_norm_z
 	beq	emu_op_c3
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -1896,9 +1969,11 @@ emu_op_cb:			; prefix
 	START
 emu_op_cc:
 	;; CALL	Z,immed.w
+	HOLD_INTS
 	bsr	f_norm_z
 	beq.s	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -1909,6 +1984,7 @@ emu_op_cd:
 	;;  (SP-2) <- PCl
 	;;  SP <- SP - 2
 	;;  PC <- address
+	HOLD_INTS		; released in JP routine
 	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	add.w	#2,d0
@@ -1918,7 +1994,9 @@ emu_op_cd:
 	START
 emu_op_ce:
 	;; ADC	A,immed.b
+	HOLD_INTS
 	FETCHWI	d1
+	CONTINUE_INTS
 	F_ADC_B	d1,eaf
 	DONE			;nok
 
@@ -1926,61 +2004,77 @@ emu_op_ce:
 emu_op_cf:
 	;; RST	&08
 	;;  == CALL 8
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d0:
 	;; RET	NC
+	HOLD_INTS
 	bsr	f_norm_c
 	beq	emu_op_c9
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d1:
 	;; POP	DE
+	HOLD_INTS
 	POPW	ede
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d2:
 	;; JP	NC,immed.w
+	HOLD_INTS
 	bsr	f_norm_c
 	beq	emu_op_c3
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE
 
 	START
 emu_op_d3:
 	;; OUT	immed.b,A
+	HOLD_INTS
 	move.b	eaf,d1
 	FETCHBI	d0
 	bsr	port_out
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d4:
 	;; CALL	NC,immed.w
+	HOLD_INTS
 	bsr	f_norm_c
 	beq	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d5:
 	;; PUSH	DE
+	HOLD_INTS
 	PUSHW	ede
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d6:
 	;; SUB	A,immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	F_SUB_B	eaf,d1
 	DONE			;nok
 
@@ -1988,19 +2082,23 @@ emu_op_d6:
 emu_op_d7:
 	;; RST	&10
 	;;  == CALL 10
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$10,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_d8:
 	;; RET	C
+	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_c9
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2014,24 +2112,30 @@ emu_op_d9:
 	START
 emu_op_da:
 	;; JP	C,immed.w
+	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_c3
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_db:
 	;; IN	A,immed.b
+	HOLD_INTS
 	move.b	eaf,d1
 	FETCHBI	d0
+	CONTINUE_INTS
 	bsr	port_in
 	DONE			;nok
 
 	START
 emu_op_dc:
 	;; CALL	C,immed.w
+	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2041,7 +2145,9 @@ emu_op_dd:			; prefix
 	START
 emu_op_de:
 	;; SBC	A,immed.b
+	HOLD_INTS
 	FETCHWI	d1
+	CONTINUE_INTS
 	F_SBC_B	d1,eaf
 	DONE			;nok
 
@@ -2049,20 +2155,24 @@ emu_op_de:
 emu_op_df:
 	;; RST	&18
 	;;  == CALL 18
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$18,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_e0:
 	;; RET	PO
 	;; If parity odd (P zero), return
+	HOLD_INTS
 	bsr	f_norm_pv
 	beq	emu_op_c9
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2074,17 +2184,21 @@ emu_op_e1:
 	START
 emu_op_e2:
 	;; JP	PO,immed.w
+	HOLD_INTS
 	bsr	f_norm_pv
 	beq	emu_op_c3
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_e3:
 	;; EX	(SP),HL
 	;; Exchange
+	HOLD_INTS
 	POPW	d1
 	PUSHW	ehl
+	CONTINUE_INTS
 	move.w	d1,ehl
 	DONE			;nok
 
@@ -2092,21 +2206,27 @@ emu_op_e3:
 emu_op_e4:
 	;; CALL	PO,immed.w
 	;; if parity odd (P=0), call
+	HOLD_INTS
 	bsr	f_norm_pv
 	beq	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_e5:
 	;; PUSH	HL
+	HOLD_INTS
 	PUSHW	ehl
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_e6:
 	;; AND	immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	F_AND_B	d1,eaf
 	DONE			;nok
 
@@ -2114,36 +2234,44 @@ emu_op_e6:
 emu_op_e7:
 	;; RST	&20
 	;;  == CALL 20
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$20,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_e8:
 	;; RET	PE
 	;; If parity odd (P zero), return
+	HOLD_INTS
 	bsr	f_norm_pv
 	bne	emu_op_c9
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_e9:
 	;; JP	(HL)
+	HOLD_INTS
 	FETCHB	ehl,d1
 	bsr	deref
 	movea.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_ea:
 	;; JP	PE,immed.w
+	HOLD_INTS
 	bsr	f_norm_pv
 	bne	emu_op_c3
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2156,20 +2284,25 @@ emu_op_eb:
 emu_op_ec:
 	;; CALL	PE,immed.w
 	;; If parity even (P=1), call
+	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_ed:			; prefix
+	;; XXX this probably ought to hold interrupts too
 	movea.w	emu_op_undo_ed(pc),a2
 	DONE			;nok
 
 	START
 emu_op_ee:
 	;; XOR	immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	F_XOR_B	d1,eaf
 	DONE			;nok
 
@@ -2177,20 +2310,24 @@ emu_op_ee:
 emu_op_ef:
 	;; RST	&28
 	;;  == CALL 28
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$28,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_f0:
 	;; RET	P
 	;; Return if Positive
+	HOLD_INTS
 	bsr	f_norm_sign
 	beq	emu_op_c9	; RET
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2206,9 +2343,11 @@ emu_op_f1:
 	START
 emu_op_f2:
 	;; JP	P,immed.w
+	HOLD_INTS
 	bsr	f_norm_sign
 	beq	emu_op_c3	; JP
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2220,17 +2359,21 @@ emu_op_f3:
 emu_op_f4:
 	;; CALL	P,&0000
 	;; Call if positive (S=0)
+	HOLD_INTS
 	bsr	f_norm_sign
 	beq	emu_op_cd
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_f5:
 	;; PUSH	AF
+	HOLD_INTS
 	bsr	flags_normalize
 	LOHI	eaf
 	move.b	flag_byte(pc),eaf
-	;; XXX wrong
+	;; XXX wrong, af isn't normalized by flags_normalize?
+	CONTINUE_INTS
 	HILO	eaf
 	PUSHW	eaf
 	DONE			;nok
@@ -2238,7 +2381,9 @@ emu_op_f5:
 	START
 emu_op_f6:
 	;; OR	immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	F_OR_B	d1,eaf
 	DONE			;nok
 
@@ -2246,37 +2391,45 @@ emu_op_f6:
 emu_op_f7:
 	;; RST	&30
 	;;  == CALL 30
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_f8:
 	;; RET	M
 	;; Return if Sign == 1, minus
+	HOLD_INTS
 	bsr	f_norm_sign
 	bne	emu_op_c9	; RET
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_f9:
 	;; LD	SP,HL
 	;; SP <- HL
+	HOLD_INTS
 	move.w	ehl,d1
 	bsr	deref
 	movea.l	a0,esp
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
 emu_op_fa:
 	;; JP	M,immed.w
+	HOLD_INTS
 	bsr	f_norm_sign
 	bne	emu_op_c3	; JP
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2289,9 +2442,11 @@ emu_op_fb:
 emu_op_fc:
 	;; CALL	M,immed.w
 	;; Call if minus (S=1)
+	HOLD_INTS
 	bsr	f_norm_sign
 	bne	emu_op_cd
 	add.l	#2,epc
+	CONTINUE_INTS
 	DONE			;nok
 
 	START
@@ -2302,7 +2457,9 @@ emu_op_fd:			; prefix
 	START
 emu_op_fe:
 	;; CP	immed.b
+	HOLD_INTS
 	FETCHBI	d1
+	CONTINUE_INTS
 	F_CP_B	d1,eaf
 	DONE			;nok
 
@@ -2310,10 +2467,12 @@ emu_op_fe:
 emu_op_ff:
 	;; RST	&38
 	;;  == CALL 38
+	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
+	CONTINUE_INTS
 	DONE			;nok
