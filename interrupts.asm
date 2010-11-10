@@ -1,21 +1,7 @@
 ;;; interrupt handling code
 
 	;; Current interrupt mode.  IM 1 and friends will modify
-	;; this.
-
-	;; IM 0: A byte is placed on the bus and executed as if it
-	;; were inline in the program.  This emulator will put that
-	;; byte into int_opcode and set epc (or int_jump) to point
-	;; there.
-
-	;; IM 1: RST 38 is executed on every interrupt.
-
-	;; IM 2: Vectored, the address jumped to is as follows:
-	;;
-	;; (I << 8) | (byte & 0xfe)
-	;;
-	;; where I is the I register, and byte is the byte that was
-	;; found on the bus.
+	;; this, it can be any of 0, 1, 2.
 int_mode:	dc.b	0
 
 	;; 0 if interrupts are turned on.
@@ -42,6 +28,15 @@ int_jump:	dc.l	0
 	;; which is followed by an absolute jump to the "next
 	;; instruction". The value of int_jump will then be
 	;; &int_opcode.
+	;;
+	;; This differs slightly from what I understand to be actual
+	;; handling.  The hardware will fetch an immediate argument to
+	;; the interrupting instruction from the next location in
+	;; memory.
+	;;
+	;; This emulator, on the other hand, will fetch the immediate
+	;; argument from the JP instruction in the shim, and then
+	;; dance off into la-la land.
 int_opcode:	dc.b	0
 		dc.b	$c3		; JP immed.w
 int_return:	dc.w	0		; the destination address
@@ -57,7 +52,7 @@ HOLD_INTS	MACRO
 	moveq.b	#1,int_held	; 4 cycles
 	ENDM
 
-	;; This is a macro to release a held interrupts.
+	;; This is a macro to release a held interrupt.
 CONTINUE_INTS	MACRO
 	bsr	ints_continue	; 18 cycles
 	ENDM
@@ -78,15 +73,30 @@ ints_continue_pending:
 	move.b	int_mode,
 
 
+
 	;; This routine emulates a mode 0 interrupt.
+
+	;; IM 0: A byte is placed on the bus and executed as if it
+	;; were inline in the program.  This emulator will put that
+	;; byte into int_opcode and set epc (or int_jump) to point
+	;; there.
 int_do_mode0:
 	rts
 
 	;; This routine emulates a mode 1 interrupt.
+
+	;; IM 1: RST 38 is executed on every interrupt.
 int_do_mode1:
 	rts
 
 	;; This routine emulates a mode 2 interrupt.
+
+	;; IM 2: Vectored, the address jumped to is as follows:
+	;;
+	;; (I << 8) | (byte & 0xfe)
+	;;
+	;; where I is the I register, and byte is the byte that was
+	;; found on the bus.
 int_do_mode2:
 	rts
 
