@@ -644,7 +644,6 @@ emu_op_30:
 	bsr	f_norm_c
 	beq	emu_op_18	; branch taken: carry clear
 	add.l	#1,epc
-	;; INTERRUPTS: there is a race condition above
 	DONE
 
 	START
@@ -1893,7 +1892,6 @@ emu_op_c4:
 	bne	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	;; INTERRUPTS: there is a race condition above?
 	DONE			;nok
 
 	START
