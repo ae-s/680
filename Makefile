@@ -7,8 +7,8 @@ MADE_FILES=testbenches/zexdoc.h testbenches/mine.h
 TIGCCFLAGS=-Wall
 CFLAGS=-Wall -ltifiles
 
-z680.89z: $(ASM_FILES) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
-	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o z680.89z
+z680k.89z: $(ASM_FILES) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
+	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o z680k.89z
 
 packager: packager.c
 	gcc $(CFLAGS) packager.c -o packager
