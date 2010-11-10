@@ -1,5 +1,5 @@
-680: z80 emulator for 68k calculators
-=====================================
+z680k: z80 emulator for 68k calculators
+=======================================
 
 Astrid Smith  
 Project started: 2010-06-06  
