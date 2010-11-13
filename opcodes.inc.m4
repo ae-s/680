@@ -13,3 +13,5 @@ $2
 	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
 undefine(«label»)dnl
 	DONE»)dnl
+dnl
+define(«INT_OFFSET», 6)dnl

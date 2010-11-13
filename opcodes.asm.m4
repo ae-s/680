@@ -101,6 +101,7 @@ _align	SET	0
 START	MACRO
 	ORG	emu_plain_op+_align
 _align	SET	_align+$40
+	jmp	do_interrupt	; for interrupt routines
 	ENDM
 
 	;; LOHI/HILO are hideously slow for instructions used often.
@@ -203,9 +204,7 @@ OPCODE(00,«»,4)
 	;; Read a word and put it in BC
 	;; No flags
 OPCODE(01,«
-	HOLD_INTS
 	FETCHWI	ebc
-	CONTINUE_INTS
 	»,36,,12)
 
 	;; LD	(BC),A
@@ -244,10 +243,8 @@ OPCODE(05,«
 	;; B <- immed.b
 	;; No flags
 OPCODE(06,«
-	HOLD_INTS
 	LOHI	ebc
 	FETCHBI	ebc
-	CONTINUE_INTS
 	HILO	ebc
 	»,26,,10)
 				;nok
@@ -311,9 +308,7 @@ OPCODE(0d,«
 	;; LD	C,immed.b
 	;; No flags
 OPCODE(0e,«
-	HOLD_INTS
 	FETCHBI	ebc
-	CONTINUE_INTS
 	»,18,,6)
 				;nok
 
@@ -332,7 +327,6 @@ OPCODE(0f,«
 	;;  if B not zero
 	;; No flags
 OPCODE(10,«
-	HOLD_INTS
 	LOHI	ebc
 	subq.b	#1,ebc
 	beq.s	local(end)	; slooooow
@@ -344,16 +338,13 @@ OPCODE(10,«
 	move.l	a0,epc
 local(end):
 	HILO	ebc
-	CONTINUE_INTS
 	»,,,32)
 				;nok
 
 	;; LD	DE,immed.w
 	;; No flags
 OPCODE(11,«
-	HOLD_INTS
 	FETCHWI	ede
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -394,10 +385,8 @@ OPCODE(15,«
 	;; LD D,immed.b
 	;; No flags
 OPCODE(16,«
-	HOLD_INTS
 	LOHI	ede
 	FETCHBI	ede
-	CONTINUE_INTS
 	HILO	ede
 	»)
 				;nok
@@ -415,7 +404,6 @@ OPCODE(17,«
 	;; Branch relative by a signed immediate byte
 	;; No flags
 OPCODE(18,«
-	HOLD_INTS
 	clr.w	d1
 	FETCHBI	d1
 	move.l	epc,a0
@@ -423,7 +411,6 @@ OPCODE(18,«
 	add.w	d0,d1		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -467,9 +454,7 @@ OPCODE(1d,«
 	;; LD	E,immed.b
 	;; No flags
 OPCODE(1e,«
-	HOLD_INTS
 	FETCHBI	ede
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -486,20 +471,16 @@ OPCODE(1f,«
 	;;  PC <- PC+immed.b
 	;; No flags
 OPCODE(20,«
-	HOLD_INTS
 	bsr	f_norm_z
 	;; if the emulated Z flag is set, this will be clear
 	beq	emu_op_18	; branch taken: Z reset -> eq (zero set)
 	add.l	#1,epc		; skip over the immediate byte
-	CONTINUE_INTS
 	»)
 
 	;; LD	HL,immed.w
 	;; No flags
 OPCODE(21,«
-	HOLD_INTS
 	FETCHWI	ehl
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -507,9 +488,7 @@ OPCODE(21,«
 	;; (address) <- HL
 	;; No flags
 OPCODE(22,«
-	HOLD_INTS
 	FETCHWI	d1
-	CONTINUE_INTS
 	PUTW	ehl,d1
 	»)
 				;nok
@@ -542,10 +521,8 @@ OPCODE(25,«
 	;; LD	H,immed.b
 	;; No flags
 OPCODE(26,«
-	HOLD_INTS
 	LOHI	ehl
 	FETCHBI	ehl
-	CONTINUE_INTS
 	HILO	ehl
 	»)
 				;nok
@@ -566,11 +543,9 @@ OPCODE(27,«
 	;; SPEED can be made faster
 	;; No flags
 OPCODE(28,«
-	HOLD_INTS
 	bsr	f_norm_z
 	bne	emu_op_18
 	add.l	#1,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -584,9 +559,7 @@ OPCODE(29,«
 	;; LD	HL,(immed.w)
 	;; address is absolute
 OPCODE(2a,«
-	HOLD_INTS
 	FETCHWI	d1
-	CONTINUE_INTS
 	FETCHW	d1,ehl
 	»)
 				;nok
@@ -612,9 +585,7 @@ OPCODE(2d,«
 
 	;; LD	L,immed.b
 OPCODE(2e,«
-	HOLD_INTS
 	FETCHBI	ehl
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -637,20 +608,16 @@ OPCODE(30,«
 
 	;; LD	SP,immed.w
 OPCODE(31,«
-	HOLD_INTS
 	FETCHWI	d1
 	bsr	deref
 	movea.l	a0,esp
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; LD	(immed.w),A
 	;; store indirect
 OPCODE(32,«
-	HOLD_INTS
 	FETCHWI	d1
-	CONTINUE_INTS
 	rol.w	#8,d1
 	PUTB	eaf,d1
 	»)
@@ -662,9 +629,7 @@ OPCODE(32,«
 	;; FYI:  Do not have to deref because this will never cross a
 	;; page boundary.  So sayeth BrandonW.
 OPCODE(33,«
-	HOLD_INTS
 	addq.w	#1,esp
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -690,9 +655,7 @@ OPCODE(35,«
 
 	;; LD	(HL),immed.b
 OPCODE(36,«
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	PUTB	ehl,d1
 	»)
 				;nok
@@ -713,31 +676,25 @@ OPCODE(37,«
 	;; If carry set
 	;;  PC <- PC+immed.b
 OPCODE(38,«
-	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_18
 	add.l	#1,epc
-	CONTINUE_INTS
 	»)
 
 	;; ADD	HL,SP
 	;; HL <- HL+SP
 OPCODE(39,«
-	HOLD_INTS
 	move.l	esp,a0
 	bsr	underef
 	F_ADD_W	ehl,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,esp
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; LD	A,(immed.w)
 OPCODE(3a,«
-	HOLD_INTS
 	FETCHWI	d1
-	CONTINUE_INTS
 	FETCHB	d1,eaf
 	»)
 				;nok
@@ -762,9 +719,7 @@ OPCODE(3d,«
 
 	;; LD	A,immed.b
 OPCODE(3e,«
-	HOLD_INTS
 	FETCHBI	eaf
-	CONTINUE_INTS
 	»)
 
 	;; CCF
@@ -1824,20 +1779,16 @@ OPCODE(bf,«
 	;;   PCh <- (SP+1)
 	;;   SP <- (SP+2)
 OPCODE(c0,«
-	HOLD_INTS
 	bsr	f_norm_z
 	;; SPEED inline RET
 	beq	emu_op_c9	; RET
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; POP	BC
 	;; Pops a word into BC
 OPCODE(c1,«			; S10 T
-	HOLD_INTS
 	POPW	ebc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -1845,52 +1796,42 @@ OPCODE(c1,«			; S10 T
 	;; if ~Z
 	;;   PC <- immed.w
 OPCODE(c2,«
-	HOLD_INTS
 	bsr	f_norm_z
 	bne.s	emu_op_c3
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; JP	immed.w
 	;; PC <- immed.w
 OPCODE(c3,«
-	HOLD_INTS
 	FETCHWI	d1
 	bsr	deref
 	movea.l	a0,epc
-	CONTINUE_INTS
 	»,36,,12)
 				;nok
 
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
 OPCODE(c4,«
-	HOLD_INTS
 	bsr	f_norm_z
 	;; CALL (emu_op_cd) will run HOLD_INTS again. This doesn't
 	;; matter with the current implementation because HOLD_INTS
 	;; simply sets a bit.
 	bne	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; PUSH	BC
 OPCODE(c5,«
-	HOLD_INTS
 	PUSHW	ebc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; ADD	A,immed.b
 OPCODE(c6,«
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	F_ADD_B	d1,eaf
 	»)
 				;nok
@@ -1899,23 +1840,19 @@ OPCODE(c6,«
 	;;  == CALL 0
 	;; XXX check
 OPCODE(c7,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$00,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	Z
 OPCODE(c8,«
-	HOLD_INTS
 	bsr	f_norm_z
 	beq.s	emu_op_c9
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -1924,22 +1861,18 @@ OPCODE(c8,«
 	;; PCh <- (SP+1)	POPW
 	;; SP <- (SP+2)
 OPCODE(c9,«
-	HOLD_INTS
 	POPW	d1
 	bsr	deref
 	movea.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; JP	Z,immed.w
 	;; If Z, jump
 OPCODE(ca,«
-	HOLD_INTS
 	bsr	f_norm_z
 	beq	emu_op_c3
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 	;; prefix
@@ -1950,11 +1883,9 @@ OPCODE(cb,«
 
 	;; CALL	Z,immed.w
 OPCODE(cc,«
-	HOLD_INTS
 	bsr	f_norm_z
 	beq.s	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -1965,7 +1896,6 @@ OPCODE(cc,«
 	;;  SP <- SP - 2
 	;;  PC <- address
 OPCODE(cd,«
-	HOLD_INTS		; released in JP routine
 	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	add.w	#2,d0
@@ -1975,9 +1905,7 @@ OPCODE(cd,«
 
 	;; ADC	A,immed.b
 OPCODE(ce,«
-	HOLD_INTS
 	FETCHWI	d1
-	CONTINUE_INTS
 	F_ADC_B	d1,eaf
 	»)
 				;nok
@@ -1985,76 +1913,60 @@ OPCODE(ce,«
 	;; RST	&08
 	;;  == CALL 8
 OPCODE(cf,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef		; d0 has PC
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	NC
 OPCODE(d0,«
-	HOLD_INTS
 	bsr	f_norm_c
 	beq	emu_op_c9
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; POP	DE
 OPCODE(d1,«
-	HOLD_INTS
 	POPW	ede
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; JP	NC,immed.w
 OPCODE(d2,«
-	HOLD_INTS
 	bsr	f_norm_c
 	beq	emu_op_c3
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 
 	;; OUT	immed.b,A
 OPCODE(d3,«
-	HOLD_INTS
 	move.b	eaf,d1
 	FETCHBI	d0
 	bsr	port_out
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; CALL	NC,immed.w
 OPCODE(d4,«
-	HOLD_INTS
 	bsr	f_norm_c
 	beq	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; PUSH	DE
 OPCODE(d5,«
-	HOLD_INTS
 	PUSHW	ede
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; SUB	A,immed.b
 OPCODE(d6,«
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	F_SUB_B	eaf,d1
 	»)
 				;nok
@@ -2062,23 +1974,19 @@ OPCODE(d6,«
 	;; RST	&10
 	;;  == CALL 10
 OPCODE(d7,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$10,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	C
 OPCODE(d8,«
-	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_c9
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2092,30 +2000,24 @@ OPCODE(d9,«
 
 	;; JP	C,immed.w
 OPCODE(da,«
-	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_c3
-	CONTINUE_INTS
 	»)
 				;nok
 
 OPCODE(db,«
 	;; IN	A,immed.b
-	HOLD_INTS
 	move.b	eaf,d1
 	FETCHBI	d0
-	CONTINUE_INTS
 	bsr	port_in
 	»)
 				;nok
 
 	;; CALL	C,immed.w
 OPCODE(dc,«
-	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2125,9 +2027,7 @@ OPCODE(dd,«			; prefix
 
 	;; SBC	A,immed.b
 OPCODE(de,«
-	HOLD_INTS
 	FETCHWI	d1
-	CONTINUE_INTS
 	F_SBC_B	d1,eaf
 	»)
 				;nok
@@ -2135,24 +2035,20 @@ OPCODE(de,«
 	;; RST	&18
 	;;  == CALL 18
 OPCODE(df,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$18,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	PO
 	;; If parity odd (P zero), return
 OPCODE(e0,«
-	HOLD_INTS
 	bsr	f_norm_pv
 	beq	emu_op_c9
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2164,21 +2060,17 @@ OPCODE(e1,«
 
 	;; JP	PO,immed.w
 OPCODE(e2,«
-	HOLD_INTS
 	bsr	f_norm_pv
 	beq	emu_op_c3
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; EX	(SP),HL
 	;; Exchange
 OPCODE(e3,«
-	HOLD_INTS
 	POPW	d1
 	PUSHW	ehl
-	CONTINUE_INTS
 	move.w	d1,ehl
 	»)
 				;nok
@@ -2186,27 +2078,21 @@ OPCODE(e3,«
 	;; CALL	PO,immed.w
 	;; if parity odd (P=0), call
 OPCODE(e4,«
-	HOLD_INTS
 	bsr	f_norm_pv
 	beq	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; PUSH	HL
 OPCODE(e5,«
-	HOLD_INTS
 	PUSHW	ehl
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; AND	immed.b
 OPCODE(e6,«
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	F_AND_B	d1,eaf
 	»)
 				;nok
@@ -2214,44 +2100,36 @@ OPCODE(e6,«
 	;; RST	&20
 	;;  == CALL 20
 OPCODE(e7,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$20,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	PE
 	;; If parity odd (P zero), return
 OPCODE(e8,«
-	HOLD_INTS
 	bsr	f_norm_pv
 	bne	emu_op_c9
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; JP	(HL)
 OPCODE(e9,«
-	HOLD_INTS
 	FETCHB	ehl,d1
 	bsr	deref
 	movea.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; JP	PE,immed.w
 OPCODE(ea,«
-	HOLD_INTS
 	bsr	f_norm_pv
 	bne	emu_op_c3
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2264,11 +2142,9 @@ OPCODE(eb,«
 	;; CALL	PE,immed.w
 	;; If parity even (P=1), call
 OPCODE(ec,«
-	HOLD_INTS
 	bsr	f_norm_c
 	bne	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2280,9 +2156,7 @@ OPCODE(ed,«			; prefix
 
 	;; XOR	immed.b
 OPCODE(ee,«
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	F_XOR_B	d1,eaf
 	»)
 				;nok
@@ -2290,24 +2164,20 @@ OPCODE(ee,«
 	;; RST	&28
 	;;  == CALL 28
 OPCODE(ef,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$28,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	P
 	;; Return if Positive
 OPCODE(f0,«
-	HOLD_INTS
 	bsr	f_norm_sign
 	beq	emu_op_c9	; RET
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2323,11 +2193,9 @@ OPCODE(f1,«
 
 	;; JP	P,immed.w
 OPCODE(f2,«
-	HOLD_INTS
 	bsr	f_norm_sign
 	beq	emu_op_c3	; JP
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2339,21 +2207,17 @@ OPCODE(f3,«
 	;; CALL	P,&0000
 	;; Call if positive (S=0)
 OPCODE(f4,«
-	HOLD_INTS
 	bsr	f_norm_sign
 	beq	emu_op_cd
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; PUSH	AF
 OPCODE(f5,«
-	HOLD_INTS
 	bsr	flags_normalize
 	LOHI	eaf
 	move.b	flag_byte(pc),eaf
 	;; XXX wrong, af is not normalized by flags_normalize?
-	CONTINUE_INTS
 	HILO	eaf
 	PUSHW	eaf
 	»)
@@ -2361,9 +2225,7 @@ OPCODE(f5,«
 
 OPCODE(f6,«
 	;; OR	immed.b
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	F_OR_B	d1,eaf
 	»)
 				;nok
@@ -2371,45 +2233,37 @@ OPCODE(f6,«
 	;; RST	&30
 	;;  == CALL 30
 OPCODE(f7,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; RET	M
 	;; Return if Sign == 1, minus
 OPCODE(f8,«
-	HOLD_INTS
 	bsr	f_norm_sign
 	bne	emu_op_c9	; RET
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; LD	SP,HL
 	;; SP <- HL
 OPCODE(f9,«
-	HOLD_INTS
 	move.w	ehl,d1
 	bsr	deref
 	movea.l	a0,esp
-	CONTINUE_INTS
 	»)
 				;nok
 
 	;; JP	M,immed.w
 OPCODE(fa,«
-	HOLD_INTS
 	bsr	f_norm_sign
 	bne	emu_op_c3	; JP
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2422,11 +2276,9 @@ OPCODE(fb,«
 	;; CALL	M,immed.w
 	;; Call if minus (S=1)
 OPCODE(fc,«
-	HOLD_INTS
 	bsr	f_norm_sign
 	bne	emu_op_cd
 	add.l	#2,epc
-	CONTINUE_INTS
 	»)
 				;nok
 
@@ -2437,9 +2289,7 @@ OPCODE(fd,«			; prefix
 
 	;; CP	immed.b
 OPCODE(fe,«
-	HOLD_INTS
 	FETCHBI	d1
-	CONTINUE_INTS
 	F_CP_B	d1,eaf
 	»)
 				;nok
@@ -2447,13 +2297,11 @@ OPCODE(fe,«
 	;; RST	&38
 	;;  == CALL 38
 OPCODE(ff,«
-	HOLD_INTS
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
 	move.w	#$08,d0
 	bsr	deref
 	move.l	a0,epc
-	CONTINUE_INTS
 	»)
 				;nok
