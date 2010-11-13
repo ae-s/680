@@ -199,7 +199,6 @@ emu_plain_op:			; Size(bytes) Time(cycles)
 	;; NOP
 OPCODE(00,`',4)
 
-				; S12 T36
 	;; LD	BC,immed.w
 	;; Read a word and put it in BC
 	;; No flags
@@ -207,23 +206,21 @@ OPCODE(01,`
 	HOLD_INTS
 	FETCHWI	ebc
 	CONTINUE_INTS
-	')
+	',36,,12)
 
-				; S4 T14
 	;; LD	(BC),A
 	;; (BC) <- A
 	;; No flags
 OPCODE(02,`
 	PUTB	eaf,ebc
-	')
+	',14,,4)
 
-				; S2 T4
 	;; INC	BC
 	;; BC <- BC+1
 	;; No flags
 OPCODE(03,`
 	F_INC_W	ebc
-	')
+	',4,,2)
 
 	;; INC	B
 	;; B <- B+1
@@ -239,9 +236,9 @@ OPCODE(05,`
 	LOHI	ebc
 	F_DEC_B	ebc
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
-				; S10 T26
 	;; LD	B,immed.b
 	;; Read a byte and put it in B
 	;; B <- immed.b
@@ -252,67 +249,73 @@ OPCODE(06,`
 	FETCHBI	ebc
 	CONTINUE_INTS
 	HILO	ebc
-	')			;nok
+	',26,,10)
+				;nok
 
 	;; RLCA
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
 	;; XXX flags
-OPCODE(07,`			; S2 T4
+OPCODE(07,`
 	rol.b	#1,eaf
-	')			;nok
+	',4,,2)
+				;nok
 
 	;; EX	AF,AF'
 	;; No flags
 	;; XXX AF
-OPCODE(08,`			; S2 T4
+OPCODE(08,
 	swap	eaf
-	')			;nok
+	',4,,2)
+				;nok
 
 	;; ADD	HL,BC
 	;; HL <- HL+BC
 	;; Flags: H, C aff.; N=0
 OPCODE(09,`
 	F_ADD_W	ebc,ehl
-	')			;nok
+	')
+				;nok
 
-				; S4 T14
 	;; LD	A,(BC)
 	;; A <- (BC)
 	;; No flags
 OPCODE(0a,`
 	FETCHB	ebc,eaf
-	')
+	',14,,4)
 
 	;; DEC	BC
 	;; BC <- BC-1
 	;; No flags
-OPCODE(0b,`			; S2 T4
+OPCODE(0b,`
 	F_DEC_W	ebc
-	')			;nok
+	',4,,2)
+				;nok
 
 	;; INC	C
 	;; C <- C+1
 	;; Flags: S,Z,H aff.; P=overflow, N=0
 OPCODE(0c,`
 	F_INC_B	ebc
-	')			;nok
+	')
+				;nok
 
 	;; DEC	C
 	;; C <- C-1
 	;; Flags: S,Z,H aff., P=overflow, N=1
 OPCODE(0d,`
 	F_DEC_B	ebc
-	')			;nok
+	')
+				;nok
 
-				; S6 T18
 	;; LD	C,immed.b
 	;; No flags
 OPCODE(0e,`
 	HOLD_INTS
 	FETCHBI	ebc
 	CONTINUE_INTS
-	')			;nok
+	',18,,6)
+				;nok
 
 	;; RRCA
 	;; Rotate A right, carry bit gets top bit
@@ -320,9 +323,9 @@ OPCODE(0e,`
 	;; XXX FLAGS
 OPCODE(0f,`
 	ror.b	#1,eaf
-	')			;nok
+	')
+				;nok
 
-				; S32
 	;; DJNZ	immed.w
 	;; Decrement B
 	;;  and branch by immed.b
@@ -342,7 +345,8 @@ OPCODE(10,`
 local(end):
 	HILO	ebc
 	CONTINUE_INTS
-	')			;nok
+	',,,32)
+				;nok
 
 	;; LD	DE,immed.w
 	;; No flags
@@ -350,7 +354,8 @@ OPCODE(11,`
 	HOLD_INTS
 	FETCHWI	ede
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; LD	(DE),A
 	;; No flags
@@ -358,13 +363,15 @@ OPCODE(12,`
 	move.w	ede,d0
 	rol.w	#8,d0
 	FETCHB	d0,eaf
-	')			;nok
+	')
+				;nok
 
 	;; INC	DE
 	;; No flags
 OPCODE(13,`
 	F_INC_W	ede
-	')			;nok
+	')
+				;nok
 
 	;; INC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=0
@@ -372,7 +379,8 @@ OPCODE(14,`
 	LOHI	ede
 	F_INC_B	ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; DEC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=1
@@ -380,7 +388,8 @@ OPCODE(15,`
 	LOHI	ede
 	F_DEC_B	ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD D,immed.b
 	;; No flags
@@ -390,14 +399,16 @@ OPCODE(16,`
 	FETCHBI	ede
 	CONTINUE_INTS
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; RLA
 	;; Flags: P,N=0; C aff.
 	;; XXX flags
 OPCODE(17,`
 	roxl.b	#1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; JR	immed.b
 	;; PC <- immed.b
@@ -413,39 +424,45 @@ OPCODE(18,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; ADD	HL,DE
 	;; HL <- HL+DE
 	;; Flags: H,C aff,; N=0
 OPCODE(19,`
 	F_ADD_W	ede,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,(DE)
 	;; A <- (DE)
 	;; No flags
 OPCODE(1a,`
 	FETCHB	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; DEC	DE
 	;; No flags
 OPCODE(1b,`
 	subq.w	#1,ede
-	')			;nok
+	')
+				;nok
 
 	;; INC	E
 	;; Flags: S,Z,H aff.; P=overflow; N=0
 OPCODE(1c,`
 	F_INC_B	ede
-	')			;nok
+	')
+				;nok
 
 	;; DEC	E
 	;; Flags: S,Z,H aff.; P=overflow, N=1
 OPCODE(1d,`
 	F_DEC_B	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,immed.b
 	;; No flags
@@ -453,14 +470,16 @@ OPCODE(1e,`
 	HOLD_INTS
 	FETCHBI	ede
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RRA
 	;; Flags: H,N=0; C aff.
 	;; XXX FLAGS
 OPCODE(1f,`
 	roxr.b	#1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; JR	NZ,immed.b
 	;; if ~Z,
@@ -481,7 +500,8 @@ OPCODE(21,`
 	HOLD_INTS
 	FETCHWI	ehl
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; LD	immed.w,HL
 	;; (address) <- HL
@@ -491,13 +511,15 @@ OPCODE(22,`
 	FETCHWI	d1
 	CONTINUE_INTS
 	PUTW	ehl,d1
-	')			;nok
+	')
+				;nok
 
 	;; INC	HL
 	;; No flags
 OPCODE(23,`
 	addq.w	#1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; INC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=0
@@ -505,7 +527,8 @@ OPCODE(24,`
 	LOHI	ehl
 	F_INC_B	ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; DEC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=1
@@ -513,7 +536,8 @@ OPCODE(25,`
 	LOHI	ehl
 	F_DEC_B	ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,immed.b
 	;; No flags
@@ -523,7 +547,8 @@ OPCODE(26,`
 	FETCHBI	ehl
 	CONTINUE_INTS
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; DAA
 	;; Decrement, adjust accum
@@ -531,9 +556,9 @@ OPCODE(26,`
 	;; Flags: oh lord they're fucked up
 	;; XXX DO THIS
 OPCODE(27,`
-
 	F_PAR	eaf
-	')			;nok
+	')
+				;nok
 
 	;; JR Z,immed.b
 	;; If zero
@@ -546,13 +571,15 @@ OPCODE(28,`
 	bne	emu_op_18
 	add.l	#1,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; ADD	HL,HL
 	;; No flags
 OPCODE(29,`
 	F_ADD_W	ehl,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	HL,(immed.w)
 	;; address is absolute
@@ -561,38 +588,43 @@ OPCODE(2a,`
 	FETCHWI	d1
 	CONTINUE_INTS
 	FETCHW	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; XXX TOO LONG
-
 	;; DEC	HL
 OPCODE(2b,`
 	F_DEC_W	ehl
-	')			;nok
+	')
+				;nok
 
 	;; INC	L
 OPCODE(2c,`
 	F_INC_B	ehl
-	')			;nok
+	')
+				;nok
 
 	;; DEC	L
 OPCODE(2d,`
 	F_DEC_B	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,immed.b
 OPCODE(2e,`
 	HOLD_INTS
 	FETCHBI	ehl
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; CPL
 	;; A <- NOT A
 	;; XXX flags
 OPCODE(2f,`
 	not.b	eaf
-	')			;nok
+	')
+				;nok
 
 	;; JR	NC,immed.b
 	;; If carry clear
@@ -610,7 +642,8 @@ OPCODE(31,`
 	bsr	deref
 	movea.l	a0,esp
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; LD	(immed.w),A
 	;; store indirect
@@ -620,7 +653,8 @@ OPCODE(32,`
 	CONTINUE_INTS
 	rol.w	#8,d1
 	PUTB	eaf,d1
-	')			;nok
+	')
+				;nok
 
 	;; INC	SP
 	;; No flags
@@ -631,7 +665,8 @@ OPCODE(33,`
 	HOLD_INTS
 	addq.w	#1,esp
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; INC	(HL)
 	;; Increment byte
@@ -640,7 +675,8 @@ OPCODE(34,`
 	FETCHB	ehl,d1
 	F_INC_B	d1
 	PUTB	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; DEC	(HL)
 	;; Decrement byte
@@ -649,7 +685,8 @@ OPCODE(35,`
 	FETCHB	ehl,d1
 	F_DEC_B	d1
 	PUTB	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),immed.b
 OPCODE(36,`
@@ -657,7 +694,8 @@ OPCODE(36,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	PUTB	ehl,d1
-	')			;nok
+	')
+				;nok
 
 	;; SCF
 	;; Set Carry Flag
@@ -668,7 +706,8 @@ OPCODE(37,`
 	ori.b	#%00000001,d1
 	andi.b	#%11101101,d1
 	or.b	d1,flag_byte-flag_storage(a3)
-	')			;nok
+	')
+				;nok
 
 	;; JR	C,immed.b
 	;; If carry set
@@ -691,7 +730,8 @@ OPCODE(39,`
 	bsr	deref
 	move.l	a0,esp
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,(immed.w)
 OPCODE(3a,`
@@ -699,13 +739,15 @@ OPCODE(3a,`
 	FETCHWI	d1
 	CONTINUE_INTS
 	FETCHB	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; DEC	SP
 	;; No flags
 OPCODE(3b,`
 	subq.l	#1,esp
-	')			;nok
+	')
+				;nok
 
 	;; INC	A
 OPCODE(3c,`
@@ -715,7 +757,8 @@ OPCODE(3c,`
 	;; DEC	A
 OPCODE(3d,`
 	F_DEC_B	eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,immed.b
 OPCODE(3e,`
@@ -732,7 +775,8 @@ OPCODE(3f,`
 	;; 	  SZ5H3PNC
 	ori.b	#%00000001,flag_valid-flag_storage(a3)
 	andi.b	#%11111110,flag_byte-flag_storage(a3)
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,B
 	;; SPEED
@@ -740,14 +784,16 @@ OPCODE(40,`
 	LOHI	ebc
 	move.b	ebc,ebc
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,C
 OPCODE(41,`
 	move.w	ebc,d1
 	LOHI	d1
 	move.b	d1,ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,D
 	;; B <- D
@@ -758,7 +804,8 @@ OPCODE(42,`
 	move.b	ede,ebc
 	HILO	ebc
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,E
 	;; B <- E
@@ -766,7 +813,8 @@ OPCODE(43,`
 	LOHI	ebc
 	move.b	ebc,ede		; 4
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,H
 	;; B <- H
@@ -777,7 +825,8 @@ OPCODE(44,`
 	move.b	ehl,ebc
 	HILO	ebc
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,L
 	;; B <- L
@@ -785,7 +834,8 @@ OPCODE(45,`
 	LOHI	ebc
 	move.b	ehl,ebc
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,(HL)
 	;; B <- (HL)
@@ -793,7 +843,8 @@ OPCODE(46,`
 	LOHI	ebc
 	FETCHB	ehl,ebc
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	B,A
 	;; B <- A
@@ -801,7 +852,8 @@ OPCODE(47,`
 	LOHI	ebc
 	move.b	eaf,ebc
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,B
 	;; C <- B
@@ -810,12 +862,14 @@ OPCODE(48,`
 	move.b	(sp),ebc
 	;; XXX emfasten?
 	addq.l #2,sp
-	')			;nok
-				;14 cycles
+	')
+				;nok
+
 	;; LD	C,C
 OPCODE(49,`
 	move.b	ebc,ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,D
 OPCODE(4a,`
@@ -823,35 +877,41 @@ OPCODE(4a,`
 	move.b	(sp),ebc
 	;; XXX emfasten?
 	addq.l #2,sp
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,E
 OPCODE(4b,`
 	move.b	ebc,ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,H
 OPCODE(4c,`
 	LOHI	ehl
 	move.b	ebc,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,L
 OPCODE(4d,`
 	move.b	ebc,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,(HL)
 	;; C <- (HL)
 OPCODE(4e,`
 	FETCHB	ehl,ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	C,A
 OPCODE(4f,`
 	move.b	eaf,ebc
-	')			;nok
+	')
+				;nok
 
 ; faster (slightly bigger) if we abuse sp again, something along the lines of (UNTESTED)
 ; move.w ebc,-(sp)   ; 8, 2
@@ -866,18 +926,21 @@ OPCODE(50,`
 	move.b	ebc,ede
 	HILO	ebc
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	D,C
 OPCODE(51,`
 	LOHI	ede
 	move.b	ebc,ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	D,D
 OPCODE(52,`
-	')			;nok
+	')
+				;nok
 
 	;; LD	D,E
 OPCODE(53,`
@@ -885,7 +948,8 @@ OPCODE(53,`
 	move.b	ede,d1
 	lsl	#8,d1
 	or.w	d1,ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	D,H
 OPCODE(54,`
@@ -894,7 +958,8 @@ OPCODE(54,`
 	move.b	ehl,ede		; 4
 	HILO	ede		; 4
 	HILO	ehl		; 4
-	')			;nok
+	',20)
+				;nok
 				;20 cycles
 
 	;; LD	D,L
@@ -902,7 +967,8 @@ OPCODE(55,`
 	LOHI	ede
 	move.b	ehl,ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	D,(HL)
 	;; D <- (HL)
@@ -910,26 +976,30 @@ OPCODE(56,`
 	LOHI	ede
 	FETCHB	ehl,ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	D,A
 OPCODE(57,`
 	LOHI	ede
 	move.b	eaf,ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,B
 OPCODE(58,`
 	LOHI	ebc
 	move.b	ebc,ede
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,C
 OPCODE(59,`
 	move.b	ebc,ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,D
 OPCODE(5a,`
@@ -937,35 +1007,40 @@ OPCODE(5a,`
 	move.b	ede,d1		; 4/2
 	lsr.w	#8,d1		;22/2
 	or.w	d1,ede		; 4/2
-	')			;nok
-				;38/2
+	',38,,2)
+				;nok
 
 	;; LD	E,E
 OPCODE(5b,`
 	move.b	ede,ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,H
 OPCODE(5c,`
 	LOHI	ehl
 	move.b	ede,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,L
 OPCODE(5d,`
 	move.b	ede,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,(HL)
 OPCODE(5e,`
 	FETCHB	ehl,d1
-	')			;nok
+	')
+				;nok
 
 	;; LD	E,A
 OPCODE(5f,`
 	move.b	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,B
 OPCODE(60,`
@@ -974,14 +1049,16 @@ OPCODE(60,`
 	move.b	ehl,ebc
 	HILO	ebc
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,C
 OPCODE(61,`
 	LOHI	ehl
 	move.b	ebc,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,D
 OPCODE(62,`
@@ -990,21 +1067,24 @@ OPCODE(62,`
 	move.b	ede,ehl
 	HILO	ede
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,E
 OPCODE(63,`
 	LOHI	ehl
 	move.b	ede,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,H
 OPCODE(64,`
 	LOHI	ehl
 	move.b	ehl,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,L
 	;; H <- L
@@ -1013,7 +1093,8 @@ OPCODE(65,`
 	LOHI	ehl
 	move.b	d1,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,(HL)
 OPCODE(66,`
@@ -1021,155 +1102,181 @@ OPCODE(66,`
 	LOHI	ehl
 	move.b	d1,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	H,A
 OPCODE(67,`
 	LOHI	ehl
 	move.b	eaf,ehl
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,B
 OPCODE(68,`
 	LOHI	ebc
 	move.b	ebc,ehl
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,C
 OPCODE(69,`
 	move.b	ebc,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,D
 OPCODE(6a,`
 	LOHI	ede
 	move.b	ede,ehl
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,E
 OPCODE(6b,`
 	move.b	ede,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,H
 OPCODE(6c,`
 	move.b	ehl,d1
 	LOHI	d1
 	move.b	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,L
 OPCODE(6d,`
 	move.b	ehl,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,(HL)
 	;; L <- (HL)
 OPCODE(6e,`
 	FETCHB	ehl,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	L,A
 OPCODE(6f,`
 	move.b	eaf,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),B
 OPCODE(70,`
 	LOHI	ebc
 	PUTB	ehl,ebc
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),C
 OPCODE(71,`
 	PUTB	ehl,ebc
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),D
 OPCODE(72,`
 	LOHI	ede
 	PUTB	ehl,ede
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),E
 OPCODE(73,`
 	PUTB	ehl,ede
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),H
 OPCODE(74,`
 	move.w	ehl,d1
 	HILO	d1
 	PUTB	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),L
 OPCODE(75,`
 	move.b	ehl,d1
 	PUTB	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; HALT
 	;; XXX do this
 OPCODE(76,`
 	bra	emu_op_76
-	')			;nok
+	')
+				;nok
 
 	;; LD	(HL),A
 OPCODE(77,`
 	PUTB	eaf,ehl
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,B
 OPCODE(78,`
 	move.w	ebc,d1
 	LOHI	d1
 	move.b	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,C
 OPCODE(79,`
 	move.b	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,D
 OPCODE(7a,`
 	move.w	ede,d1
 	LOHI	d1
 	move.b	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,E
 OPCODE(7b,`
 	move.b	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,H
 OPCODE(7c,`
 	move.w	ehl,d1
 	LOHI	d1
 	move.b	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,L
 OPCODE(7d,`
 	move.b	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,(HL)
 	;; A <- (HL)
 OPCODE(7e,`
 	FETCHB	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; LD	A,A
 OPCODE(7f,`
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1186,36 +1293,42 @@ OPCODE(80,`
 	LOHI	ebc
 	F_ADD_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,C
 OPCODE(81,`
 	F_ADD_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,D
 OPCODE(82,`
 	LOHI	ede
 	F_ADD_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,E
 OPCODE(83,`
 	F_ADD_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,H
 OPCODE(84,`
 	LOHI	ehl
 	F_ADD_B	ehl,eaf
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,L
 OPCODE(85,`
 	F_ADD_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,(HL)
 	;; XXX size?
@@ -1223,12 +1336,14 @@ OPCODE(86,`
 	FETCHB	ehl,d2
 	F_ADD_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,A
 OPCODE(87,`
 	F_ADD_B	eaf,eaf
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1246,50 +1361,58 @@ OPCODE(88,`
 	LOHI	ebc
 	F_ADC_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,C
 	;; A <- A + C + (carry)
 OPCODE(89,`
 	F_ADC_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,D
 OPCODE(8a,`
 	LOHI	ede
 	F_ADC_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,E
 	;; A <- A + E + carry
 OPCODE(8b,`
 	F_ADC_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,H
 OPCODE(8c,`
 	LOHI	eaf
 	F_ADC_B	ehl,eaf
 	HILO	eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,L
 OPCODE(8d,`
 	F_ADC_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,(HL)
 OPCODE(8e,`
 	FETCHB	ehl,d2
 	F_ADC_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 	;; ADC	A,A
 OPCODE(8f,`
 	F_ADC_B	eaf,eaf
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1308,31 +1431,36 @@ OPCODE(90,`
 	LOHI	ebc
 	F_SUB_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,C
 OPCODE(91,`
 	F_SUB_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,D
 OPCODE(92,`
 	LOHI	ede
 	F_SUB_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,E
 OPCODE(93,`
 	F_SUB_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,H
 OPCODE(94,`
 	LOHI	ehl
 	F_SUB_B	ehl,eaf
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,L
 OPCODE(95,`
@@ -1344,12 +1472,14 @@ OPCODE(96,`
 	FETCHB	ehl,d2
 	F_SUB_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,A
 OPCODE(97,`
 	F_SUB_B	eaf,eaf
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1367,48 +1497,56 @@ OPCODE(98,`
 	LOHI	ebc
 	F_SBC_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,C
 OPCODE(99,`
 	F_SBC_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,D
 OPCODE(9a,`
 	LOHI	ede
 	F_SBC_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,E
 OPCODE(9b,`
 	F_SBC_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,H
 OPCODE(9c,`
 	LOHI	ehl
 	F_SBC_B	ehl,eaf
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,L
 OPCODE(9d,`
 	F_SBC_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,(HL)
 OPCODE(9e,`
 	FETCHB	ehl,d2
 	F_SBC_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 	;; SBC	A,A
 OPCODE(9f,`
 	F_SBC_B	eaf,eaf
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1426,7 +1564,8 @@ OPCODE(a0,`
 	LOHI	ebc
 	F_AND_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; AND	C
 OPCODE(a1,`
@@ -1438,37 +1577,43 @@ OPCODE(a2,`
 	LOHI	ede
 	F_AND_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; AND	E
 OPCODE(a3,`
 	F_AND_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; AND	H
 OPCODE(a4,`
 	LOHI	ehl
 	F_AND_B	ehl,eaf
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; AND	L
 OPCODE(a5,`
 	F_AND_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; AND	(HL)
 OPCODE(a6,`
 	FETCHB	ehl,d2
 	F_AND_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 	;; AND	A
 	;; SPEED ... It's probably not necessary to run this faster.
 OPCODE(a7,`
 	F_AND_B	eaf,eaf
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1486,49 +1631,57 @@ OPCODE(a8,`
 	LOHI	ebc
 	F_XOR_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; XOR	C
 OPCODE(a9,`
 	F_XOR_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; XOR	D
 OPCODE(aa,`
 	LOHI	ede
 	F_XOR_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; XOR	E
 OPCODE(ab,`
 	F_XOR_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; XOR	H
 OPCODE(ac,`
 	LOHI	ehl
 	F_XOR_B	ehl,eaf
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; XOR	L
 OPCODE(ad,`
 	F_XOR_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; XOR	(HL)
 OPCODE(ae,`
 	FETCHB	ehl,d2
 	F_XOR_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 	;; XOR	A
 OPCODE(af,`
 	F_XOR_B	eaf,eaf
 	;; XXX
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1546,48 +1699,56 @@ OPCODE(b0,`
 	LOHI	ebc
 	F_OR_B	ebc,eaf
 	HILO	ebc
-	')			;nok
+	')
+				;nok
 
 	;; OR	C
 OPCODE(b1,`
 	F_OR_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; OR	D
 OPCODE(b2,`
 	LOHI	ede
 	F_OR_B	ede,eaf
 	HILO	ede
-	')			;nok
+	')
+				;nok
 
 	;; OR	E
 OPCODE(b3,`
 	F_OR_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; OR	H
 OPCODE(b4,`
 	LOHI	ehl
 	F_OR_B	ehl,eaf
 	HILO	ehl
-	')			;nok
+	')
+				;nok
 
 	;; OR	L
 OPCODE(b5,`
 	F_OR_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; OR	(HL)
 OPCODE(b6,`
 	FETCHB	ehl,d2
 	F_OR_B	d2,eaf
 	PUTB	d2,ehl
-	')			;nok
+	')
+				;nok
 
 OPCODE(b7,`
 	;; OR	A
 	F_OR_B	eaf,eaf
-	')			;nok
+	')
+				;nok
 
 
 
@@ -1607,43 +1768,50 @@ OPCODE(b8,`
 	move.w	ebc,d2
 	LOHI	d2
 	F_CP_B	d2,eaf
-	')			;nok
+	')
+				;nok
 
 	;; CP	C
 OPCODE(b9,`
 	F_CP_B	ebc,eaf
-	')			;nok
+	')
+				;nok
 
 	;; CP	D
 OPCODE(ba,`
 	move.w	ede,d2
 	LOHI	d2
 	F_CP_B	d2,eaf
-	')			;nok
+	')
+				;nok
 
 	;; CP	E
 OPCODE(bb,`
 	F_CP_B	ede,eaf
-	')			;nok
+	')
+				;nok
 
 	;; CP	H
 OPCODE(bc,`
 	move.w	ehl,d2
 	LOHI	d2
 	F_CP_B	d2,eaf
-	')			;nok
+	')
+				;nok
 
 	;; CP	L
 OPCODE(bd,`
 	F_CP_B	ehl,eaf
-	')			;nok
+	')
+				;nok
 
 	;; CP	(HL)
 OPCODE(be,`
 	FETCHB	ehl,d2
 	F_CP_B	d2,eaf
 	;; no result to store
-	')			;nok
+	')
+				;nok
 
 	;; CP	A
 OPCODE(bf,`
@@ -1661,7 +1829,8 @@ OPCODE(c0,`
 	;; SPEED inline RET
 	beq	emu_op_c9	; RET
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; POP	BC
 	;; Pops a word into BC
@@ -1669,7 +1838,8 @@ OPCODE(c1,`			; S10 T
 	HOLD_INTS
 	POPW	ebc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; JP	NZ,immed.w
 	;; if ~Z
@@ -1680,9 +1850,9 @@ OPCODE(c2,`
 	bne.s	emu_op_c3
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
-				; S12 T36
 	;; JP	immed.w
 	;; PC <- immed.w
 OPCODE(c3,`
@@ -1691,7 +1861,8 @@ OPCODE(c3,`
 	bsr	deref
 	movea.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	',36,,12)
+				;nok
 
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
@@ -1704,14 +1875,16 @@ OPCODE(c4,`
 	bne	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; PUSH	BC
 OPCODE(c5,`
 	HOLD_INTS
 	PUSHW	ebc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; ADD	A,immed.b
 OPCODE(c6,`
@@ -1719,7 +1892,8 @@ OPCODE(c6,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	F_ADD_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&0
 	;;  == CALL 0
@@ -1733,7 +1907,8 @@ OPCODE(c7,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	Z
 OPCODE(c8,`
@@ -1741,7 +1916,8 @@ OPCODE(c8,`
 	bsr	f_norm_z
 	beq.s	emu_op_c9
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET
 	;; PCl <- (SP)
@@ -1753,7 +1929,8 @@ OPCODE(c9,`
 	bsr	deref
 	movea.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; JP	Z,immed.w
 	;; If Z, jump
@@ -1763,9 +1940,10 @@ OPCODE(ca,`
 	beq	emu_op_c3
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
-
-OPCODE(cb,`			; prefix
+	')
+				;nok
+	;; prefix
+OPCODE(cb,`
 	movea.w	emu_op_undo_cb(pc),a2
 	')
 	;; nok
@@ -1777,7 +1955,8 @@ OPCODE(cc,`
 	beq.s	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; CALL	immed.w
 	;; (Like JSR on 68k)
@@ -1800,7 +1979,8 @@ OPCODE(ce,`
 	FETCHWI	d1
 	CONTINUE_INTS
 	F_ADC_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&08
 	;;  == CALL 8
@@ -1813,7 +1993,8 @@ OPCODE(cf,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	NC
 OPCODE(d0,`
@@ -1821,14 +2002,16 @@ OPCODE(d0,`
 	bsr	f_norm_c
 	beq	emu_op_c9
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; POP	DE
 OPCODE(d1,`
 	HOLD_INTS
 	POPW	ede
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; JP	NC,immed.w
 OPCODE(d2,`
@@ -1846,7 +2029,8 @@ OPCODE(d3,`
 	FETCHBI	d0
 	bsr	port_out
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; CALL	NC,immed.w
 OPCODE(d4,`
@@ -1855,14 +2039,16 @@ OPCODE(d4,`
 	beq	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; PUSH	DE
 OPCODE(d5,`
 	HOLD_INTS
 	PUSHW	ede
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; SUB	A,immed.b
 OPCODE(d6,`
@@ -1870,7 +2056,8 @@ OPCODE(d6,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	F_SUB_B	eaf,d1
-	')			;nok
+	')
+				;nok
 
 	;; RST	&10
 	;;  == CALL 10
@@ -1883,7 +2070,8 @@ OPCODE(d7,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	C
 OPCODE(d8,`
@@ -1891,14 +2079,16 @@ OPCODE(d8,`
 	bsr	f_norm_c
 	bne	emu_op_c9
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; EXX
 OPCODE(d9,`
 	swap	ebc
 	swap	ede
 	swap	ehl
-	')			;nok
+	')
+				;nok
 
 	;; JP	C,immed.w
 OPCODE(da,`
@@ -1906,7 +2096,8 @@ OPCODE(da,`
 	bsr	f_norm_c
 	bne	emu_op_c3
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 OPCODE(db,`
 	;; IN	A,immed.b
@@ -1915,7 +2106,8 @@ OPCODE(db,`
 	FETCHBI	d0
 	CONTINUE_INTS
 	bsr	port_in
-	')			;nok
+	')
+				;nok
 
 	;; CALL	C,immed.w
 OPCODE(dc,`
@@ -1924,7 +2116,8 @@ OPCODE(dc,`
 	bne	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 OPCODE(dd,`			; prefix
 	movea.w		emu_op_undo_dd(pc),a2
@@ -1936,7 +2129,8 @@ OPCODE(de,`
 	FETCHWI	d1
 	CONTINUE_INTS
 	F_SBC_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&18
 	;;  == CALL 18
@@ -1949,7 +2143,8 @@ OPCODE(df,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	PO
 	;; If parity odd (P zero), return
@@ -1958,12 +2153,14 @@ OPCODE(e0,`
 	bsr	f_norm_pv
 	beq	emu_op_c9
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; POP	HL
 OPCODE(e1,`
 	POPW	ehl
-	')			;nok
+	')
+				;nok
 
 	;; JP	PO,immed.w
 OPCODE(e2,`
@@ -1972,7 +2169,8 @@ OPCODE(e2,`
 	beq	emu_op_c3
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; EX	(SP),HL
 	;; Exchange
@@ -1982,7 +2180,8 @@ OPCODE(e3,`
 	PUSHW	ehl
 	CONTINUE_INTS
 	move.w	d1,ehl
-	')			;nok
+	')
+				;nok
 
 	;; CALL	PO,immed.w
 	;; if parity odd (P=0), call
@@ -1992,14 +2191,16 @@ OPCODE(e4,`
 	beq	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; PUSH	HL
 OPCODE(e5,`
 	HOLD_INTS
 	PUSHW	ehl
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; AND	immed.b
 OPCODE(e6,`
@@ -2007,7 +2208,8 @@ OPCODE(e6,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	F_AND_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&20
 	;;  == CALL 20
@@ -2020,7 +2222,8 @@ OPCODE(e7,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	PE
 	;; If parity odd (P zero), return
@@ -2029,7 +2232,8 @@ OPCODE(e8,`
 	bsr	f_norm_pv
 	bne	emu_op_c9
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; JP	(HL)
 OPCODE(e9,`
@@ -2038,7 +2242,8 @@ OPCODE(e9,`
 	bsr	deref
 	movea.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; JP	PE,immed.w
 OPCODE(ea,`
@@ -2047,12 +2252,14 @@ OPCODE(ea,`
 	bne	emu_op_c3
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; EX	DE,HL
 OPCODE(eb,`
 	exg.w	ede,ehl
-	')			;nok
+	')
+				;nok
 
 	;; CALL	PE,immed.w
 	;; If parity even (P=1), call
@@ -2062,12 +2269,14 @@ OPCODE(ec,`
 	bne	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; XXX this probably ought to hold interrupts too
 OPCODE(ed,`			; prefix
 	movea.w	emu_op_undo_ed(pc),a2
-	')			;nok
+	')
+				;nok
 
 	;; XOR	immed.b
 OPCODE(ee,`
@@ -2075,7 +2284,8 @@ OPCODE(ee,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	F_XOR_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&28
 	;;  == CALL 28
@@ -2088,7 +2298,8 @@ OPCODE(ef,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	P
 	;; Return if Positive
@@ -2097,7 +2308,8 @@ OPCODE(f0,`
 	bsr	f_norm_sign
 	beq	emu_op_c9	; RET
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; POP	AF
 	;; SPEED this can be made faster ...
@@ -2106,7 +2318,8 @@ OPCODE(f1,`
 	POPW	eaf
 	move.w	eaf,(flag_byte-flag_storage)(a3)
 	move.b	#$ff,(flag_valid-flag_storage)(a3)
-	')			;nok
+	')
+				;nok
 
 	;; JP	P,immed.w
 OPCODE(f2,`
@@ -2115,7 +2328,8 @@ OPCODE(f2,`
 	beq	emu_op_c3	; JP
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 OPCODE(f3,`
 	;; DI
@@ -2129,7 +2343,8 @@ OPCODE(f4,`
 	bsr	f_norm_sign
 	beq	emu_op_cd
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; PUSH	AF
 OPCODE(f5,`
@@ -2141,7 +2356,8 @@ OPCODE(f5,`
 	CONTINUE_INTS
 	HILO	eaf
 	PUSHW	eaf
-	')			;nok
+	')
+				;nok
 
 OPCODE(f6,`
 	;; OR	immed.b
@@ -2149,7 +2365,8 @@ OPCODE(f6,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	F_OR_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&30
 	;;  == CALL 30
@@ -2162,7 +2379,8 @@ OPCODE(f7,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; RET	M
 	;; Return if Sign == 1, minus
@@ -2171,7 +2389,8 @@ OPCODE(f8,`
 	bsr	f_norm_sign
 	bne	emu_op_c9	; RET
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; LD	SP,HL
 	;; SP <- HL
@@ -2181,7 +2400,8 @@ OPCODE(f9,`
 	bsr	deref
 	movea.l	a0,esp
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; JP	M,immed.w
 OPCODE(fa,`
@@ -2190,12 +2410,14 @@ OPCODE(fa,`
 	bne	emu_op_c3	; JP
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; EI
 OPCODE(fb,`
 	bsr	ints_start
-	')			;nok
+	')
+				;nok
 
 	;; CALL	M,immed.w
 	;; Call if minus (S=1)
@@ -2205,7 +2427,8 @@ OPCODE(fc,`
 	bne	emu_op_cd
 	add.l	#2,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
 
 	;; swap IY, HL
 OPCODE(fd,`			; prefix
@@ -2218,7 +2441,8 @@ OPCODE(fe,`
 	FETCHBI	d1
 	CONTINUE_INTS
 	F_CP_B	d1,eaf
-	')			;nok
+	')
+				;nok
 
 	;; RST	&38
 	;;  == CALL 38
@@ -2231,4 +2455,5 @@ OPCODE(ff,`
 	bsr	deref
 	move.l	a0,epc
 	CONTINUE_INTS
-	')			;nok
+	')
+				;nok
