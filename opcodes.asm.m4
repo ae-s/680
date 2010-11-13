@@ -332,14 +332,14 @@ OPCODE(10,`
 	HOLD_INTS
 	LOHI	ebc
 	subq.b	#1,ebc
-	beq.s	end_10	; slooooow
+	beq.s	local(end)	; slooooow
 	FETCHBI	d1
 	move.l	epc,a0
 	bsr	underef
 	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
 	bsr	deref
 	move.l	a0,epc
-end_10:
+local(end):
 	HILO	ebc
 	CONTINUE_INTS
 	')			;nok
