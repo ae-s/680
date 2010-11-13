@@ -1,4 +1,5 @@
-ASM_FILES=alu.asm flags.asm opcodes.asm ports.asm interrupts.asm main.asm
+ASM_FILES=alu.asm flags.asm ports.asm interrupts.asm main.asm
+M4_ASM_OUTPUT=opcodes.asm
 ASM=main.asm
 C_HEADERS=680.h asm_vars.h
 C_FILES=loader.c bankswap.c video.c misc.c debug.c
@@ -13,14 +14,17 @@ CFLAGS=-Wall -ltifiles
 
 .PHONY: clean
 
-z680k.89z: $(ASM_FILES) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
+z680k.89z: $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS) $
 	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
 
 clean:
-	rm -f $(S_FILES) $(O_FILES) $(MADE_FILES) $(OBJ) $(MADE_BINS)
+	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(OBJ) $(MADE_BINS)
 
 packager: packager.c
 	gcc $(CFLAGS) packager.c -o packager
+
+opcodes.asm: opcodes.inc.m4 opcodes.asm.m4
+	m4 opcodes.inc.m4 opcodes.asm.m4 > opcodes.asm
 
 testbenches/zexdoc.h:	testbenches/zexdoc.bin
 	echo 'char zexdoc[] = {' > testbenches/zexdoc.h
