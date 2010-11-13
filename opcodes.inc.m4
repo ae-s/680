@@ -8,6 +8,6 @@ dnl # end_10, and is undefined everywhere else.
 define(`local',$`'1_``$1'')dnl
 `emu_op_'$1`:'
 $2
-	TIME	$3,$4
+	TIME	$3 ifelse(`, $4', `, ', `', `, $4')
 undefine(`label')dnl
 	DONE')dnl
