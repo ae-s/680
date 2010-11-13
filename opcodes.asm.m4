@@ -2236,7 +2236,7 @@ OPCODE(f7,«
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
-	move.w	#$08,d0
+	move.w	#$30,d0
 	bsr	deref
 	move.l	a0,epc
 	»)
@@ -2300,7 +2300,7 @@ OPCODE(ff,«
 	move.l	epc,a0
 	bsr	underef
 	PUSHW	d0
-	move.w	#$08,d0
+	move.w	#$38,d0
 	bsr	deref
 	move.l	a0,epc
 	»)
