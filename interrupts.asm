@@ -49,7 +49,7 @@ int_return:	dc.w	0		; the destination address
 	;; the above fields with the interrupt type and location.
 	;; Then the EI macro to enable them will cause it to fire.
 HOLD_INTS	MACRO
-	moveq.b	#1,int_held	; 4 cycles
+	move.b	#1,int_held
 	ENDM
 
 	;; This is a macro to release a held interrupt.
@@ -61,7 +61,7 @@ ints_continue:
 	tst.b	int_waiting	; 4 cycles
 	bne.b	ints_continue_pending ; 8 cycles not taken
 	;; Common case: no interrupt pending
-	moveq.b	#0,int_held	; 4 cycles
+	move.b	#0,int_held	; 4 cycles
 	rts			; 16 cycles
 	;; typical case: 4+18+4+8+4+16 = 54 cycles
 	
