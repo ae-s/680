@@ -9,7 +9,7 @@ MADE_FILES=testbenches/zexdoc.h testbenches/mine.h
 MADE_BINS=testbenches/zexdoc.bin testbenches/mine.bin
 OBJ=z680k.89z
 
-TIGCCFLAGS=-Wall
+TIGCCFLAGS=-Wall -WA,-lz680k.listing
 CFLAGS=-Wall -ltifiles
 
 .PHONY: clean
