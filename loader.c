@@ -8,7 +8,7 @@
 #include <tigcclib.h>
 #include "asm_vars.h"
 
-#include "680.h"
+#include "global.h"
 
 HANDLE page_handles[256];
 
