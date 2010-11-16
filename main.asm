@@ -43,7 +43,7 @@
 	xdef	_tigcc_native
 	include "../tios.h"
 
-	include "680.inc"
+	include "global.inc"
 
 
 __main:

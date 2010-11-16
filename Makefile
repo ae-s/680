@@ -1,7 +1,7 @@
 ASM_FILES=alu.asm flags.asm ports.asm interrupts.asm main.asm
 M4_ASM_OUTPUT=opcodes.asm
 ASM=main.asm
-C_HEADERS=680.h asm_vars.h
+C_HEADERS=global.h asm_vars.h
 C_FILES=loader.c bankswap.c video.c misc.c debug.c
 S_FILES=loader.s bankswap.s video.s misc.s debug.s
 O_FILES=loader.o bankswap.o video.o misc.o debug.o
