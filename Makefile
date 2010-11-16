@@ -11,6 +11,7 @@ OBJ=z680k.89z
 
 TIGCCFLAGS=-Wall -WA,-lz680k.listing
 CFLAGS=-Wall -ltifiles
+M4_ASM_INCLUDES=opcodes.inc.m4
 
 .PHONY: clean
 
@@ -23,8 +24,8 @@ clean:
 packager: packager.c
 	gcc $(CFLAGS) packager.c -o packager
 
-opcodes.asm: opcodes.inc.m4 opcodes.asm.m4
-	m4 opcodes.inc.m4 opcodes.asm.m4 > opcodes.asm
+%.asm: %.asm.m4
+	m4 $(M4_ASM_INCLUDES) $< > $@
 
 testbenches/zexdoc.h:	testbenches/zexdoc.bin
 	echo 'char zexdoc[] = {' > testbenches/zexdoc.h
