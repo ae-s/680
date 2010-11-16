@@ -21,3 +21,7 @@ SAVEREG	MACRO
 RESTREG	MACRO
 	movem.l	(sp)+,d3-d7/a3-a6
 	ENDM
+
+	;; Size of the ‘jmp	do_interrupt’ in every invocation of
+	;; START.
+INT_OFFSET	SET	4
