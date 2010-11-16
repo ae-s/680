@@ -5,8 +5,8 @@ C_HEADERS=global.h asm_vars.h
 C_FILES=loader.c bankswap.c video.c misc.c debug.c
 S_FILES=loader.s bankswap.s video.s misc.s debug.s
 O_FILES=loader.o bankswap.o video.o misc.o debug.o main.o
-MADE_FILES=testbenches/zexdoc.h testbenches/mine.h
-MADE_BINS=testbenches/zexdoc.bin testbenches/mine.bin
+MADE_FILES=testbenches/mine.testbench.h testbenches/zexdoc.testbench.h testbenches/zexall.testbench.h
+MADE_BINS=testbenches/mine.testbench.bin testbenches/zexdoc.testbench.bin testbenches/zexall.testbench.bin
 OBJ=z680k.89z
 
 TIGCCFLAGS=-Wall -WA,-lz680k.listing
@@ -27,19 +27,11 @@ packager: packager.c
 %.asm: %.asm.m4
 	m4 $(M4_ASM_INCLUDES) $< > $@
 
-testbenches/zexdoc.h:	testbenches/zexdoc.bin
-	echo 'char zexdoc[] = {' > testbenches/zexdoc.h
-	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' testbenches/zexdoc.bin | sed -e 's/0x *,//g' >> testbenches/zexdoc.h
-	echo '};' >> testbenches/zexdoc.h
+%.testbench.h:	%.testbench.bin
+	echo 'char testbench[] = {' > $(*D)/$(*F).testbench.h
+	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' $(*D)/$(*F).testbench.bin | sed -e 's/0x *,//g' >> $(*D)/$(*F).testbench.h
+	echo '};' >> $(*D)/$(*F).testbench.h
 
-testbenches/zexdoc.bin:	testbenches/zexdoc.z80
-	spasm testbenches/zexdoc.z80
+%.testbench.bin:	%.testbench.z80
+	spasm $(*D)/$(*F).testbench.z80
 
-
-testbenches/mine.h:	testbenches/mine.bin
-	echo 'char zexdoc[] = {' > testbenches/mine.h
-	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' testbenches/mine.bin | sed -e 's/0x *,//g' >> testbenches/mine.h
-	echo '};' >> testbenches/mine.h
-
-testbenches/mine.bin:	testbenches/mine.z80
-	spasm testbenches/mine.z80
