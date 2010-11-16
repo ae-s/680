@@ -5,8 +5,8 @@ C_HEADERS=global.h asm_vars.h
 C_FILES=loader.c bankswap.c video.c misc.c debug.c
 S_FILES=loader.s bankswap.s video.s misc.s debug.s
 O_FILES=loader.o bankswap.o video.o misc.o debug.o main.o
-MADE_FILES=testbenches/mine.testbench.h testbenches/zexdoc.testbench.h testbenches/zexall.testbench.h
-MADE_BINS=testbenches/mine.testbench.bin testbenches/zexdoc.testbench.bin testbenches/zexall.testbench.bin
+MADE_FILES=testbenches/mine.testbench.h testbenches/zexdoc.testbench.h
+MADE_BINS=testbenches/mine.testbench.bin testbenches/zexdoc.testbench.bin
 OBJ=z680k.89z
 
 TIGCCFLAGS=-Wall -WA,-lz680k.listing
