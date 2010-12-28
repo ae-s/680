@@ -42,8 +42,8 @@ int_handler:
 int_nevermind:
 	rts
 do_interrupt:
-	;; todo: make this file m4'd
 	add.l	#INT_OFFSET,a5		; clear the interrupt flag
+	pea	0(a5,d0.w)		; allows us to rts properly
 
 	tst.b	int_enabled		; 4 cycles
 	beq.b	int_nevermind		; 8 cycles not taken
@@ -51,8 +51,6 @@ do_interrupt:
 
 	;; Since this is an instruction all its own, we have D0, D1,
 	;; and D2 available.
-
-	pop.l	a0
 
 	;; Interrupts are most often in mode 1, then mode 2, and
 	;; almost never in mode 0.
@@ -63,7 +61,7 @@ do_interrupt:
 	beq	int_do_mode1
 	cmpi.b	#1,d0
 	beq	int_do_mode0
-	jmp	(a0)
+	rts
 
 	;; This routine emulates a mode 0 interrupt.
 

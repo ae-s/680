@@ -100,7 +100,7 @@ _align	SET	0
 
 START	MACRO
 	ORG	emu_plain_op+_align
-_align	SET	_align+$40
+_align	SET	_align+$40	; opcode routine length
 	jmp	do_interrupt	; for interrupt routines
 	ENDM
 

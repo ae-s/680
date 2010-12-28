@@ -53,6 +53,8 @@ __main:
 
 	bsr	emu_setup
 	lea	emu_plain_op,a5
+
+	;; ... aaaaand we're off!
 	bsr	emu_run
 	bsr	emu_teardown
 
