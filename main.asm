@@ -40,11 +40,10 @@
 	xdef	_ti89
 ;	xdef	_ti92plus
 	xdef	__main
-	xdef	_tigcc_native
+;	xdef	_tigcc_native
 	include "../tios.h"
 
 	include "global.inc"
-
 
 __main:
 	movem.l d0-d7/a0-a6,-(sp)
@@ -69,7 +68,7 @@ __main:
 	include	"alu.asm"
 
 emu_setup:
-	movea.l	emu_plain_op,a5
+	movea.l	emu_op_00,a5
 	lea	emu_run,a2
 	lea	flag_storage,a3
 	move.w	#$4000,d1

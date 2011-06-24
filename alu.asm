@@ -81,6 +81,8 @@ alu_or:
 alu_cp:
 	;; Same as SUB but the macro that calls this doesn't save the
 	;; result.
+
+	;; SPEED can hardcode one of the arguments to always be the A register.
 	move.b	d0,f_tmp_src_b
 	move.b	d1,f_tmp_dst_b
 	move.b	#1,f_tmp_byte
