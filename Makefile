@@ -23,6 +23,8 @@ BINS_DEBUG=z680d.dbg z680d.listing
 OBJ_DEBUG=z680d.89z
 OBJ=z680k.89z
 
+NATIVE_OBJ=packager
+
 # flags for the tigcc cross-compiler
 TIGCCFLAGS_DEBUG=--debug -WA,-lz680k.listing
 TIGCCFLAGS=-Wall
@@ -32,11 +34,10 @@ CFLAGS=-Wall -ltifiles
 
 .PHONY: clean
 
-all: packager $(OBJ)
+all: $(OBJ) $(NATIVE_OBJ)
 
 clean:
-	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(OBJ) $(OBJ_DEBUG)
-
+	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(OBJ) $(OBJ_DEBUG) $(NATIVE_OBJ)
 
 $(OBJ): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
 	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
