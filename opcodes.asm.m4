@@ -1226,7 +1226,6 @@ OPCODE(7d,«
 OPCODE(7e,«
 	FETCHB	ehl,eaf
 	»)
-				;nok
 
 	;; LD	A,A
 OPCODE(7f,«
@@ -1693,9 +1692,9 @@ OPCODE(b5,«
 
 	;; OR	(HL)
 OPCODE(b6,«
+	;; SPEED unnecessary move
 	FETCHB	ehl,d2
 	F_OR_B	d2,eaf
-	PUTB	d2,ehl
 	»)
 				;nok
 
@@ -1818,7 +1817,7 @@ OPCODE(c4,«
 	;; CALL (emu_op_cd) will run HOLD_INTS again. This doesn't
 	;; matter with the current implementation because HOLD_INTS
 	;; simply sets a bit.
-	bne	emu_op_cd
+	beq	emu_op_cd
 	add.l	#2,epc
 	»)
 				;nok
@@ -1852,7 +1851,7 @@ OPCODE(c7,«
 	;; RET	Z
 OPCODE(c8,«
 	bsr	f_norm_z
-	beq.s	emu_op_c9
+	bne.s	emu_op_c9
 	»)
 				;nok
 
@@ -1884,7 +1883,7 @@ OPCODE(cb,«
 	;; CALL	Z,immed.w
 OPCODE(cc,«
 	bsr	f_norm_z
-	beq.s	emu_op_cd
+	bne.s	emu_op_cd
 	add.l	#2,epc
 	»)
 				;nok
