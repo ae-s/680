@@ -27,17 +27,19 @@ NATIVE_OBJ=packager
 
 # flags for the tigcc cross-compiler
 TIGCCFLAGS_DEBUG=--debug -WA,-lz680k.listing
-TIGCCFLAGS=-Wall
+TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d
 
 # flags for the native C compiler
 CFLAGS=-Wall -ltifiles
 
-.PHONY: clean
+.PHONY: clean debug
 
 all: $(OBJ) $(NATIVE_OBJ)
 
 clean:
 	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(OBJ) $(OBJ_DEBUG) $(NATIVE_OBJ)
+
+debug: $(OBJ_DEBUG)
 
 $(OBJ): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
 	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
