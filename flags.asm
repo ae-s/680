@@ -62,8 +62,8 @@ FNC_ok:
 	andi.b	#%00000001,d1
 	rts
 
-	;; Normalize and return inverse of emulated Zero bit (loaded
-	;; into host zero flag)
+	;; Normalize and return **INVERSE** of emulated Zero bit
+	;; (loaded into host's zero flag)
 
 	;; Destroys d1
 f_norm_z:
@@ -76,7 +76,7 @@ FNZ_ok:
 	andi.b	#%01000000,d1
 	rts
 
-	;; Normalize and return inverse of emulated Parity/oVerflow
+	;; Normalize and return **INVERSE** of emulated Parity/oVerflow
 	;; bit (loaded into host zero flag)
 
 	;; Destroys d1
@@ -192,7 +192,7 @@ flags_normalize:
 	not.b	d0
 	and.b	d0,d1		; Mask out all the unwanted bits
 	not.b	d0
-	ori.b	#%11000101,d0
+	ori.b	#%11000101,d0	; These are the z80 flag register bits that can be derived from the 68k CCR.
 	move.b	d0,flag_valid-flag_storage(a3)
 	or.b	d1,flag_byte-flag_storage(a3)
 	rts

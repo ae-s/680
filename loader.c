@@ -19,7 +19,7 @@ char writestr[16] = { 0x3E, 0x41,	// LD A,'A'
 		      0xC3, 0x40, 0x00	// JP 4000h
 };
 
-#include "testbenches/mine.testbench.h"
+#include "testbenches/zexdoc.testbench.h"
 
 void init_load(void);
 void unload(void);

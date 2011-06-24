@@ -50,7 +50,7 @@ PUTW	MACRO			;
 	move.b	d0,(a0)
 	ENDM
 
-	;; Push the word in \1 (register) using stack register a4.
+	;; Push the word in \1 (register) using stack register esp.
 	;; Sadly, I can't trust the stack register to be aligned.
 	;; Destroys d2.
 
@@ -60,11 +60,11 @@ PUTW	MACRO			;
 PUSHW	MACRO
 	move.w	\1,d2
 	LOHI	d2		;slow
-	move.b	d2,-(a4)	; high byte
-	move.b	\1,-(a4)	; low byte
+	move.b	d2,-(esp)	; high byte
+	move.b	\1,-(esp)	; low byte
 	ENDM
 
-	;; Pop the word at the top of stack a4 into \1.
+	;; Pop the word at the top of stack esp into \1.
 	;; Destroys d0.
 
 	;;   \1_h <- (SP+1)
@@ -101,7 +101,7 @@ _align	SET	0
 START	MACRO
 	ORG	emu_plain_op+_align
 _align	SET	_align+$40	; opcode routine length
-	jmp	do_interrupt	; for interrupt routines
+	bra.w	do_interrupt	; for interrupt routines
 	ENDM
 
 	;; LOHI/HILO are hideously slow for instructions used often.
@@ -1710,6 +1710,7 @@ OPCODE(b7,«
 
 
 	;; COMPARE instruction
+	;; Tests the argument against A
 F_CP_B	MACRO
 	;; XXX deal with \2 or \1 being d1 or d0
 	move.b	\2,d1
@@ -1797,7 +1798,7 @@ OPCODE(c1,«			; S10 T
 	;;   PC <- immed.w
 OPCODE(c2,«
 	bsr	f_norm_z
-	bne.s	emu_op_c3
+	beq.s	emu_op_c3
 	add.l	#2,epc
 	»)
 				;nok
@@ -1809,7 +1810,6 @@ OPCODE(c3,«
 	bsr	deref
 	movea.l	a0,epc
 	»,36,,12)
-				;nok
 
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
@@ -1871,7 +1871,7 @@ OPCODE(c9,«
 	;; If Z, jump
 OPCODE(ca,«
 	bsr	f_norm_z
-	beq	emu_op_c3
+	bne	emu_op_c3
 	add.l	#2,epc
 	»)
 				;nok

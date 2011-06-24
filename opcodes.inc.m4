@@ -14,4 +14,4 @@ $2
 undefine(«label»)dnl
 	DONE»)dnl
 dnl
-define(«INT_OFFSET», 6)dnl
+define(«INT_OFFSET», 4)dnl

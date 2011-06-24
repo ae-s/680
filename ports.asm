@@ -271,11 +271,11 @@ lut_ports_in:
 
 port_out:
 	andi.w	#$ff,d0
+	;; This is the fastest way to shift left 2 bits.  :S
 	add.w	d0,d0
 	add.w	d0,d0
 	movea.l	lut_ports_out(pc,d0.w),a0
 	jmp	(a0)
-	rts
 
 lut_ports_out:
 	dc.l	port_out_00
