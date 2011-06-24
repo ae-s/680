@@ -19,14 +19,15 @@ MADE_FILES=testbenches/mine.testbench.h testbenches/zexdoc.testbench.h
 MADE_BINS=testbenches/mine.testbench.bin testbenches/zexdoc.testbench.bin
 
 # final output files
-BINS_DEBUG=z680d.dbg z680d.listing
+LISTING_DEBUG=z680d.listing
+BINS_DEBUG=z680d.dbg
 OBJ_DEBUG=z680d.89z
 OBJ=z680k.89z
 
 NATIVE_OBJ=packager
 
 # flags for the tigcc cross-compiler
-TIGCCFLAGS_DEBUG=--debug -WA,-lz680k.listing
+TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG)
 TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d
 
 # flags for the native C compiler
@@ -37,7 +38,7 @@ CFLAGS=-Wall -ltifiles
 all: $(OBJ) $(NATIVE_OBJ)
 
 clean:
-	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(OBJ) $(OBJ_DEBUG) $(NATIVE_OBJ)
+	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(BINS_DEBUG) $(OBJ) $(OBJ_DEBUG) $(NATIVE_OBJ) $(LISTING_DEBUG)
 
 debug: $(OBJ_DEBUG)
 
