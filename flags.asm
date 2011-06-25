@@ -1,13 +1,13 @@
 	;; Routine to set the given flags
 	;;   Noted in \1 by a 1 bit
-F_SET	MACRO
+F_SET	MACRO			; 32 cycles, 8 bytes
 	or.b	\1,flag_byte-flag_storage(a3)
 	or.b	\1,flag_valid-flag_storage(a3)
 	ENDM
 
 	;; Clear the given flags
 	;;   Noted in \1 (must be a reg) by a 1 bit
-F_CLEAR	MACRO
+F_CLEAR	MACRO			; 36 cycles, 10 bytes
 	or.b	\1,flag_valid-flag_storage(a3)
 	not.b	\1
 	and.b	\1,flag_byte-flag_storage(a3)
@@ -32,7 +32,7 @@ F_PAR	MACRO
 
 	;; Use this when an instruction uses the P/V bit as Overflow.
 	;; Leaves the bit itself implicit; simply marks it dirty.
-F_OVFL	MACRO
+F_OVFL	MACRO			; 20 cycles, 6 bytes
 	andi.b	#%11111011,flag_valid-flag_storage(a3)
 	ENDM
 

@@ -92,7 +92,8 @@ emu_teardown:
 
 	;; Take a virtual address in d1 and dereference it.  Returns the
 	;; host address in a0.  Destroys a0, d0.
-deref:
+deref:	; 76 cycles + 18 cycles for bsr
+	; 20 bytes to inline, saves 34 cycles per call
 	move.w	d1,d0
 	andi.w	#$3FFF,d0
 	movea.w	d0,a0
@@ -133,6 +134,8 @@ pages:	dc.l	0
 	;; Destroys d0
 ; XXX AFAICS, a1 is currently a scratch address register, so you can load deref_table in it, and then save some space:
 ; But you may wish to use it for other purposes in the future, so you needn't integrate that immediately.
+
+	;; Guessing this is 300 cycles.
 underef:
 	move.l	d2,-(a7)
 	lea	deref_table(pc),a1

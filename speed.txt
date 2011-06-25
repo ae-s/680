@@ -1,0 +1,14 @@
+FETCHB	106 cycles - 34
+FETCHW	140 cycles - 34
+PUTB	106 cycles - 34
+PUTW	140 cycles - 34
+POPW	 60 cycles -  0
+PUSHW	 42 cycles -  0
+FETCHBI	  8 cycles -  0
+FETCHWI	 42 cycles -  0
+
+F_INC_B	108 cycles
+F_DEC_B	 80 cycles
+F_INC_W	  4 cycles
+F_DEC_W	  4 cycles
+

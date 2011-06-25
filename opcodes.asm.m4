@@ -15,14 +15,14 @@
 
 	;; Macro to read a byte from main memory at register \1.  Puts
 	;; the byte read in \2.
-FETCHB	MACRO
+FETCHB	MACRO			; 106 cycles, 8 bytes
 	move.w	\1,d1
 	bsr	deref
 	move.b	(a0),\2
 	ENDM
 
 	;; Macro to write a byte in \1 to main memory at \2
-PUTB	MACRO
+PUTB	MACRO			; 106 cycles, 8 bytes
 	move.w	\2,d1
 	bsr	deref
 	move.b	\1,(a0)
@@ -30,9 +30,9 @@ PUTB	MACRO
 
 	;; Macro to read a word from main memory at register \1
 	;; (unaligned).  Puts the word read in \2.
-FETCHW	MACRO			;  ?/16
-	move.w	\1,d1		;  4/2
-	bsr	deref		;  ?/4
+FETCHW	MACRO			; 140 cycles, 16 bytes
+	move.w	\1,d1
+	bsr	deref
 	;; XXX SPEED
 	move.b	(a0)+,d2
 	move.b	(a0),\2
@@ -41,7 +41,7 @@ FETCHW	MACRO			;  ?/16
 	ENDM
 
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
-PUTW	MACRO			; 
+PUTW	MACRO			; 140 cycles, 14 bytes
 	move.w	\2,d1
 	bsr	deref
 	move.w	\1,d0
@@ -57,7 +57,7 @@ PUTW	MACRO			;
 	;;   (SP-2) <- \1_l
 	;;   (SP-1) <- \1_h
 	;;   SP <- SP - 2
-PUSHW	MACRO
+PUSHW	MACRO			; 42 cycles, 8 bytes
 	move.w	\1,d2
 	LOHI	d2		;slow
 	move.b	d2,-(esp)	; high byte
@@ -70,18 +70,18 @@ PUSHW	MACRO
 	;;   \1_h <- (SP+1)
 	;;   \1_l <- (SP)
 	;;   SP <- SP + 2
-POPW	MACRO
+POPW	MACRO			; 60 cycles, 8 bytes
 	move.b	(esp)+,\1
-	LOHI	\1		;slow
+	LOHI	\1
 	move.b	(esp)+,\1	; high byte
-	HILO	\1		;slow
+	HILO	\1
 	ENDM
 
 	;; == Immediate Memory Macros ==
 
 	;; Macro to read an immediate byte into \1.
 FETCHBI	MACRO			; 8 cycles, 2 bytes
-	move.b	(epc)+,\1	; 8/2
+	move.b	(epc)+,\1
 	ENDM
 
 	;; Macro to read an immediate word (unaligned) into \1.
@@ -105,7 +105,7 @@ _align	SET	_align+$40	; opcode routine length
 	ENDM
 
 	;; LOHI/HILO are hideously slow for instructions used often.
-	;; Interleave registers instead:
+	;; Consider interleaving registers instead:
 	;;
 	;; d4 = [B' B  C' C]
 	;;
@@ -114,7 +114,7 @@ _align	SET	_align+$40	; opcode routine length
 
 	;; When you want to use the high reg of a pair, use this first
 LOHI	MACRO			; 22 cycles, 2 bytes
-	ror.w	#8,\1		; 22/2
+	ror.w	#8,\1
 	ENDM
 
 	;; Then do your shit and finish with this
@@ -123,26 +123,27 @@ HILO	MACRO			; 22 cycles, 2 bytes
 	ENDM
 
 	;; Rearrange a register: ABCD -> ACBD.
-WORD	MACRO
-	move.l	\1,-(sp)	;12 cycles / 2 bytes
-	movep.w	0(sp),\1	;16 cycles / 4 bytes
-	swap	\1		; 4 cycles / 2 bytes
-	movep.w	1(sp),\1	;16 cycles / 4 bytes
-	addq	#4,sp		; 4 cycles / 2 bytes
-	;; overhead:		 52 cycles /14 bytes
+WORD	MACRO		  	; 52 cycles, 14 bytes
+	move.l	\1,-(sp)
+	movep.w	0(sp),\1
+	swap	\1
+	movep.w	1(sp),\1
+	addq	#4,sp
 	ENDM
 
 	;; == Special Opcode Macros ========================================
 
 	;; Do an ADD \1,\2
-F_ADD_W	MACRO
+F_ADD_W	MACRO			; ? cycles, ? bytes
+	;; XXX
 	ENDM
 	;; Do an SUB \1,\2
-F_SUB_W	MACRO
+F_SUB_W	MACRO			; ? cycles, ? bytes
+	;; XXX
 	ENDM
 
 	;; INC and DEC macros
-F_INC_B	MACRO
+F_INC_B	MACRO			; 108 cycles, 34 bytes
 	move.b	#1,f_tmp_byte-flag_storage(a3)
 	move.b	#1,f_tmp_src_b-flag_storage(a3)
 	move.b	\1,f_tmp_dst_b-flag_storage(a3)
@@ -152,7 +153,7 @@ F_INC_B	MACRO
 	F_OVFL
 	ENDM
 
-F_DEC_B	MACRO
+F_DEC_B	MACRO			; 80 cycles, 26 bytes
 	move.b	#1,f_tmp_byte-flag_storage(a3)
 	st	f_tmp_src_b-flag_storage(a3) ;; why did I do this?
 	move.b	\1,f_tmp_dst_b-flag_storage(a3)
@@ -160,11 +161,11 @@ F_DEC_B	MACRO
 	F_SET	#2
 	ENDM
 
-F_INC_W	MACRO
+F_INC_W	MACRO			; 4 cycles, 2 bytes
 	addq.w	#1,\1
 	ENDM
 
-F_DEC_W	MACRO
+F_DEC_W	MACRO			; 4 cycles, 2 bytes
 	subq.w	#1,\1
 	ENDM
 
@@ -203,6 +204,7 @@ OPCODE(00,«»,4)
 	;; LD	BC,immed.w
 	;; Read a word and put it in BC
 	;; No flags
+	;; 42 cycles
 OPCODE(01,«
 	FETCHWI	ebc
 	»,36,,12)
@@ -210,6 +212,7 @@ OPCODE(01,«
 	;; LD	(BC),A
 	;; (BC) <- A
 	;; No flags
+	;; 106 cycles
 OPCODE(02,«
 	PUTB	eaf,ebc
 	»,14,,4)
@@ -217,12 +220,14 @@ OPCODE(02,«
 	;; INC	BC
 	;; BC <- BC+1
 	;; No flags
+	;; 4 cycles
 OPCODE(03,«
 	F_INC_W	ebc
 	»,4,,2)
 
 	;; INC	B
 	;; B <- B+1
+	;; 152 cycles
 OPCODE(04,«
 	LOHI	ebc
 	F_INC_B	ebc
@@ -231,6 +236,7 @@ OPCODE(04,«
 
 	;; DEC	B
 	;; B <- B-1
+	;; 124 cycles
 OPCODE(05,«
 	LOHI	ebc
 	F_DEC_B	ebc
@@ -242,6 +248,7 @@ OPCODE(05,«
 	;; Read a byte and put it in B
 	;; B <- immed.b
 	;; No flags
+	;; 52 cycles
 OPCODE(06,«
 	LOHI	ebc
 	FETCHBI	ebc
@@ -253,6 +260,7 @@ OPCODE(06,«
 	;; Rotate A left, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
 	;; XXX flags
+	;; ? cycles
 OPCODE(07,«
 	rol.b	#1,eaf
 	»,4,,2)
@@ -261,6 +269,7 @@ OPCODE(07,«
 	;; EX	AF,AF'
 	;; No flags
 	;; XXX AF
+	;; 4 cycles, 2 bytes
 OPCODE(08,«
 	swap	eaf
 	»,4,,2)
@@ -269,6 +278,7 @@ OPCODE(08,«
 	;; ADD	HL,BC
 	;; HL <- HL+BC
 	;; Flags: H, C aff.; N=0
+	;; ? cycles
 OPCODE(09,«
 	F_ADD_W	ebc,ehl
 	»)
@@ -277,6 +287,7 @@ OPCODE(09,«
 	;; LD	A,(BC)
 	;; A <- (BC)
 	;; No flags
+	;; 106 cycles, 8 bytes
 OPCODE(0a,«
 	FETCHB	ebc,eaf
 	»,14,,4)
@@ -284,6 +295,7 @@ OPCODE(0a,«
 	;; DEC	BC
 	;; BC <- BC-1
 	;; No flags
+	;; 4 cycles, 2 bytes
 OPCODE(0b,«
 	F_DEC_W	ebc
 	»,4,,2)
@@ -292,6 +304,7 @@ OPCODE(0b,«
 	;; INC	C
 	;; C <- C+1
 	;; Flags: S,Z,H aff.; P=overflow, N=0
+	;; 108 cycles, 34 bytes
 OPCODE(0c,«
 	F_INC_B	ebc
 	»)
@@ -300,13 +313,16 @@ OPCODE(0c,«
 	;; DEC	C
 	;; C <- C-1
 	;; Flags: S,Z,H aff., P=overflow, N=1
+	;; 80 cycles, 26 bytes
 OPCODE(0d,«
 	F_DEC_B	ebc
 	»)
 				;nok
 
 	;; LD	C,immed.b
+	;; C <- immed.b
 	;; No flags
+	;; 8 cycles, 2 bytes
 OPCODE(0e,«
 	FETCHBI	ebc
 	»,18,,6)
@@ -316,6 +332,7 @@ OPCODE(0e,«
 	;; Rotate A right, carry bit gets top bit
 	;; Flags: H,N=0; C aff.
 	;; XXX FLAGS
+	;; ? cycles
 OPCODE(0f,«
 	ror.b	#1,eaf
 	»)
@@ -326,6 +343,9 @@ OPCODE(0f,«
 	;;  and branch by immed.b
 	;;  if B not zero
 	;; No flags
+	;; 24 bytes
+	;; take: 22+4+ 8+8+4+300+8+94+4+22 = 474
+	;; skip: 22+4+10+               22 = 58
 OPCODE(10,«
 	LOHI	ebc
 	subq.b	#1,ebc
@@ -342,23 +362,26 @@ local(end):
 				;nok
 
 	;; LD	DE,immed.w
+	;; DE <- immed.w
 	;; No flags
+	;; 42 cycles, 8 bytes
 OPCODE(11,«
 	FETCHWI	ede
 	»)
 				;nok
 
 	;; LD	(DE),A
+	;; (DE) <- A
 	;; No flags
+	;; 106 cycles, 8 bytes
 OPCODE(12,«
-	move.w	ede,d0
-	rol.w	#8,d0
-	FETCHB	d0,eaf
+	PUTB	eaf,ede
 	»)
 				;nok
 
 	;; INC	DE
 	;; No flags
+	;; 4 cycles, 2 bytes
 OPCODE(13,«
 	F_INC_W	ede
 	»)
@@ -366,6 +389,7 @@ OPCODE(13,«
 
 	;; INC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=0
+	;; 152 cycles
 OPCODE(14,«
 	LOHI	ede
 	F_INC_B	ede
@@ -375,6 +399,7 @@ OPCODE(14,«
 
 	;; DEC	D
 	;; Flags: S,Z,H aff.; P=overflow, N=1
+	;; 124 cycles
 OPCODE(15,«
 	LOHI	ede
 	F_DEC_B	ede
@@ -382,8 +407,9 @@ OPCODE(15,«
 	»)
 				;nok
 
-	;; LD D,immed.b
+	;; LD	D,immed.b
 	;; No flags
+	;; 52 cycles
 OPCODE(16,«
 	LOHI	ede
 	FETCHBI	ede
@@ -394,6 +420,7 @@ OPCODE(16,«
 	;; RLA
 	;; Flags: P,N=0; C aff.
 	;; XXX flags
+	;; ? cycles
 OPCODE(17,«
 	roxl.b	#1,eaf
 	»)
@@ -417,6 +444,7 @@ OPCODE(18,«
 	;; ADD	HL,DE
 	;; HL <- HL+DE
 	;; Flags: H,C aff,; N=0
+	;; ? cycles
 OPCODE(19,«
 	F_ADD_W	ede,ehl
 	»)
@@ -425,6 +453,7 @@ OPCODE(19,«
 	;; LD	A,(DE)
 	;; A <- (DE)
 	;; No flags
+	;; 106 cycles, 8 bytes
 OPCODE(1a,«
 	FETCHB	ede,eaf
 	»)
@@ -432,6 +461,7 @@ OPCODE(1a,«
 
 	;; DEC	DE
 	;; No flags
+	;; 4 cycles, 2 bytes
 OPCODE(1b,«
 	subq.w	#1,ede
 	»)
@@ -439,6 +469,7 @@ OPCODE(1b,«
 
 	;; INC	E
 	;; Flags: S,Z,H aff.; P=overflow; N=0
+	;; 108 cycles, 34 bytes
 OPCODE(1c,«
 	F_INC_B	ede
 	»)
@@ -446,6 +477,7 @@ OPCODE(1c,«
 
 	;; DEC	E
 	;; Flags: S,Z,H aff.; P=overflow, N=1
+	;; 80 cycles, 26 bytes
 OPCODE(1d,«
 	F_DEC_B	ede
 	»)
@@ -453,6 +485,7 @@ OPCODE(1d,«
 
 	;; LD	E,immed.b
 	;; No flags
+	;; 8 cycles, 2 bytes
 OPCODE(1e,«
 	FETCHBI	ede
 	»)
@@ -461,6 +494,7 @@ OPCODE(1e,«
 	;; RRA
 	;; Flags: H,N=0; C aff.
 	;; XXX FLAGS
+	;; ? cycles
 OPCODE(1f,«
 	roxr.b	#1,eaf
 	»)
@@ -470,6 +504,9 @@ OPCODE(1f,«
 	;; if ~Z,
 	;;  PC <- PC+immed.b
 	;; No flags
+	;; 10 bytes
+	;; take: 40+10+422(=JR immed.b) = 472
+	;; skip: 40+12+12               =  64
 OPCODE(20,«
 	bsr	f_norm_z
 	;; if the emulated Z flag is set, this will be clear
@@ -479,6 +516,7 @@ OPCODE(20,«
 
 	;; LD	HL,immed.w
 	;; No flags
+	;; 42 cycles
 OPCODE(21,«
 	FETCHWI	ehl
 	»)
@@ -487,6 +525,7 @@ OPCODE(21,«
 	;; LD	immed.w,HL
 	;; (address) <- HL
 	;; No flags
+	;; 182 cycles
 OPCODE(22,«
 	FETCHWI	d1
 	PUTW	ehl,d1
@@ -495,6 +534,7 @@ OPCODE(22,«
 
 	;; INC	HL
 	;; No flags
+	;; 4 cycles
 OPCODE(23,«
 	addq.w	#1,ehl
 	»)
@@ -502,6 +542,7 @@ OPCODE(23,«
 
 	;; INC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=0
+	;; 152 cycles
 OPCODE(24,«
 	LOHI	ehl
 	F_INC_B	ehl
@@ -511,6 +552,7 @@ OPCODE(24,«
 
 	;; DEC	H
 	;; Flags: S,Z,H aff.; P=overflow, N=1
+	;; 124 cycles
 OPCODE(25,«
 	LOHI	ehl
 	F_DEC_B	ehl
@@ -520,6 +562,7 @@ OPCODE(25,«
 
 	;; LD	H,immed.b
 	;; No flags
+	;; 52 cycles
 OPCODE(26,«
 	LOHI	ehl
 	FETCHBI	ehl
@@ -532,6 +575,7 @@ OPCODE(26,«
 	;; http://www.z80.info/z80syntx.htm#DAA
 	;; Flags: oh lord they're fucked up
 	;; XXX DO THIS
+	;; ? cycles
 OPCODE(27,«
 	F_PAR	eaf
 	»)
@@ -542,6 +586,7 @@ OPCODE(27,«
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
+	;; ~472 cycles
 OPCODE(28,«
 	bsr	f_norm_z
 	bne	emu_op_18
@@ -551,6 +596,7 @@ OPCODE(28,«
 
 	;; ADD	HL,HL
 	;; No flags
+	;; ? cycles
 OPCODE(29,«
 	F_ADD_W	ehl,ehl
 	»)
@@ -558,6 +604,7 @@ OPCODE(29,«
 
 	;; LD	HL,(immed.w)
 	;; address is absolute
+	;; 172 cycles
 OPCODE(2a,«
 	FETCHWI	d1
 	FETCHW	d1,ehl
@@ -566,24 +613,28 @@ OPCODE(2a,«
 
 	;; XXX TOO LONG
 	;; DEC	HL
+	;; ? cycles
 OPCODE(2b,«
 	F_DEC_W	ehl
 	»)
 				;nok
 
 	;; INC	L
+	;; 108 cycles
 OPCODE(2c,«
 	F_INC_B	ehl
 	»)
 				;nok
 
 	;; DEC	L
+	;; 80 cycles
 OPCODE(2d,«
 	F_DEC_B	ehl
 	»)
 				;nok
 
 	;; LD	L,immed.b
+	;; 8 cycles
 OPCODE(2e,«
 	FETCHBI	ehl
 	»)
@@ -592,6 +643,7 @@ OPCODE(2e,«
 	;; CPL
 	;; A <- NOT A
 	;; XXX flags
+	;; ? cycles
 OPCODE(2f,«
 	not.b	eaf
 	»)
@@ -600,6 +652,7 @@ OPCODE(2f,«
 	;; JR	NC,immed.b
 	;; If carry clear
 	;;  PC <- PC+immed.b
+	;; ? cycles
 OPCODE(30,«
 	bsr	f_norm_c
 	beq	emu_op_18	; branch taken: carry clear
@@ -607,6 +660,7 @@ OPCODE(30,«
 	»)
 
 	;; LD	SP,immed.w
+	;; 140 cycles
 OPCODE(31,«
 	FETCHWI	d1
 	bsr	deref
@@ -616,6 +670,7 @@ OPCODE(31,«
 
 	;; LD	(immed.w),A
 	;; store indirect
+	;; 170 cycles
 OPCODE(32,«
 	FETCHWI	d1
 	rol.w	#8,d1
@@ -628,6 +683,7 @@ OPCODE(32,«
 	;;
 	;; FYI:  Do not have to deref because this will never cross a
 	;; page boundary.  So sayeth BrandonW.
+	;; 4 cycles
 OPCODE(33,«
 	addq.w	#1,esp
 	»)
@@ -636,6 +692,7 @@ OPCODE(33,«
 	;; INC	(HL)
 	;; Increment byte
 	;; SPEED can be made faster
+	;; 320 cycles
 OPCODE(34,«
 	FETCHB	ehl,d1
 	F_INC_B	d1
@@ -646,6 +703,7 @@ OPCODE(34,«
 	;; DEC	(HL)
 	;; Decrement byte
 	;; SPEED can be made faster
+	;; 292 cycles
 OPCODE(35,«
 	FETCHB	ehl,d1
 	F_DEC_B	d1
@@ -654,6 +712,7 @@ OPCODE(35,«
 				;nok
 
 	;; LD	(HL),immed.b
+	;; 114 cycles
 OPCODE(36,«
 	FETCHBI	d1
 	PUTB	ehl,d1
@@ -663,6 +722,7 @@ OPCODE(36,«
 	;; SCF
 	;; Set Carry Flag
 	;; XXX flags are more complicated than this :(
+	;; ? cycles
 OPCODE(37,«
 	ori.b	#%00111011,flag_valid-flag_storage(a3)
 	move.b	eaf,d1
@@ -675,6 +735,7 @@ OPCODE(37,«
 	;; JR	C,immed.b
 	;; If carry set
 	;;  PC <- PC+immed.b
+	;; ? cycles
 OPCODE(38,«
 	bsr	f_norm_c
 	bne	emu_op_18

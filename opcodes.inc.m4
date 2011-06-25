@@ -3,6 +3,14 @@ dnl # confusion.
 changecom(;)dnl
 dnl # I'm using these, in this direction, specifically to confuse Germans.
 changequote(`«', `»')dnl
+dnl #
+dnl # OPCODE takes up to five arguments:
+dnl # 1. Instruction opcode
+dnl # 2. 68k code
+dnl # 3. Tstates for the native instruction
+dnl # 4. Cycles the emulator takes
+dnl # 5. Bytes of emulator code for this instruction
+dnl #
 define(«OPCODE»,«	START
 dnl # This little bit of trickery lets me define a local label.
 dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
