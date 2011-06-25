@@ -44,7 +44,7 @@ instruction with a fixed 42 cycle overhead:
 
 (Using techniques borrowed from
 [Tezxas](http://tezxas.ticalc.org/technica.htm) I will be able to get
-this to 30 cycles.)
+this to 26 cycles.)
 
 From there, an instruction will take anywhere from 0 to, well, lots of
 additional cycles.  Generally, however, it will take under 50, for 92
@@ -66,3 +66,11 @@ expected.
 * [More z80 instruction set reference](http://nemesis.lonestar.org/computers/tandy/software/apps/m4/qd/opcodes.html)
 * [Details on flags and other side effects](http://www.gaby.de/z80/z80code.htm)
 
+Incompatibilities with Real Hardware
+------------------------------------
+
+1. PC-relative accesses (reads, writes, jumps) across page boundaries
+   may not work.  This is apparently a rare enough occurence that
+   ignoring it is reasonable.
+
+2. 

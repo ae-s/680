@@ -344,18 +344,15 @@ OPCODE(0f,«
 	;;  if B not zero
 	;; No flags
 	;; 24 bytes
-	;; take: 22+4+ 8+8+4+300+8+94+4+22 = 474
-	;; skip: 22+4+10+               22 = 58
+	;; take: 22+4+ 8+8+4+8+22 = 76
+	;; skip: 22+4+10+      22 = 58
 OPCODE(10,«
 	LOHI	ebc
 	subq.b	#1,ebc
 	beq.s	local(end)	; slooooow
 	FETCHBI	d1
-	move.l	epc,a0
-	bsr	underef
-	add.w	d1,d0		; ??? Can I avoid underef/deref cycle?
-	bsr	deref
-	move.l	a0,epc
+	ext.w	d1
+	add.w	d1,epc
 local(end):
 	HILO	ebc
 	»,,,32)
@@ -430,14 +427,18 @@ OPCODE(17,«
 	;; PC <- immed.b
 	;; Branch relative by a signed immediate byte
 	;; No flags
+	;; 20 cycles
+
+	;; XXX
+	;; Yes, I can avoid the underef/deref cycle.  To do so, put a
+	;; sled of emulator trap instructions on either side of each
+	;; 16k page.  When that trap is executed, undo the shortcut
+	;; and redo it by the book.
+
 OPCODE(18,«
 	clr.w	d1
 	FETCHBI	d1
-	move.l	epc,a0
-	bsr	underef
-	add.w	d0,d1		; ??? Can I avoid underef/deref cycle?
-	bsr	deref
-	move.l	a0,epc
+	add.w	d1,epc
 	»)
 				;nok
 
@@ -505,8 +506,8 @@ OPCODE(1f,«
 	;;  PC <- PC+immed.b
 	;; No flags
 	;; 10 bytes
-	;; take: 40+10+422(=JR immed.b) = 472
-	;; skip: 40+12+12               =  64
+	;; take: 40+10+20(=JR immed.b) = 70
+	;; skip: 40+12+12              = 64
 OPCODE(20,«
 	bsr	f_norm_z
 	;; if the emulated Z flag is set, this will be clear
@@ -573,20 +574,20 @@ OPCODE(26,«
 	;; DAA
 	;; Decrement, adjust accum
 	;; http://www.z80.info/z80syntx.htm#DAA
-	;; Flags: oh lord they're fucked up
-	;; XXX DO THIS
+	;; Flags: ummm, go find a manual.
+	;; XXX
 	;; ? cycles
 OPCODE(27,«
 	F_PAR	eaf
 	»)
 				;nok
 
-	;; JR Z,immed.b
+	;; JR	Z,immed.b
 	;; If zero
 	;;  PC <- PC+immed.b
 	;; SPEED can be made faster
 	;; No flags
-	;; ~472 cycles
+	;; ~130 cycles
 OPCODE(28,«
 	bsr	f_norm_z
 	bne	emu_op_18
@@ -747,9 +748,7 @@ OPCODE(38,«
 OPCODE(39,«
 	move.l	esp,a0
 	bsr	underef
-	F_ADD_W	ehl,d0		; ??? Can I avoid underef/deref cycle?
-	bsr	deref
-	move.l	a0,esp
+	F_ADD_W	d0,ehl
 	»)
 				;nok
 
