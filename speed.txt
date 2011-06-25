@@ -12,3 +12,6 @@ F_DEC_B	 80 cycles
 F_INC_W	  4 cycles
 F_DEC_W	  4 cycles
 
+done:
+	move.b	(epc)+,done+whatever(a5)	; 16
+	jmp	#value(a4)			; 10
