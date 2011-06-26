@@ -22,4 +22,70 @@ $2
 undefine(«label»)dnl
 	DONE»)dnl
 dnl
+define(«OP_DD»,«	START_DD
+dnl # This little bit of trickery lets me define a local label.
+dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
+dnl # end_10, and is undefined everywhere else.
+define(«local»,$«»1_««$1»»)dnl
+«emu_op_dd»$1«:»
+$2
+	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+undefine(«label»)dnl
+	DONE»)dnl
+dnl
+define(«OP_CB»,«	START_CB
+dnl # This little bit of trickery lets me define a local label.
+dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
+dnl # end_10, and is undefined everywhere else.
+define(«local»,$«»1_««$1»»)dnl
+«emu_op_cb»$1«:»
+$2
+	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+undefine(«label»)dnl
+	DONE»)dnl
+dnl
+define(«OP_DDCB»,«	START_DDCB
+dnl # This little bit of trickery lets me define a local label.
+dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
+dnl # end_10, and is undefined everywhere else.
+define(«local»,$«»1_««$1»»)dnl
+«emu_op_ddcb»$1«:»
+$2
+	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+undefine(«label»)dnl
+	DONE»)dnl
+dnl
+define(«OP_FD»,«	START_FD
+dnl # This little bit of trickery lets me define a local label.
+dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
+dnl # end_10, and is undefined everywhere else.
+define(«local»,$«»1_««$1»»)dnl
+«emu_op_fd»$1«:»
+$2
+	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+undefine(«label»)dnl
+	DONE»)dnl
+dnl
+define(«OP_FDCB»,«	START_FDCB
+dnl # This little bit of trickery lets me define a local label.
+dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
+dnl # end_10, and is undefined everywhere else.
+define(«local»,$«»1_««$1»»)dnl
+«emu_op_fdcb»$1«:»
+$2
+	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+undefine(«label»)dnl
+	DONE»)dnl
+dnl
+define(«OP_ED»,«	START_ED
+dnl # This little bit of trickery lets me define a local label.
+dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
+dnl # end_10, and is undefined everywhere else.
+define(«local»,$«»1_««$1»»)dnl
+«emu_op_ed»$1«:»
+$2
+	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+undefine(«label»)dnl
+	DONE»)dnl
+dnl
 define(«INT_OFFSET», 4)dnl
