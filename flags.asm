@@ -209,7 +209,11 @@ flag_storage:
 	;; 2 if tmp_???b is valid
 	;; 3 if tmp_???w is valid
 f_tmp_byte:	dc.b	0
-	;; 2 if P is 0, 3 if P is 1, 4 if P is Parity, 5 if P is oVerflow
+
+	;; 2 if P is 0
+	;; 3 if P is 1
+	;; 4 if P is uncalculated Parity
+	;; 5 if P is uncalculated oVerflow
 f_tmp_p_type:	dc.b	0
 
 	;; byte operands
@@ -296,5 +300,8 @@ lut_parity:
 	dc.b	0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0
 	dc.b	0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0
 	dc.b	4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4
+
+	;; To save space I might be able to overlay the Parity table
+	;; with the CCR table, or even interleave it in the opcodes.
 
 
