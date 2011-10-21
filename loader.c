@@ -78,6 +78,46 @@ void init_load(void)
 
 }
 
+/* Loads an image file into the emulator, restoring state.
+ */
+void load_descriptor(char *folder, char *descriptor)
+{
+	
+}
+
+/* Load a page into the emulator's data structures.  Only stores a
+ * pointer to it; does not copy due to space constraints.
+ *
+ * ROM pages can (and should) be archived, but RAM pages must be
+ * unarchived.
+ */
+void load_page(int pageno, WORD *pptr)
+{
+	/* check the version */
+	if (*pptr != IMG_MAGIC)
+		ER_throw(ER_DATATYPE);
+
+	pptr++;
+
+	/* check the size */
+	if (*pptr != 0x4000)
+		ER_throw(ER_INVALID_BLOCK_STRUCTURE);
+
+	pptr++;
+
+	if (*pptr != (WORD)pageno)
+		ER_throw(ER_INVALID_LABEL);
+
+	pptr++;
+
+	if (*pptr != (WORD)c_TI83P)
+		ER_throw(ILLEGAL_TAG_ERROR);
+
+	pptr++;
+
+	pages[pageno] = pptr;
+}
+
 void unload(void)
 {
 	return;

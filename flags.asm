@@ -283,6 +283,8 @@ lut_ccr:
 	;; 256-byte LUT for the Parity bit.
 	;; Keep this last so all storage references require only one
 	;; extension word.
+	;;
+	;; This table taken from another z80 emulator
 lut_parity:
 	dc.b	4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4
 	dc.b	0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0
