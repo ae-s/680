@@ -17,14 +17,14 @@
 	;; the byte read in \2.
 FETCHB	MACRO			; 106 cycles, 8 bytes
 	move.w	\1,d1
-	bsr	deref
+	jsr	deref
 	move.b	(a0),\2
 	ENDM
 
 	;; Macro to write a byte in \1 to main memory at \2
 PUTB	MACRO			; 106 cycles, 8 bytes
 	move.w	\2,d1
-	bsr	deref
+	jsr	deref
 	move.b	\1,(a0)
 	ENDM
 
@@ -32,7 +32,7 @@ PUTB	MACRO			; 106 cycles, 8 bytes
 	;; (unaligned).  Puts the word read in \2.
 FETCHW	MACRO			; 140 cycles, 16 bytes
 	move.w	\1,d1
-	bsr	deref
+	jsr	deref
 	;; XXX SPEED
 	move.b	(a0)+,d2
 	move.b	(a0),\2
@@ -43,7 +43,7 @@ FETCHW	MACRO			; 140 cycles, 16 bytes
 	;; Macro to write a word in \1 to main memory at \2 (regs only)
 PUTW	MACRO			; 140 cycles, 14 bytes
 	move.w	\2,d1
-	bsr	deref
+	jsr	deref
 	move.w	\1,d0
 	move.b	d0,(a0)+
 	LOHI	d0
@@ -101,7 +101,7 @@ _align	SET	0
 START	MACRO
 	ORG	emu_plain_op+_align
 _align	SET	_align+$100	; opcode routine length
-	bra.w	do_interrupt	; for interrupt routines
+	jmp	do_interrupt	; for interrupt routines
 	ENDM
 
 START_DD	MACRO
@@ -208,7 +208,11 @@ done:
 
 
 DONE	MACRO
-	bra	done
+	clr.w	d0		; 4 cycles / 2 bytes
+	move.b	(epc)+,d0	; 8 cycles / 2 bytes
+	move.b	d0,$4c00+32*(128/8)
+	rol.w	#6,d0		;18 cycles / 2 bytes
+	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
 	ENDM
 
 	;; Timing correction for more precise emulation
@@ -775,7 +779,7 @@ OP_ED(1f,«»)
 	;; take: 40+10+20(=JR immed.b) = 70
 	;; skip: 40+12+12              = 64
 OPCODE(20,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	;; if the emulated Z flag is set, this will be clear
 	beq	emu_op_18	; branch taken: Z reset -> eq (zero set)
 	add.l	#1,epc		; skip over the immediate byte
@@ -911,7 +915,7 @@ OP_ED(27,«»)
 	;; No flags
 	;; ~130 cycles
 OPCODE(28,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	bne	emu_op_18
 	add.l	#1,epc
 	»)
@@ -1033,7 +1037,7 @@ OP_ED(2f,«»)
 	;;  PC <- PC+immed.b
 	;; ? cycles
 OPCODE(30,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	beq	emu_op_18	; branch taken: carry clear
 	add.l	#1,epc
 	»)
@@ -1049,7 +1053,7 @@ OP_ED(30,«»)
 	;; 140 cycles
 OPCODE(31,«
 	FETCHWI	d1
-	bsr	deref
+	jsr	deref
 	movea.l	a0,esp
 	»)
 				;nok
@@ -1172,7 +1176,7 @@ OP_ED(37,«»)
 	;;  PC <- PC+immed.b
 	;; ? cycles
 OPCODE(38,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	bne	emu_op_18
 	add.l	#1,epc
 	»)
@@ -1188,7 +1192,7 @@ OP_ED(38,«»)
 	;; HL <- HL+SP
 OPCODE(39,«
 	move.l	esp,a0
-	bsr	underef
+	jsr	underef
 	F_ADD_W	d0,ehl
 	»)
 				;nok
@@ -1270,7 +1274,7 @@ OP_FDCB(3e,«»)
 OP_ED(3e,«»)
 
 OPCODE(3f,«
-	bsr	flags_normalize
+	jsr	flags_normalize
 	;; 	  SZ5H3PNC
 	ori.b	#%00000001,flag_valid-flag_storage(a3)
 	andi.b	#%11111110,flag_byte-flag_storage(a3)
@@ -2237,7 +2241,7 @@ OP_ED(7f,«»)
 F_ADD_B	MACRO			; 14 bytes?
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_add
+	jsr	alu_add
 	move.b	d1,\2
 	ENDM
 
@@ -2360,7 +2364,7 @@ OP_ED(87,«»)
 F_ADC_B	MACRO			; S34
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_adc
+	jsr	alu_adc
 	move.b	d1,\2
 	ENDM
 
@@ -2487,7 +2491,7 @@ OP_ED(8f,«»)
 F_SUB_B	MACRO
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_sub
+	jsr	alu_sub
 	move.b	d1,\2
 	ENDM
 
@@ -2609,7 +2613,7 @@ OP_ED(97,«»)
 F_SBC_B	MACRO
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_sbc
+	jsr	alu_sbc
 	move.b	d1,\2
 	ENDM
 
@@ -2725,7 +2729,7 @@ OPCODE(9f,«
 F_AND_B	MACRO
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_and
+	jsr	alu_and
 	move.b	d1,\2
 	ENDM
 
@@ -2848,7 +2852,7 @@ OPCODE(a7,«
 F_XOR_B	MACRO
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_xor
+	jsr	alu_xor
 	move.b	d1,\2
 	ENDM
 
@@ -2972,7 +2976,7 @@ OPCODE(af,«
 F_OR_B	MACRO
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_or
+	jsr	alu_or
 	move.b	d1,\2
 	ENDM
 
@@ -3098,7 +3102,7 @@ F_CP_B	MACRO
 	;; XXX deal with \2 or \1 being d1 or d0
 	move.b	\2,d1
 	move.b	\1,d0
-	bsr	alu_cp
+	jsr	alu_cp
 	;; no result to save
 	ENDM
 
@@ -3226,7 +3230,7 @@ OP_ED(bf,«»)
 	;;   PCh <- (SP+1)
 	;;   SP <- (SP+2)
 OPCODE(c0,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	;; SPEED inline RET
 	beq	emu_op_c9	; RET
 	»)
@@ -3257,7 +3261,7 @@ OP_ED(c1,«»)
 	;; if ~Z
 	;;   PC <- immed.w
 OPCODE(c2,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	beq.s	emu_op_c3
 	add.l	#2,epc
 	»)
@@ -3274,7 +3278,7 @@ OP_ED(c2,«»)
 	;; PC <- immed.w
 OPCODE(c3,«
 	FETCHWI	d1
-	bsr	deref
+	jsr	deref
 	movea.l	a0,epc
 	»,36,,12)
 
@@ -3288,7 +3292,7 @@ OP_ED(c3,«»)
 	;; CALL	NZ,immed.w
 	;; If ~Z, CALL immed.w
 OPCODE(c4,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	;; CALL (emu_op_cd) will run HOLD_INTS again. This doesn't
 	;; matter with the current implementation because HOLD_INTS
 	;; simply sets a bit.
@@ -3336,10 +3340,10 @@ OP_ED(c6,«»)
 	;; XXX check
 OPCODE(c7,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$00,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -3353,7 +3357,7 @@ OP_ED(c7,«»)
 
 	;; RET	Z
 OPCODE(c8,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	bne.s	emu_op_c9
 	»)
 				;nok
@@ -3371,7 +3375,7 @@ OP_ED(c8,«»)
 	;; SP <- (SP+2)
 OPCODE(c9,«
 	POPW	d1
-	bsr	deref
+	jsr	deref
 	movea.l	a0,epc
 	»)
 				;nok
@@ -3386,7 +3390,7 @@ OP_ED(c9,«»)
 	;; JP	Z,immed.w
 	;; If Z, jump
 OPCODE(ca,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	bne	emu_op_c3
 	add.l	#2,epc
 	»)
@@ -3413,7 +3417,7 @@ OP_ED(cb,«»)
 
 	;; CALL	Z,immed.w
 OPCODE(cc,«
-	bsr	f_norm_z
+	jsr	f_norm_z
 	bne.s	emu_op_cd
 	add.l	#2,epc
 	»)
@@ -3434,7 +3438,7 @@ OP_ED(cc,«»)
 	;;  PC <- address
 OPCODE(cd,«
 	move.l	epc,a0
-	bsr	underef		; d0 has PC
+	jsr	underef		; d0 has PC
 	add.w	#2,d0
 	PUSHW	d0
 	bra	emu_op_c3	; JP
@@ -3465,10 +3469,10 @@ OP_ED(ce,«»)
 	;;  == CALL 8
 OPCODE(cf,«
 	move.l	epc,a0
-	bsr	underef		; d0 has PC
+	jsr	underef		; d0 has PC
 	PUSHW	d0
 	move.w	#$08,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -3482,7 +3486,7 @@ OP_ED(cf,«»)
 
 	;; RET	NC
 OPCODE(d0,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	beq	emu_op_c9
 	»)
 				;nok
@@ -3509,7 +3513,7 @@ OP_ED(d1,«»)
 
 	;; JP	NC,immed.w
 OPCODE(d2,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	beq	emu_op_c3
 	add.l	#2,epc
 	»)
@@ -3525,7 +3529,7 @@ OP_ED(d2,«»)
 OPCODE(d3,«
 	move.b	eaf,d1
 	FETCHBI	d0
-	bsr	port_out
+	jsr	port_out
 	»)
 				;nok
 
@@ -3538,7 +3542,7 @@ OP_ED(d3,«»)
 
 	;; CALL	NC,immed.w
 OPCODE(d4,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	beq	emu_op_cd
 	add.l	#2,epc
 	»)
@@ -3582,10 +3586,10 @@ OP_ED(d6,«»)
 	;;  == CALL 10
 OPCODE(d7,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$10,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -3599,7 +3603,7 @@ OP_ED(d7,«»)
 
 	;; RET	C
 OPCODE(d8,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	bne	emu_op_c9
 	»)
 				;nok
@@ -3628,12 +3632,11 @@ OP_ED(d9,«»)
 
 	;; JP	C,immed.w
 OPCODE(da,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	bne	emu_op_c3
 	»)
 				;nok
 
-OPCODE(db,«
 OP_DD(da,«»)
 OP_CB(da,«»)
 OP_DDCB(da,«»)
@@ -3642,9 +3645,10 @@ OP_FDCB(da,«»)
 OP_ED(da,«»)
 
 	;; IN	A,immed.b
+OPCODE(db,«
 	move.b	eaf,d1
 	FETCHBI	d0
-	bsr	port_in
+	jsr	port_in
 	»)
 				;nok
 
@@ -3657,7 +3661,7 @@ OP_ED(db,«»)
 
 	;; CALL	C,immed.w
 OPCODE(dc,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	bne	emu_op_cd
 	add.l	#2,epc
 	»)
@@ -3692,10 +3696,10 @@ OP_ED(dd,«»)
 	;;  == CALL 18
 OPCODE(df,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$18,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -3710,7 +3714,7 @@ OP_ED(de,«»)
 	;; RET	PO
 	;; If parity odd (P zero), return
 OPCODE(e0,«
-	bsr	f_norm_pv
+	jsr	f_norm_pv
 	beq	emu_op_c9
 	»)
 				;nok
@@ -3737,7 +3741,7 @@ OP_ED(e0,«»)
 
 	;; JP	PO,immed.w
 OPCODE(e2,«
-	bsr	f_norm_pv
+	jsr	f_norm_pv
 	beq	emu_op_c3
 	add.l	#2,epc
 	»)
@@ -3769,7 +3773,7 @@ OP_ED(e2,«»)
 	;; CALL	PO,immed.w
 	;; if parity odd (P=0), call
 OPCODE(e4,«
-	bsr	f_norm_pv
+	jsr	f_norm_pv
 	beq	emu_op_cd
 	add.l	#2,epc
 	»)
@@ -3813,10 +3817,10 @@ OP_ED(e5,«»)
 	;;  == CALL 20
 OPCODE(e7,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$20,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -3831,7 +3835,7 @@ OP_ED(e6,«»)
 	;; RET	PE
 	;; If parity odd (P zero), return
 OPCODE(e8,«
-	bsr	f_norm_pv
+	jsr	f_norm_pv
 	bne	emu_op_c9
 	»)
 				;nok
@@ -3846,7 +3850,7 @@ OP_ED(e7,«»)
 	;; JP	(HL)
 OPCODE(e9,«
 	FETCHB	ehl,d1
-	bsr	deref
+	jsr	deref
 	movea.l	a0,epc
 	»)
 				;nok
@@ -3860,7 +3864,7 @@ OP_ED(e8,«»)
 
 	;; JP	PE,immed.w
 OPCODE(ea,«
-	bsr	f_norm_pv
+	jsr	f_norm_pv
 	bne	emu_op_c3
 	add.l	#2,epc
 	»)
@@ -3889,7 +3893,7 @@ OP_ED(ea,«»)
 	;; CALL	PE,immed.w
 	;; If parity even (P=1), call
 OPCODE(ec,«
-	bsr	f_norm_c
+	jsr	f_norm_c
 	bne	emu_op_cd
 	add.l	#2,epc
 	»)
@@ -3933,10 +3937,10 @@ OP_ED(ed,«»)
 	;;  == CALL 28
 OPCODE(ef,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$28,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -3951,7 +3955,7 @@ OP_ED(ee,«»)
 	;; RET	P
 	;; Return if Positive
 OPCODE(f0,«
-	bsr	f_norm_sign
+	jsr	f_norm_sign
 	beq	emu_op_c9	; RET
 	»)
 				;nok
@@ -3982,7 +3986,7 @@ OP_ED(f0,«»)
 
 	;; JP	P,immed.w
 OPCODE(f2,«
-	bsr	f_norm_sign
+	jsr	f_norm_sign
 	beq	emu_op_c3	; JP
 	add.l	#2,epc
 	»)
@@ -3997,7 +4001,7 @@ OP_FDCB(f1,«»)
 OP_ED(f1,«»)
 
 	;; DI
-	bsr	ints_stop
+	jsr	ints_stop
 	»)
 
 OP_DD(f2,«»)
@@ -4010,7 +4014,7 @@ OP_ED(f2,«»)
 	;; CALL	P,&0000
 	;; Call if positive (S=0)
 OPCODE(f4,«
-	bsr	f_norm_sign
+	jsr	f_norm_sign
 	beq	emu_op_cd
 	»)
 				;nok
@@ -4024,7 +4028,7 @@ OP_ED(f3,«»)
 
 	;; PUSH	AF
 OPCODE(f5,«
-	bsr	flags_normalize
+	jsr	flags_normalize
 	LOHI	eaf
 	move.b	flag_byte(pc),eaf
 	;; XXX wrong, af is not normalized by flags_normalize?
@@ -4058,10 +4062,10 @@ OP_ED(f6,«»)
 	;;  == CALL 30
 OPCODE(f7,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$30,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
@@ -4076,7 +4080,7 @@ OP_ED(f7,«»)
 	;; RET	M
 	;; Return if Sign == 1, minus
 OPCODE(f8,«
-	bsr	f_norm_sign
+	jsr	f_norm_sign
 	bne	emu_op_c9	; RET
 	»)
 				;nok
@@ -4092,7 +4096,7 @@ OP_ED(f8,«»)
 	;; SP <- HL
 OPCODE(f9,«
 	move.w	ehl,d1
-	bsr	deref
+	jsr	deref
 	movea.l	a0,esp
 	»)
 				;nok
@@ -4106,7 +4110,7 @@ OP_ED(f9,«»)
 
 	;; JP	M,immed.w
 OPCODE(fa,«
-	bsr	f_norm_sign
+	jsr	f_norm_sign
 	bne	emu_op_c3	; JP
 	add.l	#2,epc
 	»)
@@ -4121,7 +4125,7 @@ OP_ED(fa,«»)
 
 	;; EI
 OPCODE(fb,«
-	bsr	ints_start
+	jsr	ints_start
 	»)
 				;nok
 
@@ -4135,7 +4139,7 @@ OP_ED(fb,«»)
 	;; CALL	M,immed.w
 	;; Call if minus (S=1)
 OPCODE(fc,«
-	bsr	f_norm_sign
+	jsr	f_norm_sign
 	bne	emu_op_cd
 	add.l	#2,epc
 	»)
@@ -4178,10 +4182,10 @@ OP_ED(fe,«»)
 	;;  == CALL 38
 OPCODE(ff,«
 	move.l	epc,a0
-	bsr	underef
+	jsr	underef
 	PUSHW	d0
 	move.w	#$38,d0
-	bsr	deref
+	jsr	deref
 	move.l	a0,epc
 	»)
 				;nok
