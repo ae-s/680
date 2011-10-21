@@ -9,6 +9,7 @@
 #include "asm_vars.h"
 
 #include "global.h"
+#include "image.h"
 
 HANDLE page_handles[256];
 

@@ -10,14 +10,10 @@ the page files.  This way multiple images can share the same data.
    0x0680
 ** Size (page only)
    0x4000
-** Checksum
-   CRC-16 of the whole page
-** Version
-   string-32, 0-terminated
 ** Page number
-   Byte
+   word
 ** Calculator model
-   Byte, some undefined enum
+   word, enum 'models' in image.h
 
 * Fields in the descriptor file:
 
@@ -29,14 +25,25 @@ the page files.  This way multiple images can share the same data.
     string-32, 0-terminated
 
 ** Data
-   List of these records:
-*** Page number
+   Tagged list of these records:
+*** Page number - 'PG'
     word
-    0x00?? for a real page
-    0xffff for final record
-*** Checksum
+*** Checksum - 'CK'
     word
-*** Version
-    string-32, 0-term
-*** Calculator model
+    CRC-16 of page, as in page image file
+*** Version - 'VE'
+    string, 0-terminated
+*** Calculator model - 'MD'
     Byte, same undefined enum
+** Registers - 'RG'
+   Tagged list of registers
+*** A - 'A'
+*** F - 'F'
+*** BC - 'BC'
+*** DE - 'DE'
+*** HL - 'HL'
+*** SP - 'SP'
+*** PC - 'PC'
+*** I - 'I'
+** Other state
+*** Pages presently paged in - 'IN'

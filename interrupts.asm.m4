@@ -1,7 +1,7 @@
-;;; interrupt handling code
+;;; interrupt handling code, in -*- asm -*-
 
 	;; Current interrupt mode.  IM 1 and friends will modify
-	;; this, it can be any of 0, 1, 2.
+	;; this.  It can be any of 0, 1, 2.
 int_mode:	dc.b	0
 
 	;; 0 if the emulated device doesn't want interrupts.
@@ -24,18 +24,20 @@ int_enabled:	dc.b	1
 	;; This emulator, on the other hand, will fetch the immediate
 	;; argument from the JP instruction in the shim, and then
 	;; dance off into la-la land.
-int_opcode:	dc.b	0
+int0_opcode:	dc.b	0
 		dc.b	$c3		; JP immed.w
-int_return:	dc.w	0		; the destination address
+int0_return:	dc.w	0		; the destination address
 
 
 	;; This is the interrupt routine.  It can come at any point
 	;; during an instruction, though routines that use a5 (e.g. by
-	;; calling C subroutines) will have to turn off interrupts.
+	;; calling C subroutines) will have to turn off or hold
+	;; interrupts.
+	;;
 	;; Routines that call into TIOS will have to remove this
 	;; interrupt handler.
 int_handler:
-	sub.l	#4,a5
+	sub.l	#INT_OFFSET,a5
 	rte
 
 
@@ -67,9 +69,10 @@ do_interrupt:
 
 	;; IM 0: A byte is placed on the bus and executed as if it
 	;; were inline in the program.  This emulator will put that
-	;; byte into int_opcode and set epc (or int_jump) to point
+	;; byte into int0_opcode and set epc (or int_jump) to point
 	;; there.
 int_do_mode0:
+	move	epc,int0_opcode
 	rts
 
 	;; This routine emulates a mode 1 interrupt.
