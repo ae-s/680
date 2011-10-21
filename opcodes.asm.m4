@@ -3366,7 +3366,9 @@ OP_ED(c1,«»)
 	;;   PC <- immed.w
 OPCODE(c2,«
 	jsr	f_norm_z
-	beq.s	emu_op_c3
+	bne	local(continue)
+	jmp	emu_op_c3	; shame this has to be a long jump
+local(continue):
 	add.l	#2,epc
 	»)
 				;nok
@@ -3462,7 +3464,9 @@ OP_ED(c7,«»)
 	;; RET	Z
 OPCODE(c8,«
 	jsr	f_norm_z
-	bne.s	emu_op_c9
+	beq	local(continue)
+	jmp	emu_op_c9	; shame this has to be a long jump
+local(continue):
 	»)
 				;nok
 
@@ -3522,7 +3526,9 @@ OP_ED(cb,«»)
 	;; CALL	Z,immed.w
 OPCODE(cc,«
 	jsr	f_norm_z
-	bne.s	emu_op_cd
+	beq	local(continue)
+	jmp	emu_op_cd
+local(continue):
 	add.l	#2,epc
 	»)
 				;nok
@@ -4134,7 +4140,7 @@ OP_ED(f3,«»)
 OPCODE(f5,«
 	jsr	flags_normalize
 	LOHI	eaf
-	move.b	flag_byte(pc),eaf
+	move.b	(flag_byte),eaf
 	;; XXX wrong, af is not normalized by flags_normalize?
 	HILO	eaf
 	PUSHW	eaf

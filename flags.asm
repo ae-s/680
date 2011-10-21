@@ -95,7 +95,7 @@ FNPV_ok:
 f_calc_parity:
 	andi.w	#$ff,d1
 	move.b	lut_parity-flag_storage(a3,d1.w),d1
-	move.w	flag_byte(pc),d0
+	move.b	(flag_byte),d0
 	and.b	#%11110111,d0
 	or.w	#%0000100000000000,d0
 	or.b	d1,d0

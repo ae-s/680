@@ -54,7 +54,7 @@ __main:
 	lea	emu_plain_op,a5
 
 	;; ... aaaaand we're off!
-	bsr	emu_run
+	jsr	emu_run
 	bsr	emu_teardown
 
 	bsr	display_teardown
