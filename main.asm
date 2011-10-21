@@ -10,29 +10,29 @@
 
 ;;; Registers used:
 ;;;
-;;; A7 = sp
-;;; A6 = emulated PC XXX
-;;; A5 = instruction table base pointer
-;;; A4 = emulated SP XXX
-;;; A3 = pointer to flag_storage
-;;; A2 =
-;;; A1 =
-;;; A0 =
+;;; A7		68000 stack pointer
+;;; A6/epc	emulated PC
+;;; A5		instruction table base pointer
+;;; A4		emulated SP
+;;; A3		pointer to flag_storage
+;;; A2		
+;;; A1		
+;;; A0		
 ;;;
-;;; D0 = current instruction, scratch for macros
-;;; D1 = scratch for instructions
-;;; D2 = further scratch
+;;; D0		current instruction, scratch for macros
+;;; D1		scratch for instructions
+;;; D2		further scratch
 ;;;
 ;;;
 ;;; The following have their shadows in the top half of the register
-;;; D3 = AF	A is in the low byte, F in the high byte (yeah ... speed)
-;;; D4 = BC	B high, C low
-;;; D5 = DE	D high, E low
-;;; D6 = HL	H high, L low
+;;; D3/eaf = AF		A is in the low byte, F in the high byte (yeah ... speed)
+;;; D4/ebc = BC		B high, C low
+;;; D5/ede = DE		D high, E low
+;;; D6/ehl = HL		H high, L low
 ;;;
 ;;; IY is used more often so it's easier to get at.  It can be slow
 ;;; but I don't really care to go to the effort to make it so.
-;;; D7 = IX (hi), IY (low)
+;;; D7/eixy = IX (hi word), IY (low word)
 
 
 ;;; emulated I and R are both in RAM

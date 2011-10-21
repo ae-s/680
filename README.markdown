@@ -1,8 +1,13 @@
 z680k: z80 emulator for 68k calculators
 =======================================
+      666   888   000  k  k
+zzzz 6     8   8 0   0 k k
+  z  6666   888  0 0 0 kk
+ z   6   6 8   8 0   0 k k
+zzzz  666   888   000  k  k
 
-Astrid Smith  
-Project started: 2010-06-06  
+Astrid Smith
+Project started: 2010-06-06
 GPL
 
 The intent of this project is to provide a fast and correct TI-83+
@@ -73,4 +78,4 @@ Incompatibilities with Real Hardware
    may not work.  This is apparently a rare enough occurence that
    ignoring it is reasonable.
 
-2. 
+2.

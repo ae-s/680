@@ -222,6 +222,12 @@ TIME	MACRO
 
 emu_plain_op:			; Size(bytes) Time(cycles)
 				; S0 T0
+
+	;; I would like to thank the State of Washington for
+	;; supporting the initial development of this file, by giving
+	;; me a job doing nothing with no oversight for hours at a
+	;; time.
+
 	;; NOP
 OPCODE(00,«»,4)
 
