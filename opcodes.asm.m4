@@ -1298,16 +1298,28 @@ OPCODE(40,«
 				;nok
 
 OP_DD(40,«»)
+
+	;; BIT	0,A
 OP_CB(40,«»)
+
 OP_DDCB(40,«»)
 OP_FD(40,«»)
 OP_FDCB(40,«»)
-OP_ED(40,«»)
+
+	;; IN	B,(C)
+OP_ED(40,«
+	move.b	ebc,d0
+	jsr	port_in
+	LOHI	ebc
+	move.b	d1,ebc
+	HILO	ebc
+	»)
+				;nok
 
 	;; LD	B,C
 OPCODE(41,«
 	move.w	ebc,d1
-	LOHI	d1
+	LOHI	d1		; deliberate trickery
 	move.b	d1,ebc
 	»)
 				;nok
@@ -1317,7 +1329,15 @@ OP_CB(41,«»)
 OP_DDCB(41,«»)
 OP_FD(41,«»)
 OP_FDCB(41,«»)
-OP_ED(41,«»)
+
+	;; OUT	(C),B
+OP_ED(41,«
+	move.b	ebc,d0
+	LOHI	ebc
+	move.b	ebc,d1
+	HILO	ebc
+	jsr	port_out
+	»)
 
 	;; LD	B,D
 	;; B <- D
@@ -1436,7 +1456,13 @@ OP_CB(48,«»)
 OP_DDCB(48,«»)
 OP_FD(48,«»)
 OP_FDCB(48,«»)
-OP_ED(48,«»)
+
+	;; IN	C,(C)
+OP_ED(48,«
+	move.b	ebc,d0
+	jsr	port_in
+	move.b	d1,ebc
+	»)
 
 	;; LD	C,C
 OPCODE(49,«
@@ -1449,7 +1475,14 @@ OP_CB(49,«»)
 OP_DDCB(49,«»)
 OP_FD(49,«»)
 OP_FDCB(49,«»)
-OP_ED(49,«»)
+
+	;; OUT	(C),C
+OP_ED(49,«
+	move.b	ebc,d0
+	move.b	ebc,d1
+	jsr	port_out
+	»)
+				;nok
 
 	;; LD	C,D
 OPCODE(4a,«
@@ -1556,7 +1589,15 @@ OP_CB(50,«»)
 OP_DDCB(50,«»)
 OP_FD(50,«»)
 OP_FDCB(50,«»)
-OP_ED(50,«»)
+
+	;; IN	D,(C)
+OP_ED(50,«
+	move.b	ebc,d0
+	jsr	port_in
+	LOHI	ede
+	move.b	d1,ede
+	HILO	ede
+	»)
 
 	;; LD	D,C
 OPCODE(51,«
@@ -1571,7 +1612,15 @@ OP_CB(51,«»)
 OP_DDCB(51,«»)
 OP_FD(51,«»)
 OP_FDCB(51,«»)
-OP_ED(51,«»)
+
+	;; OUT	(C),D
+OP_ED(51,«
+	move.b	ebc,d0
+	LOHI	ede
+	move.b	ede,d1
+	HILO	ede
+	jsr	port_out
+	»)
 
 	;; LD	D,D
 OPCODE(52,«
@@ -1678,7 +1727,13 @@ OP_CB(58,«»)
 OP_DDCB(58,«»)
 OP_FD(58,«»)
 OP_FDCB(58,«»)
-OP_ED(58,«»)
+
+	;; IN	E,(C)
+OP_ED(58,«
+	move.b	ebc,d0
+	jsr	port_in
+	move.b	d1,ede
+	»)
 
 	;; LD	E,C
 OPCODE(59,«
@@ -1691,7 +1746,14 @@ OP_CB(59,«»)
 OP_DDCB(59,«»)
 OP_FD(59,«»)
 OP_FDCB(59,«»)
-OP_ED(59,«»)
+
+	;; OUT	(C),E
+OP_ED(59,«
+	move.b	ebc,d0
+	move.b	ede,d1
+	jsr	port_out
+	»)
+				;nok
 
 	;; LD	E,D
 OPCODE(5a,«
@@ -1791,7 +1853,15 @@ OP_CB(60,«»)
 OP_DDCB(60,«»)
 OP_FD(60,«»)
 OP_FDCB(60,«»)
-OP_ED(60,«»)
+
+	;; IN	H,(C)
+OP_ED(60,«
+	move.b	ebc,d0
+	jsr	port_in
+	LOHI	ehl
+	move.b	d1,ehl
+	HILO	ehl
+	»)
 
 	;; LD	H,C
 OPCODE(61,«
@@ -1806,7 +1876,15 @@ OP_CB(61,«»)
 OP_DDCB(61,«»)
 OP_FD(61,«»)
 OP_FDCB(61,«»)
-OP_ED(61,«»)
+
+	;; OUT	(C),H
+OP_ED(61,«
+	move.b	ebc,d0
+	LOHI	ehl
+	move.b	ehl,d1
+	HILO	ehl
+	jsr	port_out
+	»)
 
 	;; LD	H,D
 OPCODE(62,«
@@ -1916,7 +1994,13 @@ OP_CB(68,«»)
 OP_DDCB(68,«»)
 OP_FD(68,«»)
 OP_FDCB(68,«»)
-OP_ED(68,«»)
+
+	;; IN	L,(C)
+OP_ED(68,«
+	move.b	ebc,d0
+	jsr	port_in
+	move.b	d1,ehl
+	»)
 
 	;; LD	L,C
 OPCODE(69,«
@@ -1929,7 +2013,13 @@ OP_CB(69,«»)
 OP_DDCB(69,«»)
 OP_FD(69,«»)
 OP_FDCB(69,«»)
-OP_ED(69,«»)
+
+	;; OUT	(C),L
+OP_ED(69,«
+	move.b	ebc,d0
+	move.b	ehl,d1
+	jsr	port_out
+	»)
 
 	;; LD	L,D
 OPCODE(6a,«
@@ -2139,7 +2229,14 @@ OP_CB(78,«»)
 OP_DDCB(78,«»)
 OP_FD(78,«»)
 OP_FDCB(78,«»)
-OP_ED(78,«»)
+
+	;; IN	A,(C)
+OP_ED(78,«
+	move.b	ebc,d0
+	jsr	port_in
+	move.b	d1,eaf
+	»)
+				;nok
 
 	;; LD	A,C
 OPCODE(79,«
@@ -2152,7 +2249,14 @@ OP_CB(79,«»)
 OP_DDCB(79,«»)
 OP_FD(79,«»)
 OP_FDCB(79,«»)
-OP_ED(79,«»)
+
+	;; OUT	(C),A
+OP_ED(79,«
+	move.b	ebc,d0
+	move.b	eaf,d1
+	jsr	port_out
+	»)
+				;nok
 
 	;; LD	A,D
 OPCODE(7a,«
