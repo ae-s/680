@@ -1,5 +1,6 @@
 ;;; interrupt handling code, in -*- asm -*-
 
+.data
 	;; Current interrupt mode.  IM 1 and friends will modify
 	;; this.  It can be any of 0, 1, 2.
 int_mode:	dc.b	0
@@ -29,6 +30,7 @@ int0_opcode:	dc.b	0
 int0_return:	dc.w	0		; the destination address
 
 
+.text
 	;; This is the interrupt routine.  It can come at any point
 	;; during an instruction, though routines that use a5 (e.g. by
 	;; calling C subroutines) will have to turn off or hold

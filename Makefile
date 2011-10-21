@@ -1,13 +1,13 @@
-# these files are written as .asm
-ASM_FILES=alu.asm flags.asm ports.asm main.asm
+# these files are written as .s
+ASM_FILES=alu.s flags.s ports.s main.s
 
-# these files are written as .asm.m4 and then preprocessed to .asm
-M4_ASM_OUTPUT=opcodes.asm interrupts.asm
+# these files are written as .s.m4 and then preprocessed to .s
+M4_ASM_OUTPUT=opcodes.s interrupts.s
 M4_ASM_INCLUDES=opcodes.inc.m4
 
 # this is the set of file(s) which is fed to the assembler, and uses
 # INCLUDE directives to include the rest of assembly source.
-ASM=main.asm
+ASM=main.s
 
 C_HEADERS=global.h asm_vars.h
 C_FILES=loader.c bankswap.c video.c misc.c debug.c
@@ -53,7 +53,7 @@ packager: packager.c
 	gcc $(CFLAGS) packager.c -o packager
 
 # preprocess asm files using m4 as necessary
-%.asm: %.asm.m4
+%.s: %.s.m4
 	m4 $(M4_ASM_INCLUDES) $< > $@
 
 # assemble z80 code

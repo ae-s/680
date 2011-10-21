@@ -1,6 +1,8 @@
 	;; Parting out the big math/logic routines from the
 	;; instruction dispatch table.
 
+.text
+
 alu_add:
 	;; ADD instruction
 	;; ADD d1,d0

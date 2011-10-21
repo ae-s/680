@@ -13,120 +13,120 @@
 
 	;; == Memory Macros ================================================
 
-	;; Macro to read a byte from main memory at register \1.  Puts
-	;; the byte read in \2.
-FETCHB	MACRO			; 106 cycles, 8 bytes
-	move.w	\1,d1
+	;; Macro to read a byte from main memory at register \addr.  Puts
+	;; the byte read in \dest.
+.macro	FETCHB	src dest	; 106 cycles, 8 bytes
+	move.w	\addr,d1
 	jsr	deref
-	move.b	(a0),\2
-	ENDM
+	move.b	(a0),\dest
+.endm
 
-	;; Macro to write a byte in \1 to main memory at \2
-PUTB	MACRO			; 106 cycles, 8 bytes
-	move.w	\2,d1
+	;; Macro to write a byte in \val to main memory at \addr
+.macro	PUTB	val addr	; 106 cycles, 8 bytes
+	move.w	\addr,d1
 	jsr	deref
-	move.b	\1,(a0)
-	ENDM
+	move.b	\val,(a0)
+.endm
 
-	;; Macro to read a word from main memory at register \1
-	;; (unaligned).  Puts the word read in \2.
-FETCHW	MACRO			; 140 cycles, 16 bytes
-	move.w	\1,d1
+	;; Macro to read a word from main memory at register \addr
+	;; (unaligned).  Puts the word read in \dest.
+.macro	FETCHW	addr dest	; 140 cycles, 16 bytes
+	move.w	\addr,d1
 	jsr	deref
 	;; XXX SPEED
 	move.b	(a0)+,d2
-	move.b	(a0),\2
-	rol.w	#8,\2
-	move.b	d2,\2
-	ENDM
+	move.b	(a0),\dest
+	rol.w	#8,\dest
+	move.b	d2,\dest
+.endm
 
-	;; Macro to write a word in \1 to main memory at \2 (regs only)
-PUTW	MACRO			; 140 cycles, 14 bytes
-	move.w	\2,d1
+	;; Macro to write a word in \val to main memory at \addr (regs only)
+.macro	PUTW	val addr	; 140 cycles, 14 bytes
+	move.w	\addr,d1
 	jsr	deref
-	move.w	\1,d0
+	move.w	\val,d0
 	move.b	d0,(a0)+
 	LOHI	d0
 	move.b	d0,(a0)
-	ENDM
+.endm
 
-	;; Push the word in \1 (register) using stack register esp.
+	;; Push the word in \val (register) using stack register esp.
 	;; Sadly, I can't trust the stack register to be aligned.
 	;; Destroys d2.
 
 	;;   (SP-2) <- \1_l
 	;;   (SP-1) <- \1_h
 	;;   SP <- SP - 2
-PUSHW	MACRO			; 42 cycles, 8 bytes
-	move.w	\1,d2
+.macro	PUSHW	val		; 42 cycles, 8 bytes
+	move.w	\val,d2
 	LOHI	d2		;slow
 	move.b	d2,-(esp)	; high byte
-	move.b	\1,-(esp)	; low byte
-	ENDM
+	move.b	\val,-(esp)	; low byte
+.endm
 
-	;; Pop the word at the top of stack esp into \1.
+	;; Pop the word at the top of stack esp into \dest.
 	;; Destroys d0.
 
 	;;   \1_h <- (SP+1)
 	;;   \1_l <- (SP)
 	;;   SP <- SP + 2
-POPW	MACRO			; 60 cycles, 8 bytes
-	move.b	(esp)+,\1
-	LOHI	\1
-	move.b	(esp)+,\1	; high byte
-	HILO	\1
-	ENDM
+.macro	POPW	dest		; 60 cycles, 8 bytes
+	move.b	(esp)+,\dest
+	LOHI	\dest
+	move.b	(esp)+,\dest	; high byte
+	HILO	\dest
+.endm
 
 	;; == Immediate Memory Macros ==
 
-	;; Macro to read an immediate byte into \1.
-FETCHBI	MACRO			; 8 cycles, 2 bytes
-	move.b	(epc)+,\1
-	ENDM
+	;; Macro to read an immediate byte into \dest.
+.macro	FETCHBI	dest		; 8 cycles, 2 bytes
+	move.b	(epc)+,\dest
+.endm
 
-	;; Macro to read an immediate word (unaligned) into \1.
-FETCHWI	MACRO			; 42 cycles, 8 bytes
+	;; Macro to read an immediate word (unaligned) into \dest.
+.macro	FETCHWI	dest		; 42 cycles, 8 bytes
 	;; XXX SPEED
 	move.b	(epc)+,d2
-	move.b	(epc)+,\1
-	rol.w	#8,\1
-	move.b	d2,\1
-	ENDM
+	move.b	(epc)+,\dest
+	rol.w	#8,\dest
+	move.b	d2,\dest
+.endm
 
 	;; == Common Opcode Macros =========================================
 
 	;; To align opcode routines.
-_align	SET	0
+.set	_align,0
 
-START	MACRO
-	ORG	emu_plain_op+_align
-_align	SET	_align+$100	; opcode routine length
+.macro	start
+	.org	emu_plain_op+_align
+.set	_align,_align+$100	; opcode routine length
 	jmp	do_interrupt	; for interrupt routines
-	ENDM
+.endm
 
-START_DD	MACRO
-	ORG	emu_plain_op+_align+$40
-	ENDM
+.macro	START_DD
+	.org	emu_plain_op+_align+$40
+.endm
 
-START_CB	MACRO
-	ORG	emu_plain_op+_align+$42
-	ENDM
+.macro	START_CB
+	.org	emu_plain_op+_align+$42
+.endm
 
-START_DDCB	MACRO
-	ORG	emu_plain_op+_align+$44
-	ENDM
+.macro	START_DDCB
+	.org	emu_plain_op+_align+$44
+.endm
 
-START_FD	MACRO
-	ORG	emu_plain_op+_align+$46
-	ENDM
+.macro	START_FD
+	.org	emu_plain_op+_align+$46
+.endm
 
-START_FDCB	MACRO
-	ORG	emu_plain_op+_align+$48
-	ENDM
+.macro	START_FDCB
+	.org	emu_plain_op+_align+$48
+.endm
 
-START_ED	MACRO
-	ORG	emu_plain_op+_align+$4A
-	ENDM
+.macro	START_ED
+	.org	emu_plain_op+_align+$4A
+.endm
 
 	;; LOHI/HILO are hideously slow for instructions used often.
 	;; Consider interleaving registers instead:
@@ -137,60 +137,60 @@ START_ED	MACRO
 	;; slow.
 
 	;; When you want to use the high reg of a pair, use this first
-LOHI	MACRO			; 22 cycles, 2 bytes
-	ror.w	#8,\1
-	ENDM
+.macro	LOHI	reg		; 22 cycles, 2 bytes
+	ror.w	#8,\reg
+.endm
 
 	;; Then do your shit and finish with this
-HILO	MACRO			; 22 cycles, 2 bytes
-	rol.w	#8,\1
-	ENDM
+.macro	HILO	reg		; 22 cycles, 2 bytes
+	rol.w	#8,\reg
+.endm
 
 	;; Rearrange a register: ABCD -> ACBD.
-WORD	MACRO		  	; 52 cycles, 14 bytes
-	move.l	\1,-(sp)
-	movep.w	0(sp),\1
-	swap	\1
-	movep.w	1(sp),\1
+.macro	WORD	reg	  	; 52 cycles, 14 bytes
+	move.l	\reg,-(sp)
+	movep.w	0(sp),\reg
+	swap	\reg
+	movep.w	1(sp),\reg
 	addq	#4,sp
-	ENDM
+.endm
 
 	;; == Special Opcode Macros ========================================
 
 	;; Do an ADD \1,\2
-F_ADD_W	MACRO			; ? cycles, ? bytes
+.macro	F_ADD_W			; ? cycles, ? bytes
 	;; XXX
-	ENDM
+.endm
 	;; Do an SUB \1,\2
-F_SUB_W	MACRO			; ? cycles, ? bytes
+.macro	F_SUB_W			; ? cycles, ? bytes
 	;; XXX
-	ENDM
+.endm
 
 	;; INC and DEC macros
-F_INC_B	MACRO			; 108 cycles, 34 bytes
+.macro	F_INC_B	reg		; 108 cycles, 34 bytes
 	move.b	#1,f_tmp_byte-flag_storage(a3)
 	move.b	#1,f_tmp_src_b-flag_storage(a3)
-	move.b	\1,f_tmp_dst_b-flag_storage(a3)
-	addq	#1,\1
+	move.b	\reg,f_tmp_dst_b-flag_storage(a3)
+	addq	#1,\reg
 	moveq	#2,d0
 	F_CLEAR	d0
 	F_OVFL
-	ENDM
+.endm
 
-F_DEC_B	MACRO			; 80 cycles, 26 bytes
+.macro	F_DEC_B	reg		; 80 cycles, 26 bytes
 	move.b	#1,f_tmp_byte-flag_storage(a3)
 	st	f_tmp_src_b-flag_storage(a3) ;; why did I do this?
-	move.b	\1,f_tmp_dst_b-flag_storage(a3)
-	subq	#1,\1
+	move.b	\reg,f_tmp_dst_b-flag_storage(a3)
+	subq	#1,\reg
 	F_SET	#2
+.endm
+
+.macro	F_INC_W	regpr		; 4 cycles, 2 bytes
+	addq.w	#1,\regpr
 	ENDM
 
-F_INC_W	MACRO			; 4 cycles, 2 bytes
-	addq.w	#1,\1
-	ENDM
-
-F_DEC_W	MACRO			; 4 cycles, 2 bytes
-	subq.w	#1,\1
+.macro	F_DEC_W	regpr		; 4 cycles, 2 bytes
+	subq.w	#1,\regpr
 	ENDM
 
 	;; I might be able to unify rotation flags or maybe use a
@@ -207,20 +207,20 @@ done:
 	;; overhead:		 42 cycles /10 bytes
 
 
-DONE	MACRO
+.macro	DONE
 	clr.w	d0		; 4 cycles / 2 bytes
 	move.b	(epc)+,d0	; 8 cycles / 2 bytes
 	move.b	d0,$4c00+32*(128/8)
 	rol.w	#6,d0		;18 cycles / 2 bytes
 	jmp	0(a5,d0.w)	;14 cycles / 4 bytes
-	ENDM
+.endm
 
 	;; Timing correction for more precise emulation
 	;;
 	;; \1 is number of tstates the current instruction should take
 	;; \2 is number of cycles taken already
-TIME	MACRO
-	ENDM
+.macro	TIME
+.endm
 
 	CNOP	0,32
 
@@ -2342,11 +2342,11 @@ OP_ED(7f,«»)
 
 
 	;; Do an ADD \2,\1
-F_ADD_B	MACRO			; 14 bytes?
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_ADD_B	src dest		; 14 bytes?
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_add
-	move.b	d1,\2
+	move.b	d1,\dest
 	ENDM
 
 	;; ADD	A,B
@@ -2465,11 +2465,11 @@ OP_ED(87,«»)
 
 
 	;; Do an ADC \2,\1
-F_ADC_B	MACRO			; S34
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_ADC_B	src dest	; S34
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_adc
-	move.b	d1,\2
+	move.b	d1,\dest
 	ENDM
 
 	;; ADC	A,B
@@ -2592,11 +2592,11 @@ OP_ED(8f,«»)
 
 
 	;; Do a SUB \2,\1
-F_SUB_B	MACRO
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_SUB_B	src dest
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_sub
-	move.b	d1,\2
+	move.b	d1,\dest
 	ENDM
 
 	;; SUB	A,B
@@ -2714,12 +2714,12 @@ OP_ED(97,«»)
 
 
 	;; Do a SBC \2,\1
-F_SBC_B	MACRO
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_SBC_B	src dest
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_sbc
-	move.b	d1,\2
-	ENDM
+	move.b	d1,\dest
+.endm
 
 	;; SBC	A,B
 OPCODE(98,«
@@ -2830,12 +2830,12 @@ OPCODE(9f,«
 
 
 
-F_AND_B	MACRO
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_AND_B	src dest
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_and
-	move.b	d1,\2
-	ENDM
+	move.b	d1,\dest
+.endm
 
 OP_DD(9f,«»)
 OP_CB(9f,«»)
@@ -2953,11 +2953,11 @@ OPCODE(a7,«
 
 
 
-F_XOR_B	MACRO
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_XOR_B	src dest
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_xor
-	move.b	d1,\2
+	move.b	d1,\dest
 	ENDM
 
 OP_DD(a7,«»)
@@ -3077,12 +3077,12 @@ OPCODE(af,«
 
 
 
-F_OR_B	MACRO
-	move.b	\2,d1
-	move.b	\1,d0
+.macro	F_OR_B	src dest
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_or
-	move.b	d1,\2
-	ENDM
+	move.b	d1,\dest
+.endm
 
 OP_DD(af,«»)
 OP_CB(af,«»)
@@ -3202,13 +3202,13 @@ OP_ED(b6,«»)
 
 	;; COMPARE instruction
 	;; Tests the argument against A
-F_CP_B	MACRO
+.macro	F_CP_B	src dest
 	;; XXX deal with \2 or \1 being d1 or d0
-	move.b	\2,d1
-	move.b	\1,d0
+	move.b	\dest,d1
+	move.b	\src,d0
 	jsr	alu_cp
 	;; no result to save
-	ENDM
+.endm
 
 OP_DD(b7,«»)
 OP_CB(b7,«»)
