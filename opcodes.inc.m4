@@ -1,6 +1,6 @@
 dnl # change the comments to match the assembler.  Prevents/reduces
 dnl # confusion.
-changecom(;)dnl
+changecom(|)dnl
 dnl # I'm using these, in this direction, specifically to confuse Germans.
 changequote(`«', `»')dnl
 dnl #

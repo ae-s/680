@@ -1,27 +1,27 @@
-;; -*- asm -*-
+|| -*- gas -*-
 
-	;; Register naming
-esp	EQUR	a4
-	;; a5 is pointer to base of opcode jump table
-epc	EQUR	a6
+	|| Register naming
+.equiv	esp	a4
+	|| a5 is pointer to base of opcode jump table
+.equiv	epc	a6
 
-	;; d0 is scratch generally used in macros
-	;; d1 is scratch generally used outside macros
-	;; d2 is scratch and up for grabs
-eaf	EQUR	d3
-ebc	EQUR	d4
-ede	EQUR	d5
-ehl	EQUR	d6
-eixy	EQUR	d7
+	|| d0 is scratch generally used in macros
+	|| d1 is scratch generally used outside macros
+	|| d2 is scratch and up for grabs
+.equiv	eaf	d3
+.equiv	ebc	d4
+.equiv	ede	d5
+.equiv	ehl	d6
+.equiv	eixy	d7
 
-SAVEREG	MACRO
+.macro	SAVEREG
 	movem.l	d3-d7/a3-a6,-(sp)
-	ENDM
+.endm
 
-RESTREG	MACRO
+.macro	RESTREG
 	movem.l	(sp)+,d3-d7/a3-a6
-	ENDM
+.endm
 
-	;; Size of the ‘jmp	do_interrupt’ in every invocation of
-	;; START.
-INT_OFFSET	SET	4
+	|| Size of the ‘jmp	do_interrupt’ in every invocation of
+	|| START.
+.set	INT_OFFSET	4
