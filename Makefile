@@ -24,12 +24,13 @@ BINS_DEBUG=z680d.dbg
 OBJ_DEBUG=z680d.89z
 OBJ=z680k.89z
 
+# executables to build for the host platform
 NATIVE_OBJ=packager
 
 # flags for the tigcc cross-compiler
 TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG)
-TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d -Wa,--register-prefix-optional -Wa,-alhs
-#-Wa,-ahls
+TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d -Wa,--register-prefix-optional
+#-Wa,-ahls   # -- for listings
 
 # flags for the native C compiler
 CFLAGS=-Wall -ltifiles
@@ -50,6 +51,7 @@ $(OBJ_DEBUG): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS
 	tigcc $(TIGCCFLAGS) $(TIGCCFLAGS_DEBUG) $(ASM) $(C_FILES) -o $(OBJ_DEBUG)
 
 # use the host system's native gcc for this
+# utility to turn a romdump into a set of image files
 packager: packager.c
 	gcc $(CFLAGS) packager.c -o packager
 
