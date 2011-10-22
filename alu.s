@@ -28,7 +28,7 @@ alu_adc:
 	move.b	d1,f_tmp_dst_b
 	add.b	d2,d1
 	move	sr,f_host_ccr
-	move.w	#$0202,flag_byte
+	move.w	#0x0202,flag_byte
 	rts
 
 alu_sbc:
@@ -37,7 +37,7 @@ alu_sbc:
 	|| d1 - (d0+C) -> d1
 	|| sets flags
 
-	push.l	d2
+	push_l	d2
 	bsr	flags_normalize
 	move.b	flag_byte(pc),d2
 	andi.b	#1,d2
@@ -46,9 +46,9 @@ alu_sbc:
 	move.b	d1,f_tmp_dst_b
 	sub.b	d2,d1
 	move	sr,f_host_sr
-	move.b	#$02,flag_byte
-	move.b	#$02,flag_valid
-	pop.l	d2
+	move.b	#0x02,flag_byte
+	move.b	#0x02,flag_valid
+	pop_l	d2
 	rts
 
 alu_sub:
@@ -63,8 +63,8 @@ alu_sub:
 	move.b	d0,f_tmp_src_b
 	move.b	d1,f_tmp_dst_b
 	move.b	#1,f_tmp_byte
-	andi.b	#%00000010,flag_valid
-	move.b	#%00000010,flag_byte
+	andi.b	#0b00000010,flag_valid
+	move.b	#0b00000010,flag_byte
 	sub	d0,d1
 	move	sr,f_host_sr
 	rts
@@ -89,8 +89,8 @@ alu_cp:
 	move.b	d0,f_tmp_src_b
 	move.b	d1,f_tmp_dst_b
 	move.b	#1,f_tmp_byte
-	andi.b	#%00000010,flag_valid
-	move.b	#%00000010,flag_byte
+	andi.b	#0b00000010,flag_valid
+	move.b	#0b00000010,flag_byte
 	sub.b	d0,d1
 	move	sr,f_host_sr
 	rts

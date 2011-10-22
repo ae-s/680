@@ -1,10 +1,12 @@
-	;; Routines to process OUT and IN instructions.  This is the
-	;; bit that's unique to TI calculators.
+|| -*- gas -*-
 
-	;; Port is in d0, byte is in d1
-	;; Destroys a0
+	|| Routines to process OUT and IN instructions.  This is the
+	|| bit that's unique to TI calculators.
+
+	|| Port is in d0, byte is in d1
+	|| Destroys a0
 port_in:
-	andi.w	#$ff,d0
+	andi.w	#0xff,d0
 	add.w	d0,d0
 	add.w	d0,d0
 	movea.l	lut_ports_in(pc,d0),a0
@@ -270,8 +272,8 @@ lut_ports_in:
 	.int	port_in_ff
 
 port_out:
-	andi.w	#$ff,d0
-	;; This is the fastest way to shift left 2 bits.  :S
+	andi.w	#0xff,d0
+	|| This is the fastest way to shift left 2 bits.  :S
 	add.w	d0,d0
 	add.w	d0,d0
 	movea.l	lut_ports_out(pc,d0.w),a0
@@ -537,10 +539,10 @@ lut_ports_out:
 
 port_in_00:
 port_out_00:
-	;; Temporary test harness.  Writing to this port writes a
-	;; character to the screen.
+	|| Temporary test harness.  Writing to this port writes a
+	|| character to the screen.
 	SAVEREG
-	andi.w	#$ff,d1
+	andi.w	#0xff,d1
 	move.w	d1,-(sp)
 	jsr	char_draw
 	addq	#2,sp
@@ -555,7 +557,7 @@ port_in_03:
 port_out_03:
 port_in_04:
 port_out_04:
-	;; Bank B paging, among other things
+	|| Bank B paging, among other things
 	SAVEREG
 	move.b	d1,-(a7)
 	jsr	bankswap_b_write
@@ -567,7 +569,7 @@ port_in_05:
 port_out_05:
 port_in_06:
 port_out_06:
-	;; Bank A paging
+	|| Bank A paging
 	SAVEREG
 	move.b	d1,-(a7)
 	jsr	bankswap_a_write
@@ -604,7 +606,7 @@ port_in_10:
 .xref	video_write
 .xref	video_read
 
-	;; LCD status
+	|| LCD status
 	clr.b	d1
 	or.b	video_increment,d1
 	or.b	video_row,d1
@@ -614,7 +616,7 @@ port_in_10:
 	rts
 
 port_out_10:
-	;; LCD command
+	|| LCD command
 	tst.b	d1
 	beq	port_out_10_00
 	subq.b	#1,d1
@@ -632,77 +634,77 @@ port_out_10:
 	subq.b	#1,d1
 	beq	port_out_10_07
 	addq.b	#7,d1
-	cmpi.b	#$0b,d1		; power supply enhancement
+	cmpi.b	#0x0b,d1		| power supply enhancement
 	ble	port_out_10_undef
-	cmpi.b	#$13,d1		; power supply level
+	cmpi.b	#0x13,d1		| power supply level
 	ble	port_out_10_undef
-	cmpi.b	#$17,d1		; undefined
+	cmpi.b	#0x17,d1		| undefined
 	ble	port_out_10_undef
-	cmpi.b	#$18,d1		; cancel test mode
+	cmpi.b	#0x18,d1		| cancel test mode
 	beq	port_out_10_undef
-	cmpi.b	#$1b,d1		; undefined
+	cmpi.b	#0x1b,d1		| undefined
 	beq	port_out_10_undef
-	cmpi.b	#$1f,d1		; enter test mode
+	cmpi.b	#0x1f,d1		| enter test mode
 	ble	port_out_10_undef
-	cmpi.b	#$3f,d1		; set column
+	cmpi.b	#0x3f,d1		| set column
 	ble	port_out_10_set_col
-	cmpi.b	#$7f,d1		; z-addressing
-	ble	port_out_10_undef ; XXX?
-	cmpi.b	#$df,d1		; set row
+	cmpi.b	#0x7f,d1		| z-addressing
+	ble	port_out_10_undef | XXX?
+	cmpi.b	#0xdf,d1		| set row
 	ble	port_out_10_set_row
-	;; fallthrough: set contrast (unimplemented)
+	|| fallthrough: set contrast (unimplemented)
 	rts
-	;; ...
-port_out_10_00:		; 6-bit mode
-	move.b	#$00,video_6bit
+	|| ...
+port_out_10_00:		| 6-bit mode
+	move.b	#0x00,video_6bit
 	rts
-port_out_10_01:		; 8-bit mode
-	move.b	#$40,video_6bit
+port_out_10_01:		| 8-bit mode
+	move.b	#0x40,video_6bit
 	rts
-port_out_10_02:		; screen off
-	move.b	#$20,video_enabled
+port_out_10_02:		| screen off
+	move.b	#0x20,video_enabled
 	rts
-port_out_10_03:		; screen on
-	move.b	#$00,video_enabled
+port_out_10_03:		| screen on
+	move.b	#0x00,video_enabled
 	rts
-port_out_10_04:		; x--
-	move.b	#$01,video_row
-	move.b	#$00,video_increment
+port_out_10_04:		| x--
+	move.b	#0x01,video_row
+	move.b	#0x00,video_increment
 	rts
-port_out_10_05:		; x++
-	move.b	#$01,video_row
-	move.b	#$02,video_increment
+port_out_10_05:		| x++
+	move.b	#0x01,video_row
+	move.b	#0x02,video_increment
 	rts
-port_out_10_06:		; y--
-	move.b	#$00,video_row
-	move.b	#$00,video_increment
+port_out_10_06:		| y--
+	move.b	#0x00,video_row
+	move.b	#0x00,video_increment
 	rts
-port_out_10_07:		; y++
-	move.b	#$00,video_row
-	move.b	#$02,video_increment
+port_out_10_07:		| y++
+	move.b	#0x00,video_row
+	move.b	#0x02,video_increment
 	rts
 port_out_10_undef:
 	rts
 port_out_10_set_col:
-	sub.b	#$20,d1
+	sub.b	#0x20,d1
 	move.b	d1,video_cur_col
 	rts
 port_out_10_set_row:
-	sub.b	#$80,d1
+	sub.b	#0x80,d1
 	move.b	d1,video_cur_row
 	rts
 
 
 port_in_11:
-	;; LCD data
+	|| LCD data
 	SAVEREG
 	jsr	video_read
-	move.b	d0,d1		; return value
+	move.b	d0,d1		| return value
 	RESTREG
 	rts
 
 port_out_11:
-	;; LCD data
+	|| LCD data
 	SAVEREG
 	move.b	d1,-(a7)
 	jsr	video_write

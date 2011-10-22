@@ -28,7 +28,8 @@ NATIVE_OBJ=packager
 
 # flags for the tigcc cross-compiler
 TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG)
-TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d
+TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d -Wa,--register-prefix-optional -Wa,-alhs
+#-Wa,-ahls
 
 # flags for the native C compiler
 CFLAGS=-Wall -ltifiles

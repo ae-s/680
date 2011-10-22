@@ -12,6 +12,7 @@ dnl # 4. Cycles the emulator takes
 dnl # 5. Bytes of emulator code for this instruction
 dnl #
 define(«OPCODE»,«	START
+.print	"Opcode $1"
 dnl # This little bit of trickery lets me define a local label.
 dnl # Calling local(end) inside of OPCODE(10, ...) will expand to
 dnl # end_10, and is undefined everywhere else.
@@ -34,7 +35,7 @@ define(«OP_CB»,«	START_CB
 define(«local»,$«»1_cb««$1»»)dnl
 «emu_op_cb»$1«:»
 $2
-	TIME	$3 ifelse(«,$4»,  «,»,  «»,  «,$4»)
+	TIME	ifelse(«,$3», «,», «0», «$3»), ifelse(«,$4»,  «,»,  «0»,  «$4»)
 undefine(«label»)dnl
 	DONE»)dnl
 dnl

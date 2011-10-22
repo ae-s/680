@@ -15,7 +15,7 @@
 
 	|| Macro to read a byte from main memory at register \addr.  Puts
 	|| the byte read in \dest.
-.macro	FETCHB	src dest	| 106 cycles, 8 bytes
+.macro	FETCHB	addr dest	| 106 cycles, 8 bytes
 	move.w	\addr,d1
 	jsr	deref
 	move.b	(a0),\dest
@@ -100,32 +100,32 @@
 
 .macro	start
 	.org	emu_plain_op+_align
-.set	_align,_align+$100	| opcode routine length
+.set	_align,_align+0x100	| opcode routine length
 	jmp	do_interrupt	| for interrupt routines
 .endm
 
 .macro	START_DD
-	.org	emu_plain_op+_align+$40
+	.org	emu_plain_op+_align+0x40
 .endm
 
 .macro	START_CB
-	.org	emu_plain_op+_align+$42
+	.org	emu_plain_op+_align+0x42
 .endm
 
 .macro	START_DDCB
-	.org	emu_plain_op+_align+$44
+	.org	emu_plain_op+_align+0x44
 .endm
 
 .macro	START_FD
-	.org	emu_plain_op+_align+$46
+	.org	emu_plain_op+_align+0x46
 .endm
 
 .macro	START_FDCB
-	.org	emu_plain_op+_align+$48
+	.org	emu_plain_op+_align+0x48
 .endm
 
 .macro	START_ED
-	.org	emu_plain_op+_align+$4A
+	.org	emu_plain_op+_align+0x4A
 .endm
 
 	|| LOHI/HILO are hideously slow for instructions used often.
@@ -158,11 +158,11 @@
 	|| == Special Opcode Macros ========================================
 
 	|| Do an ADD \1,\2
-.macro	F_ADD_W			| ? cycles, ? bytes
+.macro	F_ADD_W	dest src		| ? cycles, ? bytes
 	|| XXX
 .endm
 	|| Do an SUB \1,\2
-.macro	F_SUB_W			| ? cycles, ? bytes
+.macro	F_SUB_W	dest src		| ? cycles, ? bytes
 	|| XXX
 .endm
 
@@ -187,11 +187,11 @@
 
 .macro	F_INC_W	regpr		| 4 cycles, 2 bytes
 	addq.w	#1,\regpr
-	ENDM
+.endm
 
 .macro	F_DEC_W	regpr		| 4 cycles, 2 bytes
 	subq.w	#1,\regpr
-	ENDM
+.endm
 
 	|| I might be able to unify rotation flags or maybe use a
 	|| lookup table
@@ -201,7 +201,7 @@
 done:
 	clr.w	d0		| 4 cycles / 2 bytes
 	move.b	(epc)+,d0	| 8 cycles / 2 bytes
-	move.b	d0,$4c00+32*(128/8)
+	move.b	d0,0x4c00+32*(128/8)
 	rol.w	#6,d0		|18 cycles / 2 bytes
 	jmp	0(a5,d0.w)	|14 cycles / 4 bytes
 	|| overhead:		 42 cycles /10 bytes
@@ -210,7 +210,7 @@ done:
 .macro	DONE
 	clr.w	d0		| 4 cycles / 2 bytes
 	move.b	(epc)+,d0	| 8 cycles / 2 bytes
-	move.b	d0,$4c00+32*(128/8)
+	move.b	d0,0x4c00+32*(128/8)
 	rol.w	#6,d0		|18 cycles / 2 bytes
 	jmp	0(a5,d0.w)	|14 cycles / 4 bytes
 .endm
@@ -219,10 +219,11 @@ done:
 	||
 	|| \1 is number of tstates the current instruction should take
 	|| \2 is number of cycles taken already
-.macro	TIME
+.macro	TIME	should is
 .endm
 
-	CNOP	0,32
+.text
+.align	8
 
 emu_plain_op:			| Size(bytes) Time(cycles)
 				| S0 T0
@@ -1156,10 +1157,10 @@ OP_ED(36,«»)
 	|| XXX flags are more complicated than this :(
 	|| ? cycles
 OPCODE(37,«
-	ori.b	#%00111011,flag_valid-flag_storage(a3)
+	ori.b	#0b00111011,flag_valid-flag_storage(a3)
 	move.b	eaf,d1
-	ori.b	#%00000001,d1
-	andi.b	#%11101101,d1
+	ori.b	#0b00000001,d1
+	andi.b	#0b11101101,d1
 	or.b	d1,flag_byte-flag_storage(a3)
 	»)
 				|nok
@@ -1276,8 +1277,8 @@ OP_ED(3e,«»)
 OPCODE(3f,«
 	jsr	flags_normalize
 	|| 	  SZ5H3PNC
-	ori.b	#%00000001,flag_valid-flag_storage(a3)
-	andi.b	#%11111110,flag_byte-flag_storage(a3)
+	ori.b	#0b00000001,flag_valid-flag_storage(a3)
+	andi.b	#0b11111110,flag_byte-flag_storage(a3)
 	»)
 				|nok
 
@@ -1636,7 +1637,7 @@ OP_ED(52,«»)
 
 	|| LD	D,E
 OPCODE(53,«
-	andi.w	#$00ff,ede
+	andi.w	#0x00ff,ede
 	move.b	ede,d1
 	lsl	#8,d1
 	or.w	d1,ede
@@ -1757,7 +1758,7 @@ OP_ED(59,«
 
 	|| LD	E,D
 OPCODE(5a,«
-	andi.w	#$ff00,ede	| 8/4
+	andi.w	#0xff00,ede	| 8/4
 	move.b	ede,d1		| 4/2
 	lsr.w	#8,d1		|22/2
 	or.w	d1,ede		| 4/2
@@ -2347,7 +2348,7 @@ OP_ED(7f,«»)
 	move.b	\src,d0
 	jsr	alu_add
 	move.b	d1,\dest
-	ENDM
+.endm
 
 	|| ADD	A,B
 OPCODE(80,«
@@ -2470,7 +2471,7 @@ OP_ED(87,«»)
 	move.b	\src,d0
 	jsr	alu_adc
 	move.b	d1,\dest
-	ENDM
+.endm
 
 	|| ADC	A,B
 	|| A <- A + B + (carry)
@@ -2597,7 +2598,7 @@ OP_ED(8f,«»)
 	move.b	\src,d0
 	jsr	alu_sub
 	move.b	d1,\dest
-	ENDM
+.endm
 
 	|| SUB	A,B
 OPCODE(90,«
@@ -2958,7 +2959,7 @@ OPCODE(a7,«
 	move.b	\src,d0
 	jsr	alu_xor
 	move.b	d1,\dest
-	ENDM
+.endm
 
 OP_DD(a7,«»)
 OP_CB(a7,«»)
@@ -3448,7 +3449,7 @@ OPCODE(c7,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$00,d0
+	move.w	#0x00,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -3581,7 +3582,7 @@ OPCODE(cf,«
 	move.l	epc,a0
 	jsr	underef		| d0 has PC
 	PUSHW	d0
-	move.w	#$08,d0
+	move.w	#0x08,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -3698,7 +3699,7 @@ OPCODE(d7,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$10,d0
+	move.w	#0x10,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -3808,7 +3809,7 @@ OPCODE(df,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$18,d0
+	move.w	#0x18,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -3929,7 +3930,7 @@ OPCODE(e7,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$20,d0
+	move.w	#0x20,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -3989,7 +3990,7 @@ OP_ED(e9,«»)
 
 	|| EX	DE,HL
 OPCODE(eb,«
-	exg.w	ede,ehl
+	exg	ede,ehl
 	»)
 				|nok
 
@@ -4049,7 +4050,7 @@ OPCODE(ef,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$28,d0
+	move.w	#0x28,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -4083,7 +4084,7 @@ OP_ED(ef,«»)
 OPCODE(f1,«
 	POPW	eaf
 	move.w	eaf,(flag_byte-flag_storage)(a3)
-	move.b	#$ff,(flag_valid-flag_storage)(a3)
+	move.b	#0xff,(flag_valid-flag_storage)(a3)
 	»)
 				|nok
 
@@ -4174,7 +4175,7 @@ OPCODE(f7,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$30,d0
+	move.w	#0x30,d0
 	jsr	deref
 	move.l	a0,epc
 	»)
@@ -4294,7 +4295,7 @@ OPCODE(ff,«
 	move.l	epc,a0
 	jsr	underef
 	PUSHW	d0
-	move.w	#$38,d0
+	move.w	#0x38,d0
 	jsr	deref
 	move.l	a0,epc
 	»)

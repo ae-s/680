@@ -26,7 +26,7 @@ int_enabled:	dc.b	1
 	|| argument from the JP instruction in the shim, and then
 	|| dance off into la-la land.
 int0_opcode:	dc.b	0
-		dc.b	$c3		| JP immed.w
+		dc.b	0xc3		| JP immed.w
 int0_return:	dc.w	0		| the destination address
 
 

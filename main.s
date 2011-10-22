@@ -42,7 +42,7 @@
 |.xdef		_ti92plus
 .xdef		__main
 |.xdef		_tigcc_native
-.include	"../tios.h"
+.include	"./tios.inc"
 
 .include	"global.inc"
 
@@ -72,7 +72,7 @@ emu_setup:
 	movea.l	emu_op_00,a5
 	lea	emu_run,a2
 	lea	flag_storage,a3
-	move.w	#$4000,d1
+	move.w	#0x4000,d1
 	bsr	deref
 	move.l	a0,epc
 	move.l	a0,esp
@@ -96,10 +96,10 @@ emu_teardown:
 deref:	| 76 cycles + 18 cycles for bsr
 	| 20 bytes to inline, saves 34 cycles per call
 	move.w	d1,d0
-	andi.w	#$3FFF,d0
+	andi.w	#0x3FFF,d0
 	movea.w	d0,a0
 	move.w	d1,d0
-	andi.w	#$C000,d0	| Can cut this out by pre-masking the table.
+	andi.w	#0xC000,d0	| Can cut this out by pre-masking the table.
 	rol.w	#4,d0
 	adda.l	deref_table(pc,d0.w),a0
 	rts
@@ -147,24 +147,24 @@ underef:
 	clr.w	d2
 	sub.l	(a1)+,d0
 	bmi.s	underef_not0
-	cmpi.l	#$4000,d0
+	cmpi.l	#0x4000,d0
 	bmi.s	underef_thatsit
 underef_not0:
 	move.l	a0,d0
-	move.w	#$4000,d2
+	move.w	#0x4000,d2
 	sub.l	(a1)+,d0
 	bmi.s	underef_not1
-	cmpi.l	#$4000,d0
+	cmpi.l	#0x4000,d0
 	bmi.s	underef_thatsit
 underef_not1:
 	move.l	a0,d0
-	move.w	#$8000,d2
+	move.w	#0x8000,d2
 	sub.l	(a1)+,d0
 	bmi.s	underef_not2
-	cmpi.l	#$4000,d0
+	cmpi.l	#0x4000,d0
 	bmi.s	underef_thatsit
 underef_not2:
-	move.w	#$c000,d2
+	move.w	#0xc000,d2
 	suba.l	(a1)+,a0
 	|| if that fails too, well shit man!
 	moveq	#0,d0
