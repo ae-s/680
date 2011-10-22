@@ -30,13 +30,15 @@ NATIVE_OBJ=packager
 # this is the Sierra linker from the TI Flash Studio SDK.  It works
 # quite well under Wine, and is a purely command-line tool.
 LINKER=wine ~/.wine/drive_c/SIERRA/BIN/link68.exe
+LINKERFLAGS=
 
-ASFLAGS=--register-prefix-optional
+# the gnu cross-assembler
+GAS=/opt/gcc4ti/bin/as
+GASFLAGS=--register-prefix-optional
 
 # flags for the tigcc cross-compiler
 TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG)
-TIGCCFLAGS=-falign-functions=4 -ffunction-sections -fdata-sections -Wall -Wextra -Wwrite-strings -Wa,$(ASFLAGS)
-#-Wa,-ahls   # -- for listings
+TIGCCFLAGS=-falign-functions=4 -ffunction-sections -fdata-sections -Wall -Wextra -Wwrite-strings -Wa,$(GASFLAGS)
 
 # flags for the native C compiler
 CFLAGS=-Wall -ltifiles
@@ -51,8 +53,7 @@ clean:
 debug: $(OBJ_DEBUG)
 
 $(OBJ): $(O_FILES)
-	$(LINKER) $(O_FILES) -o $(OBJ)
-#	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
+	$(LINKER) $(LINKERFLAGS) $(O_FILES) -o $(OBJ)
 
 $(OBJ_DEBUG): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
 	tigcc $(TIGCCFLAGS) $(TIGCCFLAGS_DEBUG) $(ASM) $(C_FILES) -o $(OBJ_DEBUG)
@@ -76,6 +77,8 @@ packager: packager.c
 	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' $(*D)/$(*F).testbench.bin | sed -e 's/0x *,//g' >> $(*D)/$(*F).testbench.h
 	echo '};' >> $(*D)/$(*F).testbench.h
 
+
+# relatively speaking, these are easy peasy
 loader.o: loader.c asm_vars.h global.h image.h testbenches/zexdoc.testbench.h
 	tigcc -c $(TIGCCFLAGS) loader.c -o loader.o
 
@@ -92,5 +95,5 @@ debug.o: debug.c
 	tigcc -c $(TIGCCFLAGS) debug.c -o debug.o
 
 main.o: main.s global.inc tios.inc ports.s interrupts.s flags.s alu.s opcodes.s
-	tigcc -c $(TIGCCFLAGS) main.s -o main.o
+	$(GAS) $(GASFLAGS) main.s -o main.o
 
