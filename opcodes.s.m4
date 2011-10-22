@@ -222,7 +222,8 @@ done:
 .macro	TIME	should is
 .endm
 
-.text
+	|| text section 1 is the emulator core
+.text 1
 .align	8
 
 emu_plain_op:			| Size(bytes) Time(cycles)
@@ -4307,4 +4308,7 @@ OP_DDCB(ff,«»)
 OP_FD(ff,«»)
 OP_FDCB(ff,«»)
 OP_ED(ff,«»)
+
+	|| end special section
+.text 0
 

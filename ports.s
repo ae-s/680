@@ -1,5 +1,8 @@
 || -*- gas -*-
 
+	|| special section for IO
+.text 2
+
 	|| Routines to process OUT and IN instructions.  This is the
 	|| bit that's unique to TI calculators.
 
@@ -1188,3 +1191,5 @@ port_in_fe:
 port_out_fe:
 port_in_ff:
 port_out_ff:
+
+.text 0
