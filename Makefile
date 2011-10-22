@@ -27,9 +27,15 @@ OBJ=z680k.89z
 # executables to build for the host platform
 NATIVE_OBJ=packager
 
+# this is the Sierra linker from the TI Flash Studio SDK.  It works
+# quite well under Wine, and is a purely command-line tool.
+LINKER=wine ~/.wine/drive_c/SIERRA/BIN/link68.exe
+
+ASFLAGS=--register-prefix-optional
+
 # flags for the tigcc cross-compiler
 TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG)
-TIGCCFLAGS=-Wall -Os -ffunction-sections -fdata-sections --optimize-code --cut-ranges --reorder-sections --merge-constants --remove-unused -Wall -Wextra -Wwrite-strings -WA,-d -Wa,--register-prefix-optional
+TIGCCFLAGS=-falign-functions=4 -ffunction-sections -fdata-sections -Wall -Wextra -Wwrite-strings -Wa,$(ASFLAGS)
 #-Wa,-ahls   # -- for listings
 
 # flags for the native C compiler
@@ -40,12 +46,13 @@ CFLAGS=-Wall -ltifiles
 all: $(OBJ) $(NATIVE_OBJ)
 
 clean:
-	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(BINS_DEBUG) $(OBJ) $(OBJ_DEBUG) $(NATIVE_OBJ) $(LISTING_DEBUG)
+	rm -f $(S_FILES) $(O_FILES) $(M4_ASM_OUTPUT) $(MADE_FILES) $(MADE_BINS) $(BINS_DEBUG) $(OBJ) $(OBJ_DEBUG) $(NATIVE_OBJ) $(LISTING_DEBUG) $(OBJ)
 
 debug: $(OBJ_DEBUG)
 
-$(OBJ): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
-	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
+$(OBJ): $(O_FILES)
+	$(LINKER) $(O_FILES) -o $(OBJ)
+#	tigcc $(TIGCCFLAGS) $(ASM) $(C_FILES) -o $(OBJ)
 
 $(OBJ_DEBUG): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
 	tigcc $(TIGCCFLAGS) $(TIGCCFLAGS_DEBUG) $(ASM) $(C_FILES) -o $(OBJ_DEBUG)
@@ -68,4 +75,22 @@ packager: packager.c
 	echo 'char testbench[] = {' > $(*D)/$(*F).testbench.h
 	hexdump -v -e '12/1 "0x%02x, "' -e '"\n"' $(*D)/$(*F).testbench.bin | sed -e 's/0x *,//g' >> $(*D)/$(*F).testbench.h
 	echo '};' >> $(*D)/$(*F).testbench.h
+
+loader.o: loader.c asm_vars.h global.h image.h testbenches/zexdoc.testbench.h
+	tigcc -c $(TIGCCFLAGS) loader.c -o loader.o
+
+bankswap.o: bankswap.c asm_vars.h
+	tigcc -c $(TIGCCFLAGS) bankswap.c -o bankswap.o
+
+video.o: video.c
+	tigcc -c $(TIGCCFLAGS) video.c -o video.o
+
+misc.o: misc.c asm_vars.h
+	tigcc -c $(TIGCCFLAGS) misc.c -o misc.o
+
+debug.o: debug.c
+	tigcc -c $(TIGCCFLAGS) debug.c -o debug.o
+
+main.o: main.s global.inc tios.inc ports.s interrupts.s flags.s alu.s opcodes.s
+	tigcc -c $(TIGCCFLAGS) main.s -o main.o
 
