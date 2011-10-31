@@ -98,6 +98,8 @@
 	|| To align opcode routines.
 .set	_align,0
 
+.ifndef	TEST
+
 .macro	start
 	.org	emu_plain_op+_align
 .set	_align,_align+0x100	| opcode routine length
@@ -127,6 +129,24 @@
 .macro	START_ED
 	.org	emu_plain_op+_align+0x4A
 .endm
+
+.else
+.macro	START
+.endm
+.macro	START_DD
+.endm
+.macro	START_CB
+.endm
+.macro	START_DDCB
+.endm
+.macro	START_FD
+.endm
+.macro	START_FDCB
+.endm
+.macro	START_ED
+.endm
+
+.endif
 
 	|| LOHI/HILO are hideously slow for instructions used often.
 	|| Consider interleaving registers instead:
@@ -197,6 +217,7 @@
 	|| lookup table
 
 
+.ifndef TEST
 	|| This is run at the end of every instruction routine.
 done:
 	clr.w	d0		| 4 cycles / 2 bytes
@@ -214,6 +235,14 @@ done:
 	rol.w	#6,d0		|18 cycles / 2 bytes
 	jmp	0(a5,d0.w)	|14 cycles / 4 bytes
 .endm
+
+.else
+done:	rts
+
+.macro	DONE
+	rts
+.endm
+.endif
 
 	|| Timing correction for more precise emulation
 	||

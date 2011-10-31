@@ -6,9 +6,16 @@
  * GPL
  */
 
-#include <stdio.h>
+//#include <stdio.h>
+
+short putchar(short c)
+{
+	return c;
+}
+
 
 void char_draw(char c)
 {
 	putchar((short)c);
 }
+

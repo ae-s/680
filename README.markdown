@@ -1,14 +1,17 @@
 z680k: z80 emulator for 68k calculators
 =======================================
-      666   888   000  k  k
-zzzz 6     8   8 0   0 k k
-  z  6666   888  0 0 0 kk
- z   6   6 8   8 0   0 k k
-zzzz  666   888   000  k  k
+
+       666   888   000  k  k
+ zzzz 6     8   8 0   0 k k
+   z  6666   888  0 0 0 kk
+  z   6   6 8   8 0   0 k k
+ zzzz  666   888   000  k  k
 
 Astrid Smith
 Project started: 2010-06-06
-GPL
+
+This software package is licensed under the terms of the GNU General
+Public License version 3.0, or (at your option) any later version.
 
 The intent of this project is to provide a fast and correct TI-83+
 emulator to run on the TI-89.  Once that is done, perhaps I will

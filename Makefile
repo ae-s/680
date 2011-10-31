@@ -1,5 +1,5 @@
 # these files are written as .s
-ASM_FILES=alu.s flags.s ports.s main.s
+ASM_FILES=alu.s flags.s ports.s main.s memory.s
 
 # these files are written as .s.m4 and then preprocessed to .s
 M4_ASM_OUTPUT=opcodes.s interrupts.s
@@ -24,26 +24,28 @@ BINS_DEBUG=z680d.dbg
 OBJ_DEBUG=z680d.89z
 OBJ=z680k.89z
 
+OBJ_TEST=z680test.89z
+
 # executables to build for the host platform
 NATIVE_OBJ=packager
 
 # this is the Sierra linker from the TI Flash Studio SDK.  It works
 # quite well under Wine, and is a purely command-line tool.
 LINKER=wine ~/.wine/drive_c/SIERRA/BIN/link68.exe
-LINKERFLAGS=
+LINKERFLAGS=-m -r
 
 # the gnu cross-assembler
 GAS=/opt/gcc4ti/bin/as
 GASFLAGS=--register-prefix-optional
 
 # flags for the tigcc cross-compiler
-TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG)
+TIGCCFLAGS_DEBUG=--debug -WA,-l$(LISTING_DEBUG) -Wa,-ahls
 TIGCCFLAGS=-falign-functions=4 -ffunction-sections -fdata-sections -Wall -Wextra -Wwrite-strings -Wa,$(GASFLAGS)
 
 # flags for the native C compiler
 CFLAGS=-Wall -ltifiles
 
-.PHONY: clean debug
+.PHONY: clean debug test
 
 all: $(OBJ) $(NATIVE_OBJ)
 
@@ -52,11 +54,16 @@ clean:
 
 debug: $(OBJ_DEBUG)
 
+test: $(OBJ_TEST)
+
 $(OBJ): $(O_FILES)
 	$(LINKER) $(LINKERFLAGS) $(O_FILES) -o $(OBJ)
 
 $(OBJ_DEBUG): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
 	tigcc $(TIGCCFLAGS) $(TIGCCFLAGS_DEBUG) $(ASM) $(C_FILES) -o $(OBJ_DEBUG)
+
+$(OBJ_TEST): unittest.c unittest.h $(M4_ASM_OUTPUT)
+	tigcc $(TIGCCFLAGS) $(TIGCCFLAGS_DEBUG) -Wa,--defsym,TEST=1 unittest.c test.s -o $(OBJ_TEST)
 
 # use the host system's native gcc for this
 # utility to turn a romdump into a set of image files
