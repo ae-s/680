@@ -22,7 +22,9 @@ MADE_BINS=testbenches/mine.testbench.bin testbenches/zexdoc.testbench.bin
 LISTING_DEBUG=z680d.listing
 BINS_DEBUG=z680d.dbg
 OBJ_DEBUG=z680d.89z
-OBJ=z680k.89z
+OBJ=z680k.89k
+
+NAME=z680k Emulator
 
 OBJ_TEST=z680test.89z
 
@@ -33,6 +35,9 @@ NATIVE_OBJ=packager
 # quite well under Wine, and is a purely command-line tool.
 LINKER=wine ~/.wine/drive_c/SIERRA/BIN/link68.exe
 LINKERFLAGS=-m -r
+
+SIGNER=wine  ~/.wine/drive_c/SIERRA/BIN/sdkpc.exe
+SIGNERFLAGS=-O 3
 
 # the gnu cross-assembler
 GAS=/opt/gcc4ti/bin/as
@@ -56,9 +61,6 @@ debug: $(OBJ_DEBUG)
 
 test: $(OBJ_TEST)
 
-$(OBJ): $(O_FILES)
-	$(LINKER) $(LINKERFLAGS) $(O_FILES) -o $(OBJ)
-
 $(OBJ_DEBUG): $(ASM_FILES) $(M4_ASM_OUTPUT) $(C_FILES) $(MADE_FILES) $(C_HEADERS)
 	tigcc $(TIGCCFLAGS) $(TIGCCFLAGS_DEBUG) $(ASM) $(C_FILES) -o $(OBJ_DEBUG)
 
@@ -73,6 +75,12 @@ packager: packager.c
 # preprocess asm files using m4 as necessary
 %.s: %.s.m4
 	m4 $(M4_ASM_INCLUDES) $< > $@
+
+$(EXECUTABLE).89k: $(EXECUTABLE).out
+	$(SIGNER) $(SIGNER_FLAGS) -s sdk-89.key 89 $(EXECUTABLE).out "$(NAME)"
+
+$(EXECUTABLE).out: $(O_FILES)
+	$(LINKER) $(LINKERFLAGS) $(O_FILES) -o $(EXECUTABLE).out
 
 # assemble z80 code
 %.testbench.bin:	%.testbench.z80
