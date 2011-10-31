@@ -8,6 +8,8 @@
 .include	"interrupts.s"
 .include	"opcodes.s"
 
+.text
+
 
 emu_op_undo_cb:
 emu_op_undo_dd:
