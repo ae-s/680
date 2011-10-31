@@ -14,7 +14,7 @@
 ||| A7		68000 stack pointer
 ||| A6/epc	emulated PC
 ||| A5		instruction table base pointer
-||| A4		emulated SP
+||| A4/esp	emulated SP
 ||| A3		pointer to flag_storage
 ||| A2		
 ||| A1		
