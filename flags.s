@@ -214,9 +214,9 @@ flags_all:
 
 .data
 flag_storage:
-	|| 0 if the flag is already valid
-	|| 2 if tmp_???b is valid
-	|| 3 if tmp_???w is valid
+	|| 0 if the flag is already valid in flag_byte
+	|| 2 if f_tmp_???_b is valid
+	|| 3 if f_tmp_???_w is valid
 f_tmp_byte:	.byte	0
 
 	|| 2 if P is 0
