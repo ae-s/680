@@ -67,8 +67,10 @@ routine is executed.  (This is just to make it easy to set a
 breakpoint on every instruction fetch, so I can single-step through
 emulated code.)
 
+```asm
 01BB80: 1B 5E B1 10 MOVE.B (A6)+,($01BB86)
 01BB84: 4E E4 xx 04 JMP ($xx04,A5)
+```
 
 The Tezxas setup requires instruction routines to begin at 256-byte
 intervals within a 64k long block.
